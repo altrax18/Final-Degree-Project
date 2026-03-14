@@ -1,0 +1,8 @@
+{
+  "name": "final-degree-project",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "bun run --filter '*' dev"
+  }
+}
