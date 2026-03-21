@@ -11,5 +11,12 @@
   "devDependencies": {
     "bun-types": "latest"
   },
-  "module": "src/index.ts"
+  "module": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  }
 }
