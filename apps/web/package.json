@@ -12,13 +12,20 @@
     "astro": "astro"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@astrojs/check": "^0.9.8",
     "@astrojs/react": "^5.0.2",
+=======
+>>>>>>> 7b62b60 (feat(games): implement igdb catalog and card component)
     "@astrojs/vercel": "^10.0.4",
+    "@astrojs/react": "^5.0.2",
     "@elysiajs/eden": "^1.4.8",
     "@final-degree-project/api": "workspace:*",
     "@tailwindcss/vite": "^4.2.2",
+<<<<<<< HEAD
     "@tanstack/react-query": "^5.99.2",
+=======
+>>>>>>> 7b62b60 (feat(games): implement igdb catalog and card component)
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "astro": "^6.0.8",
@@ -32,6 +39,7 @@
     "sass": "^1.98.0",
     "tailwindcss": "^4.2.2",
     "@astrojs/check": "^0.9.8",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "sass": "^1.98.0"
   }
 }

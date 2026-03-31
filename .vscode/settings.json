@@ -1,3 +1,4 @@
 {
-    "workbench.browser.enableChatTools": true
+    "workbench.browser.enableChatTools": true,
+    "commentTranslate.targetLanguage": "es"
 }
