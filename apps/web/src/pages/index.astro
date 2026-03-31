@@ -12,26 +12,33 @@ const { data: trending, error } = await api.api.trending.get();
   <section class="space-y-6">
     <div class="space-y-1">
       <h1 class="text-3xl font-bold text-white tracking-tight">Trending Now</h1>
-      <p class="text-gray-400 text-sm">A curated snapshot of what's hot across all media.</p>
+      <p class="text-gray-400 text-sm">
+        A curated snapshot of what's hot across all media.
+      </p>
     </div>
 
-    {error && (
-      <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
-        ⚠️ Could not reach the API. Make sure <code class="font-mono">apps/api</code> is running on port 3000.
-      </div>
-    )}
+    {
+      error && (
+        <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
+          ⚠️ Could not reach the API. Make sure{" "}
+          <code class="font-mono">apps/api</code> is running on port 3000.
+        </div>
+      )
+    }
 
-    {trending && (
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {trending.map((item) => (
-          <MediaCard
-            client:visible
-            title={item.title}
-            type={item.type}
-            image={item.image}
-          />
-        ))}
-      </div>
-    )}
+    {
+      trending && (
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {trending.map((item) => (
+            <MediaCard
+              client:visible
+              title={item.title}
+              type={item.type}
+              image={item.image}
+            />
+          ))}
+        </div>
+      )
+    }
   </section>
 </Layout>

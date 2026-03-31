@@ -1,0 +1,33 @@
+---
+// apps/web/src/pages/games.astro
+import Layout from "../layouts/Layout.astro";
+import GameCard from "../components/GameCard.astro";
+import { getGames } from "../lib/api";
+
+const games = await getGames();
+---
+
+<Layout title="Lista de Juegos">
+  <main>
+    <h1 class="text-pantalla text-center text-3xl font-bold my-8">
+      Catálogo de Juegos
+    </h1>
+
+    <div class="grid">
+      {games.map((game) => <GameCard game={game} />)}
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+  }
+  h1 {
+    color: white;
+    text-align: center;
+  }
+</style>

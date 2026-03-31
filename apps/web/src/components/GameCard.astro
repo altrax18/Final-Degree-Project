@@ -1,0 +1,35 @@
+---
+const { game } = Astro.props;
+---
+
+<div
+  class="group bg-card border border-noche rounded-xl overflow-hidden hover:border-cielo transition-all duration-300 shadow-xl"
+>
+  <div class="relative aspect-[2/3] overflow-hidden bg-base">
+    <img
+      src={game.image || "https://placehold.co/600x400?text=No+Image"}
+      alt={game.title}
+      class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+    />
+    <div
+      class="absolute top-2 right-2 bg-base/80 backdrop-blur-sm px-2 py-1 rounded text-xs font-bold text-cielo border border-noche"
+    >
+      {game.rating ?? 0}%
+    </div>
+  </div>
+
+  <div class="p-4">
+    <h3
+      class="text-pantalla font-bold text-lg truncate group-hover:text-cielo transition-colors"
+    >
+      {game.title}
+    </h3>
+    <p class="text-neblina text-sm mt-1">IGDB ID: {game.id}</p>
+
+    <button
+      class="mt-4 w-full py-2 bg-profundidad hover:bg-zafiro text-pantalla text-sm font-semibold rounded-lg transition-colors border border-noche"
+    >
+      Ver detalles
+    </button>
+  </div>
+</div>
