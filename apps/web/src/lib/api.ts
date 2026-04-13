@@ -8,8 +8,6 @@ import type { Movie } from "../types/movie";
 // POR QUE LO USO: Autocompletado y validacion de rutas/respuestas sin duplicar contratos manualmente.
 // DOCUMENTACION: https://elysiajs.com/eden/overview.html
 
-const api = treaty<App>("http://localhost:3000");
-
 export interface TrendingItem {
   id: string;
   title: string;
@@ -123,3 +121,6 @@ export async function getMovieById(id: string): Promise<Movie> {
     "No se pudieron cargar los detalles de la pelicula",
   );
 }
+// Cliente Eden Treaty – apunta al servidor API en ejecución.
+// En las páginas SSR de Astro, esto se llama en el servidor, por lo que localhost funciona bien.
+export const api = treaty<App>("localhost:3000");

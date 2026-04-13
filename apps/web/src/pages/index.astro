@@ -12,7 +12,9 @@ try {
 } catch (err) {
   error = err;
 }
----
+// // Obtener elementos en tendencia en el servidor vía Eden Treaty
+// const { data: trending, error } = await api.api.trending.get();
+// ---
 
 <Layout title="Trending">
   <section class="space-y-6">
@@ -23,28 +25,25 @@ try {
       </p>
     </div>
 
-    {
-      error && (
-        <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
-          Could not reach the API. Make sure{" "}
-          <code class="font-mono">apps/api</code> is running on port 3000.
-        </div>
-      )
-    }
+    {error && (
+      <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
+        Could not reach the API. Make sure{" "}
+        <code class="font-mono">apps/api</code> is running on port 3000.
+      </div>
+    )}
 
-    {
-      trending && (
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {trending.map((item) => (
-            <MediaCard
-              client:visible
-              title={item.title}
-              type={item.type}
-              image={item.image}
-            />
-          ))}
-        </div>
-      )
-    }
+    {trending && (
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {trending.map((item) => (
+          <MediaCard
+            client:visible
+            title={item.title}
+            type={item.type}
+            image={item.image}
+          />
+        ))}
+      </div>
+    )}
   </section>
-</Layout>
+</Layout>;
+---
