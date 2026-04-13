@@ -1,0 +1,67 @@
+---
+// src/pages/music/[trackId].astro
+import Layout from "../../layouts/Layout.astro";
+import TrackDetail from "../../components/music/TrackDetail.jsx";
+import { api } from "../../lib/api";
+
+const { trackId } = Astro.params;
+
+let track: any = null;
+let fetchError: string | null = null;
+
+if (trackId) {
+  const { data, error } = await api.api.music.track[trackId].get();
+  if (error || !data) {
+    fetchError =
+      "No se pudo cargar la canción. Comprueba que la API esté activa.";
+  } else {
+    track = data;
+  }
+}
+---
+
+<Layout title={track ? track.title : "Track"} showPlayer={true}>
+  <!-- Enlace de regreso -->
+  <div class="mb-6">
+    <a
+      href="/music"
+      class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors group"
+    >
+      <span
+        class="material-symbols-rounded text-[18px] group-hover:-translate-x-0.5 transition-transform"
+      >
+        arrow_back
+      </span>
+      Volver a Música
+    </a>
+  </div>
+
+  <!-- Estado de error -->
+  {
+    fetchError && (
+      <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-red-400 text-sm flex items-center gap-3">
+        <span class="material-symbols-rounded">error</span>
+        {fetchError}
+      </div>
+    )
+  }
+
+  <!-- Detalle de la pista (isla de React) -->
+  {track && <TrackDetail client:only="react" track={track} />}
+
+  <!-- No encontrado -->
+  {
+    !fetchError && !track && (
+      <div class="flex flex-col items-center justify-center py-32 gap-4 text-gray-500">
+        <span class="text-6xl">🎵</span>
+        <p class="text-lg font-medium">Canción no encontrada</p>
+        <a
+          href="/music"
+          class="text-purple-400 hover:text-purple-300 text-sm underline"
+        >
+          Volver a Música
+        </a>
+      </div>
+    )
+  }
+</Layout>

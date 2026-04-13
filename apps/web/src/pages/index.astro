@@ -4,7 +4,7 @@ import Layout from "../layouts/Layout.astro";
 import MediaCard from "../components/MediaCard.jsx";
 import { api } from "../lib/api";
 
-// Fetch trending items server-side via Eden Treaty
+// Obtener elementos en tendencia en el servidor vía Eden Treaty
 const { data: trending, error } = await api.api.trending.get();
 ---
 

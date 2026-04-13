@@ -1,0 +1,63 @@
+---
+// src/pages/music.astro
+import Layout from "../layouts/Layout.astro";
+import MusicGrid from "../components/music/MusicGrid.jsx";
+import { api } from "../lib/api";
+
+// Obtener canciones en tendencia en el servidor vía Eden Treaty (tipado fuerte)
+let tracks: any[] = [];
+let fetchError: string | null = null;
+
+const { data, error } = await api.api.music.trending.songs.get();
+if (error) {
+  fetchError =
+    "Could not reach the API. Make sure apps/api is running on port 3000.";
+} else if (data && typeof data === "object" && "results" in data) {
+  tracks = (data as any).results ?? [];
+}
+---
+
+<Layout title="Music">
+  <section class="space-y-8">
+    <!-- Encabezado -->
+    <div class="space-y-1">
+      <h1 class="text-3xl font-bold text-white tracking-tight">🎵 Music</h1>
+      <p class="text-gray-400 text-sm">
+        Top songs right now — powered by Apple Music · iTunes preview (30s)
+      </p>
+    </div>
+
+    <!-- Estado de error -->
+    {
+      fetchError && (
+        <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
+          ⚠️ {fetchError}
+        </div>
+      )
+    }
+
+    <!-- Cuadrícula de pistas con cargar más -->
+    {
+      tracks.length > 0 && (
+        <MusicGrid
+          client:load
+          initialTracks={tracks}
+          pageSize={tracks.length}
+        />
+      )
+    }
+
+    <!-- Estado vacío -->
+    {
+      !fetchError && tracks.length === 0 && (
+        <div class="flex flex-col items-center justify-center py-24 gap-4 text-gray-500">
+          <span class="text-6xl">🎵</span>
+          <p class="text-lg font-medium">No tracks found</p>
+          <p class="text-sm">
+            Make sure the API is running and iTunes is reachable.
+          </p>
+        </div>
+      )
+    }
+  </section>
+</Layout>

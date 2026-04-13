@@ -30,7 +30,7 @@ export default function MediaCard({ title, type, image }) {
         shadow-lg transition-all duration-300 hover:-translate-y-1
         hover:shadow-2xl ${style.glow} hover:border-gray-700 cursor-pointer`}
     >
-      {/* Poster */}
+      {/* Póster */}
       <div className="relative aspect-[2/3] overflow-hidden">
         <img
           src={image}
@@ -38,11 +38,11 @@ export default function MediaCard({ title, type, image }) {
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
         />
-        {/* Gradient overlay */}
+        {/* Capa de degradado */}
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-80" />
       </div>
 
-      {/* Info */}
+      {/* Información */}
       <div className="p-4 space-y-2">
         <span
           className={`inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full border ${style.badge}`}
