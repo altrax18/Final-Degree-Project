@@ -2,10 +2,10 @@
 // src/pages/index.astro
 import Layout from "../layouts/Layout.astro";
 import MediaCard from "../components/MediaCard.jsx";
-import { api } from "../lib/api";
+import { serverApi } from "../lib/server-api";
 
 // Obtener elementos en tendencia en el servidor vía Eden Treaty
-const { data: trending, error } = await api.api.trending.get();
+const { data: trending, error } = await serverApi.api.trending.get();
 ---
 
 <Layout title="Trending">
