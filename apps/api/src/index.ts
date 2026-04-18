@@ -840,11 +840,14 @@ const app = new Elysia()
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
-  })
+  });
 
-  .listen(3000);
+if (typeof Bun !== "undefined" && import.meta.main) {
+  app.listen(3000);
+  console.log(
+    `Elysia is running at http://${app.server?.hostname}:${app.server?.port}`,
+  );
+}
 
-console.log(
-  `Elysia is running at http://${app.server?.hostname}:${app.server?.port}`,
-);
+export { app };
 export type App = typeof app;
