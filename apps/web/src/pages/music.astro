@@ -2,13 +2,13 @@
 // src/pages/music.astro
 import Layout from "../layouts/Layout.astro";
 import MusicGrid from "../components/music/MusicGrid.jsx";
-import { api } from "../lib/api";
+import { serverApi } from "../lib/server-api";
 
 // Obtener canciones en tendencia en el servidor vía Eden Treaty (tipado fuerte)
 let tracks: any[] = [];
 let fetchError: string | null = null;
 
-const { data, error } = await api.api.music.trending.songs.get();
+const { data, error } = await serverApi.api.music.trending.songs.get();
 if (error) {
   fetchError =
     "Could not reach the API. Make sure apps/api is running on port 3000.";
