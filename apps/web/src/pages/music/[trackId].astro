@@ -10,7 +10,7 @@ let track: any = null;
 let fetchError: string | null = null;
 
 if (trackId) {
-  const { data, error } = await api.api.music.track[trackId].get();
+  const { data, error } = await api.api.music.track({ id: trackId }).get();
   if (error || !data) {
     fetchError =
       "No se pudo cargar la canción. Comprueba que la API esté activa.";
@@ -20,7 +20,7 @@ if (trackId) {
 }
 ---
 
-<Layout title={track ? track.title : "Track"} showPlayer={true}>
+<Layout title={track ? track.title : "Track"}>
   <!-- Enlace de regreso -->
   <div class="mb-6">
     <a
