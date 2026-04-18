@@ -3,7 +3,12 @@ import type { App } from "@final-degree-project/api";
 
 const getApiUrl = () => {
   if (typeof window !== "undefined") return window.location.origin;
-  if (import.meta.env.VERCEL_URL) return `https://${import.meta.env.VERCEL_URL}`;
+  
+  // Vercel serverless (Node.js engine)
+  if (typeof process !== "undefined" && process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  
   return "http://localhost:4321";
 };
 
