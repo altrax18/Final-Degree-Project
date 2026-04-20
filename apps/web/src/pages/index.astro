@@ -12,9 +12,7 @@ try {
 } catch (err) {
   error = err;
 }
-// // Obtener elementos en tendencia en el servidor vía Eden Treaty
-// const { data: trending, error } = await api.api.trending.get();
-// ---
+---
 
 <Layout title="Trending">
   <section class="space-y-6">
@@ -25,23 +23,14 @@ try {
       </p>
     </div>
 
-<<<<<<< HEAD
-    {error && (
-      <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
-        Could not reach the API. Make sure{" "}
-        <code class="font-mono">apps/api</code> is running on port 3000.
-      </div>
-    )}
-=======
     {
       error && (
         <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
-          ⚠️ Could not reach the API. Make sure{" "}
+          Could not reach the API. Make sure{" "}
           <code class="font-mono">apps/api</code> is running on port 3000.
         </div>
       )
     }
->>>>>>> 7b62b60 (feat(games): implement igdb catalog and card component)
 
     {
       trending && (
@@ -58,5 +47,4 @@ try {
       )
     }
   </section>
-</Layout>;
----
+</Layout>

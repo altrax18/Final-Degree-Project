@@ -3,8 +3,6 @@ import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
 //https://neon.com/docs/introduction
 
 //https://orm.drizzle.team/docs/column-types/pg#foreign-key
-
-<<<<<<< HEAD
 // CONCEPTO: Declaracion de Esquema (Drizzle ORM)
 // QUE HACE: Modela la tabla games y sus columnas en TypeScript.
 // POR QUE LO USO: Unifica tipos de DB y codigo app, reduciendo errores de SQL manual.
@@ -16,10 +14,6 @@ export const games = pgTable("games", {
   // QUE HACE: Guarda el id original de IGDB como unico.
   // POR QUE LO USO: Evita insertar el mismo juego varias veces al sincronizar.
   // DOCUMENTACION: https://orm.drizzle.team/docs/indexes-constraints#unique
-=======
-export const games = pgTable("games", {
-  id: serial("id").primaryKey(),
->>>>>>> 7b62b60 (feat(games): implement igdb catalog and card component)
   // Guardamos el ID de IGDB para evitar duplicados y poder buscar más info luego
   igdbId: integer("igdb_id").unique().notNull(),
 

@@ -161,15 +161,6 @@ const trendingMock = [
     image: "https://placehold.co/300x450/0f3460/533483?text=Shogun",
   },
 ];
-// Función para obtener el Token de Twitch automáticamente
-async function getTwitchToken() {
-  const res = await fetch(
-    `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_CLIENT_ID}&client_secret=${process.env.TWITCH_CLIENT_SECRET}&grant_type=client_credentials`,
-    { method: "POST" },
-  );
-  const data: any = await res.json();
-  return data.access_token;
-}
 
 // CONCEPTO: Estrategia de Autenticacion Flexible
 // QUE HACE: Resuelve credenciales TMDB aceptando Bearer token (v4) o API key (v3).
@@ -855,7 +846,10 @@ const app = new Elysia()
   .get(
     "/api/games",
     async () => {
-      // 1. Petición a IGDB con Token automático
+      // CONCEPTO: Encadenado de APIs
+      // QUE HACE: Pide token a Twitch y luego consulta IGDB con ese token.
+      // POR QUE LO USO: Separa autenticacion y datos para controlar errores en cada fase.
+      // DOCUMENTACION: https://api-docs.igdb.com/
       const token = await getTwitchToken();
       const response = await fetch("https://api.igdb.com/v4/games", {
         method: "POST",
@@ -863,35 +857,149 @@ const app = new Elysia()
           "Client-ID": process.env.TWITCH_CLIENT_ID!,
           Authorization: `Bearer ${token}`,
         },
-        // https://api-docs.igdb.com/#fields
-        body: "fields name, cover.url, summary, total_rating, first_release_date; where cover != null & total_rating != null; sort total_rating desc; limit 20;",
+        // CONCEPTO: IGDB API Query Language
+        // QUE HACE: Define campos, filtros, orden y limite en una sola consulta textual.
+        // POR QUE LO USO: Reduce payload y solo trae lo que la UI necesita.
+        // DOCUMENTACION: https://api-docs.igdb.com/#filters
+        // Añadimos genres.name, platforms.name y summary
+        body: "fields name, cover.url, summary, total_rating, first_release_date, genres.name, platforms.name; where cover != null & total_rating != null; sort total_rating desc; limit 70;",
       });
 
-      const rawGames = await response.json();
-      // 2. Limpiamos los datos
+      const rawGames: any = await response.json();
+      if (!response.ok || !Array.isArray(rawGames)) {
+        throw new Error(`IGDB rechazó la solicitud (${response.status})`);
+      }
+
+      // CONCEPTO: Normalizacion de Datos
+      // QUE HACE: Convierte la respuesta cruda de IGDB al contrato Game que consume frontend.
+      // POR QUE LO USO: Evita exponer formato externo directo y mantiene un API estable.
+      // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
       return rawGames.map((game: any) => ({
         id: game.id.toString(),
         title: game.name,
         type: "game" as const,
+        // Usamos t_cover_big para mayor calidad en la tarjeta
         image: game.cover
-          ? `https:${game.cover.url.replace("t_thumb", "t_720p")}`
+          ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}`
           : null,
         rating: Math.round(game.total_rating || 0),
         firstReleaseDate: game.first_release_date || null,
+        summary: game.summary || "Sin descripción disponible.",
+        genres: game.genres ? game.genres.map((g: any) => g.name) : [],
+        platforms: game.platforms ? game.platforms.map((p: any) => p.name) : [],
       }));
     },
     {
-      // 2. ESQUEMA DE RESPUESTA
-      response: t.Array(
-        t.Object({
-          id: t.String(),
-          title: t.String(),
-          type: t.Literal("game"),
-          image: t.Nullable(t.String()),
-          rating: t.Number(),
-          firstReleaseDate: t.Nullable(t.Number()),
-        }),
-      ),
+      // CONCEPTO: Validacion de Respuesta en Runtime
+      // QUE HACE: Elysia valida que cada item cumpla este schema antes de responder.
+      // POR QUE LO USO: Protege al cliente contra respuestas mal formadas.
+      // DOCUMENTACION: https://elysiajs.com/patterns/typebox.html
+      response: gameResponseSchema,
+    },
+  )
+  .get(
+    "/api/games/:id",
+    async ({ params: { id } }) => {
+      // CONCEPTO: Path Parameters (Parámetros de Ruta)
+      // QUÉ HACE: Captura el valor dinámico de la URL (ej. /api/games/1234) en la variable `id`.
+      // POR QUÉ LO USO: Es el estándar REST para solicitar un recurso específico por su identificador único.
+      // DOCUMENTACIÓN: https://elysiajs.com/essential/path.html#path-parameter
+
+      // CONCEPTO: Normalizacion y Validacion de Entrada
+      // QUE HACE: Convierte el parametro de ruta a numero entero positivo.
+      // POR QUE LO USO: Evita interpolar valores no numericos en la query de IGDB y reduce riesgo de inyecciones.
+      // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger
+      const parsedGameId = parsePositiveEntityId(id, "juego");
+
+      const token = await getTwitchToken();
+      const response = await fetch("https://api.igdb.com/v4/games", {
+        method: "POST",
+        headers: {
+          "Client-ID": process.env.TWITCH_CLIENT_ID!,
+          Authorization: `Bearer ${token}`,
+        },
+        // Pedimos campos extendidos: capturas de pantalla y compañías involucradas
+        body: `fields name, cover.url, summary, storyline, total_rating, first_release_date, genres.name, platforms.name, screenshots.url, involved_companies.company.name; where id = ${parsedGameId};`,
+      });
+
+      const rawGames: any = await response.json();
+      if (!response.ok || rawGames.length === 0) {
+        throw new Error(`Juego no encontrado o error en IGDB`);
+      }
+
+      const game = rawGames[0];
+      return {
+        id: game.id.toString(),
+        title: game.name,
+        type: "game" as const,
+        image: game.cover
+          ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}`
+          : null,
+        rating: Math.round(game.total_rating || 0),
+        firstReleaseDate: game.first_release_date || null,
+        summary: game.summary || "Sin descripción disponible.",
+        storyline: game.storyline || null,
+        genres: game.genres ? game.genres.map((g: any) => g.name) : [],
+        platforms: game.platforms ? game.platforms.map((p: any) => p.name) : [],
+        // Mapeamos las capturas a alta resolución (1080p)
+        screenshots: game.screenshots
+          ? game.screenshots.map(
+              (s: any) => `https:${s.url.replace("t_thumb", "t_1080p")}`,
+            )
+          : [],
+        // Obtenemos el nombre del desarrollador si existe
+        developer: game.involved_companies
+          ? game.involved_companies[0].company.name
+          : "Desarrollador Desconocido",
+      };
+    },
+    {
+      // CONCEPTO: Validación de Parámetros (TypeBox)
+      // QUÉ HACE: Asegura que Elysia solo acepte peticiones donde el 'id' sea un string.
+      // POR QUÉ LO USO: Previene errores de inyección o peticiones malformadas antes de que lleguen a la lógica del servidor.
+      // DOCUMENTACIÓN: https://elysiajs.com/validation/overview.html
+      params: t.Object({
+        id: t.String(),
+      }),
+    },
+  )
+  .get(
+    "/api/movies",
+    async () => {
+      // CONCEPTO: Endpoint de Normalizacion
+      // QUE HACE: Devuelve peliculas TMDB en el contrato que consume el frontend.
+      // POR QUE LO USO: Aisla dependencia externa y mantiene estable la API interna.
+      // DOCUMENTACION: https://elysiajs.com/essential/handler.html
+      return getTmdbMovies();
+    },
+    {
+      // CONCEPTO: Validacion de Respuesta en Runtime
+      // QUE HACE: Elysia valida cada campo de salida antes de responder.
+      // POR QUE LO USO: Garantiza contratos seguros incluso si TMDB cambia payload.
+      // DOCUMENTACION: https://elysiajs.com/patterns/typebox.html
+      response: movieResponseSchema,
+    },
+  )
+  .get(
+    "/api/movies/:id",
+    async ({ params: { id } }) => {
+      // CONCEPTO: Validacion de Parametros
+      // QUE HACE: Convierte el id de ruta a entero positivo antes de consultar TMDB.
+      // POR QUE LO USO: Evita peticiones invalidas y mantiene comportamiento predecible del endpoint.
+      // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger
+      const parsedMovieId = parsePositiveEntityId(id, "la pelicula");
+
+      // CONCEPTO: Reutilizacion de Logica de Dominio
+      // QUE HACE: Delega toda la normalizacion del detalle en getTmdbMovieById.
+      // POR QUE LO USO: Elimina duplicacion y reduce errores por contratos divergentes.
+      // DOCUMENTACION: https://refactoring.guru/es/smells/duplicate-code
+      return getTmdbMovieById(parsedMovieId);
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      response: movieDetailResponseSchema,
     },
   );
 
