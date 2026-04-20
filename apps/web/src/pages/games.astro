@@ -1,33 +1,60 @@
 ---
 // apps/web/src/pages/games.astro
 import Layout from "../layouts/Layout.astro";
-import GameCard from "../components/GameCard.astro";
+import GameCatalogClient from "../components/games/GameCatalogClient";
 import { getGames } from "../lib/api";
+import type { Game } from "../types/game";
 
-const games = await getGames();
+// CONCEPTO: Estado Inicial Seguro en SSR
+// QUE HACE: Inicializa variables antes de llamar a la API.
+// POR QUE LO USO: Permite renderizar pagina incluso si la API falla, mostrando mensaje util.
+// DOCUMENTACION: https://docs.astro.build/en/guides/data-fetching/
+let games: Game[] = [];
+let errorMessage = "";
+
+// CONCEPTO: Manejo de Errores con try/catch
+// QUE HACE: Intenta obtener juegos y captura cualquier fallo de red o backend.
+// POR QUE LO USO: Evita romper la pagina completa cuando el endpoint no responde.
+// DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
+try {
+  games = await getGames();
+} catch (error) {
+  errorMessage =
+    error instanceof Error ? error.message : "No se pudieron cargar los juegos";
+}
 ---
 
-<Layout title="Lista de Juegos">
-  <main>
-    <h1 class="text-pantalla text-center text-3xl font-bold my-8">
-      Catálogo de Juegos
-    </h1>
-
-    <div class="grid">
-      {games.map((game) => <GameCard game={game} />)}
+<Layout title="Explorar Juegos - Alexandria">
+  <main class="min-h-screen bg-[#121212] pt-8">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+      <h1
+        class="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight"
+      >
+        Catálogo de <span class="text-blue-500">Juegos</span>
+      </h1>
+      <p class="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
+        Explora la base de datos, filtra por tus géneros favoritos y descubre tu
+        próxima aventura.
+      </p>
     </div>
+
+    {
+      errorMessage && (
+        <div class="max-w-3xl mx-auto mt-8 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-center">
+          <p>
+            {errorMessage}. Verifica que apps/api esté corriendo en el puerto
+            3000.
+          </p>
+        </div>
+      )
+    }
+
+    {
+      /* CONCEPTO: Hidratacion de Islas (client:load)
+         QUE HACE: Carga e hidrata el componente React en el cliente al iniciar la pagina.
+         POR QUE LO USO: Sin hidratacion, no funcionan buscador, filtros ni eventos del catalogo.
+         DOCUMENTACION: https://docs.astro.build/en/reference/directives-reference/#clientload */
+    }
+    {!errorMessage && <GameCatalogClient client:load initialGames={games} />}
   </main>
 </Layout>
-
-<style>
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
-    padding: 20px;
-  }
-  h1 {
-    color: white;
-    text-align: center;
-  }
-</style>

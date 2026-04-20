@@ -1,11 +1,17 @@
 ---
 // src/pages/index.astro
 import Layout from "../layouts/Layout.astro";
-import MediaCard from "../components/MediaCard.jsx";
-import { api } from "../lib/api";
+import MediaCard from "../components/shared/MediaCard.jsx";
+import { getTrending } from "../lib/api";
 
-// Fetch trending items server-side via Eden Treaty
-const { data: trending, error } = await api.api.trending.get();
+let trending = null;
+let error = null;
+
+try {
+  trending = await getTrending();
+} catch (err) {
+  error = err;
+}
 ---
 
 <Layout title="Trending">
@@ -20,7 +26,7 @@ const { data: trending, error } = await api.api.trending.get();
     {
       error && (
         <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
-          ⚠️ Could not reach the API. Make sure{" "}
+          Could not reach the API. Make sure{" "}
           <code class="font-mono">apps/api</code> is running on port 3000.
         </div>
       )

@@ -30,18 +30,40 @@ const { title = "Alexandria" } = Astro.props;
     <header
       class="border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50"
     >
-      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center gap-3">
-        <span class="text-2xl">🎬</span>
-        <span class="text-xl font-bold tracking-tight text-white"
-          >Alexandria</span
-        >
-        <span
-          class="text-xs font-medium text-indigo-400 bg-indigo-400/10 px-2 py-0.5 rounded-full border border-indigo-400/20"
-        >
-          TFG
-        </span>
+      <div
+        class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3"
+      >
+        {
+          /* CONCEPTO: Agrupacion Semantica de Marca
+            QUE HACE: Encapsula icono y nombre de producto en un solo bloque visual.
+            POR QUE LO USO: Mejora legibilidad del header y separa branding de navegacion.
+            DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header */
+        }
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🎬</span>
+          <span class="text-xl font-bold tracking-tight text-white"
+            >Alexandria</span
+          >
+          <span
+            class="text-xs font-medium text-indigo-400 bg-indigo-400/10 px-2 py-0.5 rounded-full border border-indigo-400/20"
+          >
+            TFG
+          </span>
+        </div>
+
+        {
+          /* CONCEPTO: Navegacion Principal
+            QUE HACE: Expone enlaces directos a catalogos de games y movies.
+            POR QUE LO USO: Facilita descubrir y probar rapido las nuevas rutas.
+            DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/nav */
+        }
+        <nav class="flex items-center gap-4 text-sm font-medium text-gray-300">
+          <a href="/" class="hover:text-white transition-colors">Inicio</a>
+          <a href="/games" class="hover:text-white transition-colors">Games</a>
+          <a href="/movies" class="hover:text-white transition-colors">Movies</a
+          >
+        </nav>
       </div>
-      <a href="/games">Videojuegos solo prueba link</a>
     </header>
 
     <main class="max-w-6xl mx-auto px-4 py-10">
