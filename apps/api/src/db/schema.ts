@@ -20,7 +20,7 @@ export const items = pgTable("items", {
   title: text("title").notNull(),
   type: text("type", { enum: ["movie", "music", "game"] }).notNull(),
   metadata: jsonb("metadata"),
-  externalId: text("external_id"),
+  apiId: text("api_id"),
   embedding: vector("embedding", { dimensions: 384 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
@@ -79,3 +79,21 @@ export const chatMembers = pgTable(
     primaryKey({ columns: [table.conversationId, table.userId] }),
   ]
 );
+
+export const userCollections = pgTable("user_collections", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  type: text("type", { enum: ["movie", "music", "game"] }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const collectionItems = pgTable("collection_items", {
+  id: serial("id").primaryKey(),
+  collectionId: integer("collection_id").notNull().references(() => userCollections.id, { onDelete: "cascade" }),
+  apiId: text("api_id").notNull(),
+  title: text("title").notNull(),
+  type: text("type", { enum: ["movie", "music", "game"] }).notNull(),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});

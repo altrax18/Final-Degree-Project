@@ -16,13 +16,49 @@ export type User = {
   profileImageUrl: string;
 };
 
+export type ItemType = "movie" | "music" | "game";
+
+export type ActionType = "like" | "dislike" | "rating" | "watchlist" | "played" | "listened";
+
+export type GenderType = "male" | "female" | "other" | "prefer_not_to_say";
+
+export type User = {
+  id: number;
+  username: string;
+  email: string;
+  password: string;
+  date: Date;
+  gender: GenderType | null;
+  birthYear: number | null;
+  newsletter: boolean | null;
+  profileImageUrl: string;
+};
+
 export type Item = {
   id: number;
   title: string;
   type: ItemType;
   metadata: Record<string, unknown> | null;
-  externalId: string | null;
+  apiId: string | null;
   createdAt: Date;
+};
+
+export type Collection = {
+  id: number;
+  userId: number;
+  name: string;
+  type: ItemType;
+  createdAt: Date | null;
+};
+
+export type CollectionItem = {
+  id: number;
+  collectionId: number;
+  apiId: string;
+  title: string;
+  type: ItemType;
+  metadata: Record<string, unknown> | null;
+  createdAt: Date | null;
 };
 
 export type Interaction = {
