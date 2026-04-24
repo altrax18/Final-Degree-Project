@@ -1,5 +1,5 @@
 import { treaty } from "@elysiajs/eden";
-import type { App } from "@final-degree-project/api";
+import type { app } from "@final-degree-project/api";
 import type { Game } from "../types/game";
 import type { Movie } from "../types/movie";
 
@@ -123,4 +123,6 @@ export async function getMovieById(id: string): Promise<Movie> {
 }
 // Cliente Eden Treaty – apunta al servidor API en ejecución.
 // En las páginas SSR de Astro, esto se llama en el servidor, por lo que localhost funciona bien.
+type App = typeof app;
+
 export const api = treaty<App>("localhost:3000");

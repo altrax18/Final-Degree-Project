@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@astrojs/vercel": "^10.0.4",
-    "@astrojs/check": "^0.9.8",
     "@astrojs/react": "^5.0.2",
     "@elysiajs/eden": "^1.4.8",
     "@final-degree-project/api": "workspace:*",
@@ -29,6 +28,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.8",
     "sass": "^1.98.0"
   }
 }

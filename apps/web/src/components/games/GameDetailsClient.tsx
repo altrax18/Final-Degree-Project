@@ -121,7 +121,7 @@ export default function GameDetailsClient({ game }: Props) {
           
           {/* CONCEPTO: Componente Placeholder (Skeleton de Integración)
               QUÉ HACE: Crea la estructura visual de un área de comentarios lista para que el equipo backend la conecte a la base de datos real.
-              POR QUÉ LO USO: Permite avanzar con el frontend y demostrar el flujo de la UX sin bloquearse esperando a que la tabla de comentarios en PostgreSQL/Drizzle esté terminada.
+              POR QUÉ LO USO: Permite avanzar con el frontend y demostrar el flujo de la UX sin bloquearse esperando a que la capa de persistencia esté terminada.
               DOCUMENTACIÓN: https://uxdesign.cc/everything-you-need-to-know-about-skeleton-screens-69f201083e95 */}
           <div className="bg-[#121212] p-6 rounded-2xl border border-white/5">
             {/* Input para comentar */}
