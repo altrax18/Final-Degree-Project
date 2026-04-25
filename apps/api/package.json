@@ -1,6 +1,6 @@
 {
   "name": "@final-degree-project/api",
-  "version": "1.0.50",
+  "version": "0.1.0",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "bun --watch --env-file ../../.env src/index.ts"
@@ -14,5 +14,12 @@
   "devDependencies": {
     "bun-types": "latest"
   },
-  "module": "src/index.ts"
+  "module": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  }
 }
