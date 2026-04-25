@@ -12,17 +12,19 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/react": "^5.0.1",
+    "@astrojs/react": "^5.0.3",
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "astro": "^6.0.8",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwindcss": "^4.2.2",
     "@astrojs/vercel": "^10.0.4",
     "@elysiajs/eden": "^1.4.8",
-    "@final-degree-project/api": "workspace:*",
-    "@tailwindcss/vite": "^4.2.2",
-    "astro": "^6.0.8",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "tailwindcss": "^4.2.2"
+    "@final-degree-project/api": "workspace:*"
   },
-  "devDependencies": {
+      "devDependencies": {
     "@astrojs/check": "^0.9.8",
     "typescript": "^6.0.2"
   }

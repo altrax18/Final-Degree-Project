@@ -1,6 +1,21 @@
 import { Elysia, t } from "elysia";
 import { cors } from "@elysiajs/cors";
+import { usersRoutes } from "./routes/users";
+import { catalogRoutes } from "./routes/catalog";
+import { collectionsRoutes } from "./routes/collections";
+import { interactionsRoutes } from "./routes/interactions";
+import { recommendationsRoutes } from "./routes/recommendations";
+import { chatRoutes } from "./routes/chat";
 
+const app = new Elysia()
+  .use(cors())
+  .use(usersRoutes)
+  .use(catalogRoutes)
+  .use(collectionsRoutes)
+  .use(interactionsRoutes)
+  .use(recommendationsRoutes)
+  .use(chatRoutes)
+  .listen(3000);
 // ─── Constantes de la API de iTunes ─────────────────────────────────────────────────────
 const ITUNES_SEARCH = "https://itunes.apple.com/search";
 const ITUNES_LOOKUP = "https://itunes.apple.com/lookup";
