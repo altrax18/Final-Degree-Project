@@ -1,2 +1,30 @@
-/* src/styles/global.css — Tailwind v4 entry point */
 @import "tailwindcss";
+
+/* Enable class-based dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Dark — Abyss */
+@theme {
+  --color-abyss: #000000;
+  --color-obsidian: #0A0A0A;
+  --color-coal: #141414;
+  --color-night-edge: #262626;
+  --color-screen: #FFFFFF;
+  --color-mist: #A0A0A0;
+  --color-electric-sky: #5BB5F5;
+  --color-sapphire: #2E7CC9;
+  --color-depth: #163D69;
+}
+
+/* Light — Silver Screen */
+@theme {
+  --color-parchment: #FAFAF8;
+  --color-linen: #F3F0EB;
+  --color-sand: #EBE8E0;
+  --color-bone: #DDD9D0;
+  --color-ink: #18181C;
+  --color-slate: #6B6777;
+  --color-orchid: #C4A7E0;
+  --color-amethyst: #8B6FBD;
+  --color-lilac-mist: #EDE5F8;
+}

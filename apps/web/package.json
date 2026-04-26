@@ -28,7 +28,19 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "sass": "^1.98.0",
+    "@astrojs/react": "^5.0.3",
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "astro": "^6.0.8",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwindcss": "^4.2.2",
+    "@astrojs/vercel": "^10.0.4",
+    "@elysiajs/eden": "^1.4.8",
+    "@final-degree-project/api": "workspace:*",
     "@astrojs/check": "^0.9.8",
-    "sass": "^1.98.0"
+    "typescript": "^6.0.2"
   }
 }

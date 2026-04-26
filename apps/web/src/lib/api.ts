@@ -125,4 +125,19 @@ export async function getMovieById(id: string): Promise<Movie> {
 // En las páginas SSR de Astro, esto se llama en el servidor, por lo que localhost funciona bien.
 type App = typeof app;
 
+<<<<<<< HEAD
 export const api = treaty<App>("localhost:3000");
+=======
+const getApiUrl = () => {
+  if (typeof window !== "undefined") return window.location.origin;
+  
+  // Vercel serverless (Node.js engine)
+  if (typeof process !== "undefined" && process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  
+  return "http://localhost:4321";
+};
+
+export const api = treaty<App>(getApiUrl());
+>>>>>>> origin/dev
