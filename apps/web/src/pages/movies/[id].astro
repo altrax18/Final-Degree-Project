@@ -1,7 +1,8 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import MovieDetailsClient from "../../components/movies/MovieDetailsClient";
-import { getMovieById } from "../../lib/api";
+import { serverApi } from "../../lib/server-api";
+import type { Movie } from "../../types/movie";
 
 // CONCEPTO: Rutas Dinamicas con Astro.params
 // QUE HACE: Lee el parametro [id] de la URL para resolver la pelicula solicitada.
@@ -9,7 +10,7 @@ import { getMovieById } from "../../lib/api";
 // DOCUMENTACION: https://docs.astro.build/en/guides/routing/#dynamic-routes
 const { id } = Astro.params;
 
-let movie = null;
+let movie: Movie | null = null;
 let errorMessage = "";
 
 try {
@@ -25,7 +26,9 @@ try {
   // QUE HACE: Trae en servidor el detalle completo antes de pintar la pagina.
   // POR QUE LO USO: Mejora SEO y reduce parpadeos de contenido.
   // DOCUMENTACION: https://docs.astro.build/en/guides/data-fetching/
-  movie = await getMovieById(id);
+  const { data, error } = await serverApi.api.movies({ apiId: id }).get();
+  if (error) throw new Error(typeof error.value === "string" ? error.value : "API no disponible");
+  movie = data as Movie;
 } catch (error) {
   errorMessage =
     error instanceof Error

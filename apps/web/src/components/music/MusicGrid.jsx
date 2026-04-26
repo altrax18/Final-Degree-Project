@@ -2,7 +2,7 @@
 import { useState, useRef } from "react";
 import TrackCard from "./TrackCard.jsx";
 
-const API_BASE = "http://localhost:3000";
+const API_BASE = "";
 
 /**
  * @param {{ initialTracks?: any[], pageSize?: number }} props

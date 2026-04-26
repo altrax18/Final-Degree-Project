@@ -1,7 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import GameDetailsClient from "../../components/games/GameDetailsClient";
-import { getGameById } from "../../lib/api";
+import { serverApi } from "../../lib/server-api";
 
 // CONCEPTO: Rutas Dinamicas con Astro.params
 // QUE HACE: Lee el parametro [id] de la URL para resolver el juego solicitado.
@@ -25,7 +25,12 @@ try {
   // QUE HACE: Recupera en servidor el detalle del juego antes de renderizar la pagina.
   // POR QUE LO USO: Mejora SEO y evita pantallas vacias al primer render.
   // DOCUMENTACION: https://docs.astro.build/en/guides/data-fetching/
-  game = await getGameById(id);
+  const { data, error } = await serverApi.api.games({ apiId: id }).get();
+  if (error)
+    throw new Error(
+      typeof error.value === "string" ? error.value : "API no disponible",
+    );
+  game = data;
 } catch (error) {
   errorMessage =
     error instanceof Error

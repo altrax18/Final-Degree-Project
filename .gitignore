@@ -14,9 +14,15 @@ yarn-error.log*
 pnpm-debug.log*
 **/*.log
 
-# lock files (usar bun.lock)
+# lock files (sólo excluir el formato binario antiguo; bun.lock de texto SÍ se sube)
 package-lock.json
+yarn.lock
+pnpm-lock.yaml
 *.lockb
+
+# debug artifacts
+output.html
+test-*.ts
 
 # environment variables
 .env

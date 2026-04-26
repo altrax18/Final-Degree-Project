@@ -2,18 +2,15 @@
 // src/pages/index.astro
 import Layout from "../layouts/Layout.astro";
 import MediaCard from "../components/shared/MediaCard.jsx";
-import { getTrending } from "../lib/api";
+import { serverApi } from "../lib/server-api";
 
 let trending: any[] = [];
 let error = null;
 
 try {
-  // CONCEPTO: Programacion defensiva en SSR
-  // QUE HACE: Garantiza que trending sea siempre un arreglo antes de renderizar con map.
-  // POR QUE LO USO: Evita fallos de render cuando una integracion externa retorna un tipo inesperado.
-  // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
-  const payload = await getTrending();
-  trending = Array.isArray(payload) ? payload : [];
+  const { data, error: apiError } = await serverApi.api.music.trending.songs.get();
+  if (apiError) throw new Error("API error");
+  trending = (data as any)?.results ?? [];
 } catch (err) {
   error = err;
   trending = [];

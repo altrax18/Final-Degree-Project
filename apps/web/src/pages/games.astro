@@ -2,7 +2,7 @@
 // apps/web/src/pages/games.astro
 import Layout from "../layouts/Layout.astro";
 import GameCatalogClient from "../components/games/GameCatalogClient";
-import { getGames } from "../lib/api";
+import { serverApi } from "../lib/server-api";
 import type { Game } from "../types/game";
 
 // CONCEPTO: Estado Inicial Seguro en SSR
@@ -12,12 +12,10 @@ import type { Game } from "../types/game";
 let games: Game[] = [];
 let errorMessage = "";
 
-// CONCEPTO: Manejo de Errores con try/catch
-// QUE HACE: Intenta obtener juegos y captura cualquier fallo de red o backend.
-// POR QUE LO USO: Evita romper la pagina completa cuando el endpoint no responde.
-// DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 try {
-  games = await getGames();
+  const { data, error } = await serverApi.api.games.get();
+  if (error) throw new Error(typeof error.value === "string" ? error.value : "API no disponible");
+  games = data as Game[];
 } catch (error) {
   errorMessage =
     error instanceof Error ? error.message : "No se pudieron cargar los juegos";

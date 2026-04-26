@@ -1,7 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import MovieCatalogClient from "../../components/movies/MovieCatalogClient";
-import { getMovies } from "../../lib/api";
+import { serverApi } from "../../lib/server-api";
 import type { Movie } from "../../types/movie";
 
 // CONCEPTO: Estado Inicial Seguro en SSR
@@ -11,12 +11,10 @@ import type { Movie } from "../../types/movie";
 let movies: Movie[] = [];
 let errorMessage = "";
 
-// CONCEPTO: Manejo de Errores con try/catch
-// QUE HACE: Captura fallos de red o backend en la carga de peliculas.
-// POR QUE LO USO: Evita caidas de render y mejora feedback al usuario.
-// DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 try {
-  movies = await getMovies();
+  const { data, error } = await serverApi.api.movies.get();
+  if (error) throw new Error(typeof error.value === "string" ? error.value : "API no disponible");
+  movies = data as Movie[];
 } catch (error) {
   errorMessage =
     error instanceof Error
