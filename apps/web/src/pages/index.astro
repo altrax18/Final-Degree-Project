@@ -4,13 +4,19 @@ import Layout from "../layouts/Layout.astro";
 import MediaCard from "../components/shared/MediaCard.jsx";
 import { getTrending } from "../lib/api";
 
-let trending = null;
+let trending: any[] = [];
 let error = null;
 
 try {
-  trending = await getTrending();
+  // CONCEPTO: Programacion defensiva en SSR
+  // QUE HACE: Garantiza que trending sea siempre un arreglo antes de renderizar con map.
+  // POR QUE LO USO: Evita fallos de render cuando una integracion externa retorna un tipo inesperado.
+  // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
+  const payload = await getTrending();
+  trending = Array.isArray(payload) ? payload : [];
 } catch (err) {
   error = err;
+  trending = [];
 }
 ---
 
@@ -33,7 +39,7 @@ try {
     }
 
     {
-      trending && (
+      Array.isArray(trending) && trending.length > 0 && (
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {trending.map((item) => (
             <MediaCard
