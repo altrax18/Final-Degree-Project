@@ -73,7 +73,7 @@ export async function getTrending(): Promise<TrendingItem[]> {
   // POR QUE LO USO: Hace el cliente mas compacto y consistente.
   // DOCUMENTACION: https://refactoring.guru/es/replace-repetitive-code-with-subroutines
   return requestApi<TrendingItem[]>(
-    () => api.api.trending.get() as Promise<EdenResponse>,
+    () => api.api.music.trending.songs.get() as Promise<EdenResponse>,
     "No se pudieron cargar tendencias",
   );
 }
@@ -95,7 +95,7 @@ export async function getGames(): Promise<Game[]> {
 // DOCUMENTACION: https://elysiajs.com/eden/treaty/overview.html
 export async function getGameById(id: string): Promise<Game> {
   return requestApi<Game>(
-    () => api.api.games({ id }).get() as Promise<EdenResponse>,
+    () => api.api.games({ apiId: id }).get() as Promise<EdenResponse>,
     "No se pudieron cargar los detalles del juego",
   );
 }
@@ -117,7 +117,7 @@ export async function getMovies(): Promise<Movie[]> {
 // DOCUMENTACION: https://elysiajs.com/eden/treaty/overview.html
 export async function getMovieById(id: string): Promise<Movie> {
   return requestApi<Movie>(
-    () => api.api.movies({ id }).get() as Promise<EdenResponse>,
+    () => api.api.movies({ apiId: id }).get() as Promise<EdenResponse>,
     "No se pudieron cargar los detalles de la pelicula",
   );
 }
@@ -125,19 +125,15 @@ export async function getMovieById(id: string): Promise<Movie> {
 // En las páginas SSR de Astro, esto se llama en el servidor, por lo que localhost funciona bien.
 type App = typeof app;
 
-<<<<<<< HEAD
-export const api = treaty<App>("localhost:3000");
-=======
 const getApiUrl = () => {
   if (typeof window !== "undefined") return window.location.origin;
-  
+
   // Vercel serverless (Node.js engine)
   if (typeof process !== "undefined" && process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
-  
+
   return "http://localhost:4321";
 };
 
 export const api = treaty<App>(getApiUrl());
->>>>>>> origin/dev
