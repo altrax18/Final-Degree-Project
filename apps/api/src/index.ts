@@ -102,6 +102,32 @@ const MORE_TERMS = [
 const CACHE_TTL = 60 * 60 * 1000;
 let trendingSongsCache: { data: Track[]; ts: number } | null = null;
 
+// CONCEPTO: Timeouts de Red Controlados
+// QUE HACE: Limita la espera maxima de llamadas HTTP externas para evitar rutas colgadas.
+// POR QUE LO USO: Mejora la resiliencia de endpoints cuando proveedores externos responden lento.
+// DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/API/AbortController
+const EXTERNAL_REQUEST_TIMEOUT_MS = 8000;
+
+// CONCEPTO: Cache In-Memory con TTL
+// QUE HACE: Guarda temporalmente respuestas de listados/detalles para reducir llamadas repetidas a APIs externas.
+// POR QUE LO USO: Reduce latencia en rutas frecuentes y evita trabajo redundante en cada request.
+// DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
+const GAMES_LIST_CACHE_TTL = 5 * 60 * 1000;
+const GAME_DETAIL_CACHE_TTL = 10 * 60 * 1000;
+const MOVIES_LIST_CACHE_TTL = 5 * 60 * 1000;
+const MOVIE_DETAIL_CACHE_TTL = 10 * 60 * 1000;
+
+let gamesListCache: { data: any[]; ts: number } | null = null;
+const gameDetailCache = new Map<number, { data: any; ts: number }>();
+let moviesListCache: { data: any[]; ts: number } | null = null;
+const movieDetailCache = new Map<number, { data: any; ts: number }>();
+
+// CONCEPTO: Cache de Token OAuth
+// QUE HACE: Reutiliza temporalmente el token de Twitch hasta cerca de su expiracion.
+// POR QUE LO USO: Evita pedir token en cada request de games, bajando tiempo total de respuesta.
+// DOCUMENTACION: https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow
+let twitchTokenCache: { token: string; expiresAt: number } | null = null;
+
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 interface Track {
   id: string;
@@ -137,6 +163,48 @@ function toTrack(item: any): Track {
     releaseDate: item.releaseDate,
     duration: item.trackTimeMillis,
     genre: item.primaryGenreName,
+  };
+}
+
+// CONCEPTO: Helper de Fetch con Timeout
+// QUE HACE: Envuelve fetch en un timeout configurable y devuelve JSON de forma estandarizada.
+// POR QUE LO USO: Centraliza el manejo de latencia de red en una sola utilidad reutilizable.
+// DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+async function fetchJsonWithTimeout(url: string, init?: RequestInit) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, EXTERNAL_REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url, {
+      ...(init ?? {}),
+      signal: controller.signal,
+    });
+    const payload = await response.json();
+    return { response, payload };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+// CONCEPTO: Normalizacion DRY para IGDB
+// QUE HACE: Centraliza campos comunes entre listado y detalle de games.
+// POR QUE LO USO: Evita duplicacion y mantiene consistencia de mapeo al contrato interno.
+// DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
+function mapIgdbBaseGameFields(game: any) {
+  return {
+    id: game.id.toString(),
+    title: game.name,
+    type: "game" as const,
+    image: game.cover
+      ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}`
+      : null,
+    rating: Math.round(game.total_rating || 0),
+    firstReleaseDate: game.first_release_date || null,
+    summary: game.summary || "Sin descripción disponible.",
+    genres: game.genres ? game.genres.map((g: any) => g.name) : [],
+    platforms: game.platforms ? game.platforms.map((p: any) => p.name) : [],
   };
 }
 
@@ -222,17 +290,33 @@ async function getTwitchToken() {
     );
   }
 
-  const res = await fetch(
+  if (twitchTokenCache && Date.now() < twitchTokenCache.expiresAt - 60_000) {
+    return twitchTokenCache.token;
+  }
+
+  const { response: res, payload: data } = await fetchJsonWithTimeout(
     `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_CLIENT_ID}&client_secret=${process.env.TWITCH_CLIENT_SECRET}&grant_type=client_credentials`,
     { method: "POST" },
   );
 
-  const data: any = await res.json();
   if (!res.ok || !data?.access_token) {
     throw new Error(
       `No se pudo obtener token de Twitch (${res.status}): ${data?.message || "respuesta invalida"}`,
     );
   }
+
+  // CONCEPTO: Gestion Proactiva de Expiracion
+  // QUE HACE: Guarda la expiracion real reportada por Twitch para renovar token antes de que caduque.
+  // POR QUE LO USO: Evita errores intermitentes por tokens vencidos en medio de llamadas a IGDB.
+  // DOCUMENTACION: https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/
+  const expiresInSeconds =
+    Number.isFinite(Number(data.expires_in)) && Number(data.expires_in) > 0
+      ? Number(data.expires_in)
+      : 3600;
+  twitchTokenCache = {
+    token: String(data.access_token),
+    expiresAt: Date.now() + expiresInSeconds * 1000,
+  };
 
   return data.access_token;
 }
@@ -242,6 +326,13 @@ async function getTwitchToken() {
 // POR QUE LO USO: La UI necesita datos normalizados (titulo, portada, rating y generos) sin logica extra.
 // DOCUMENTACION: https://developer.themoviedb.org/reference/discover-movie
 async function getTmdbMovies() {
+  if (
+    moviesListCache &&
+    Date.now() - moviesListCache.ts < MOVIES_LIST_CACHE_TTL
+  ) {
+    return moviesListCache.data;
+  }
+
   const { headers, authQuery } = resolveTmdbAuth();
 
   // CONCEPTO: Configuracion Parametrica
@@ -259,15 +350,15 @@ async function getTmdbMovies() {
     (_, index) => index + 1,
   );
 
-  const [genresResponse, ...discoverResponses] = await Promise.all([
-    fetch(
+  const [genresResult, ...discoverResults] = await Promise.all([
+    fetchJsonWithTimeout(
       `https://api.themoviedb.org/3/genre/movie/list?${authQuery}language=es-ES`,
       {
         headers,
       },
     ),
     ...pages.map((page) =>
-      fetch(
+      fetchJsonWithTimeout(
         `https://api.themoviedb.org/3/discover/movie?${authQuery}include_adult=false&include_video=false&language=es-ES&page=${page}&sort_by=popularity.desc&vote_count.gte=150`,
         {
           headers,
@@ -276,9 +367,11 @@ async function getTmdbMovies() {
     ),
   ]);
 
-  const genresPayload: any = await genresResponse.json();
-  const discoverPayloads: any[] = await Promise.all(
-    discoverResponses.map((response) => response.json()),
+  const genresResponse = genresResult.response;
+  const genresPayload: any = genresResult.payload;
+  const discoverResponses = discoverResults.map((result) => result.response);
+  const discoverPayloads: any[] = discoverResults.map(
+    (result) => result.payload,
   );
 
   if (!genresResponse.ok || !Array.isArray(genresPayload?.genres)) {
@@ -307,7 +400,7 @@ async function getTmdbMovies() {
     new Map(mergedMovies.map((movie: any) => [movie.id, movie])).values(),
   );
 
-  return uniqueMovies.map((movie: any) => {
+  const normalizedMovies = uniqueMovies.map((movie: any) => {
     const parsedDate = movie.release_date
       ? Date.parse(`${movie.release_date}T00:00:00Z`)
       : NaN;
@@ -332,6 +425,13 @@ async function getTmdbMovies() {
         : [],
     };
   });
+
+  moviesListCache = {
+    data: normalizedMovies,
+    ts: Date.now(),
+  };
+
+  return normalizedMovies;
 }
 
 // CONCEPTO: Endpoint de Detalle de Recurso
@@ -339,20 +439,28 @@ async function getTmdbMovies() {
 // POR QUE LO USO: El catalogo usa un payload compacto, pero el detalle necesita campos extra (tagline, runtime, director).
 // DOCUMENTACION: https://developer.themoviedb.org/reference/movie-details
 async function getTmdbMovieById(movieId: number) {
+  const cachedMovieDetail = movieDetailCache.get(movieId);
+  if (
+    cachedMovieDetail &&
+    Date.now() - cachedMovieDetail.ts < MOVIE_DETAIL_CACHE_TTL
+  ) {
+    return cachedMovieDetail.data;
+  }
+
   const { headers, authQuery } = resolveTmdbAuth();
 
   // CONCEPTO: Expandir Payload con append_to_response
   // QUE HACE: Pide en una sola llamada los bloques de videos y credits junto al detalle principal.
   // POR QUE LO USO: Evita multiples round-trips y reduce latencia en la pagina de detalle.
   // DOCUMENTACION: https://developer.themoviedb.org/reference/movie-details
-  const detailResponse = await fetch(
-    `https://api.themoviedb.org/3/movie/${movieId}?${authQuery}language=es-ES&append_to_response=credits,videos`,
-    {
-      headers,
-    },
-  );
+  const { response: detailResponse, payload: detailPayload } =
+    await fetchJsonWithTimeout(
+      `https://api.themoviedb.org/3/movie/${movieId}?${authQuery}language=es-ES&append_to_response=credits,videos`,
+      {
+        headers,
+      },
+    );
 
-  const detailPayload: any = await detailResponse.json();
   if (!detailResponse.ok || !detailPayload?.id) {
     throw new Error(`TMDB detalle fallo (${detailResponse.status})`);
   }
@@ -413,7 +521,7 @@ async function getTmdbMovieById(movieId: number) {
       }))
     : [];
 
-  return {
+  const normalizedMovieDetail = {
     id: String(detailPayload.id),
     title: detailPayload.title || detailPayload.original_title || "Sin titulo",
     type: "movie" as const,
@@ -503,6 +611,13 @@ async function getTmdbMovieById(movieId: number) {
       : null,
     cast,
   };
+
+  movieDetailCache.set(movieId, {
+    data: normalizedMovieDetail,
+    ts: Date.now(),
+  });
+
+  return normalizedMovieDetail;
 }
 
 const app = new Elysia()
@@ -512,26 +627,35 @@ const app = new Elysia()
   .get(
     "/api/games",
     async () => {
+      if (
+        gamesListCache &&
+        Date.now() - gamesListCache.ts < GAMES_LIST_CACHE_TTL
+      ) {
+        return gamesListCache.data;
+      }
+
       // CONCEPTO: Encadenado de APIs
       // QUE HACE: Pide token a Twitch y luego consulta IGDB con ese token.
       // POR QUE LO USO: Separa autenticacion y datos para controlar errores en cada fase.
       // DOCUMENTACION: https://api-docs.igdb.com/
       const token = await getTwitchToken();
-      const response = await fetch("https://api.igdb.com/v4/games", {
-        method: "POST",
-        headers: {
-          "Client-ID": process.env.TWITCH_CLIENT_ID!,
-          Authorization: `Bearer ${token}`,
+      const { response, payload: rawGames } = await fetchJsonWithTimeout(
+        "https://api.igdb.com/v4/games",
+        {
+          method: "POST",
+          headers: {
+            "Client-ID": process.env.TWITCH_CLIENT_ID!,
+            Authorization: `Bearer ${token}`,
+          },
+          // CONCEPTO: IGDB API Query Language
+          // QUE HACE: Define campos, filtros, orden y limite en una sola consulta textual.
+          // POR QUE LO USO: Reduce payload y solo trae lo que la UI necesita.
+          // DOCUMENTACION: https://api-docs.igdb.com/#filters
+          // Añadimos genres.name, platforms.name y summary
+          body: "fields name, cover.url, summary, total_rating, first_release_date, genres.name, platforms.name; where cover != null & total_rating != null; sort total_rating desc; limit 70;",
         },
-        // CONCEPTO: IGDB API Query Language
-        // QUE HACE: Define campos, filtros, orden y limite en una sola consulta textual.
-        // POR QUE LO USO: Reduce payload y solo trae lo que la UI necesita.
-        // DOCUMENTACION: https://api-docs.igdb.com/#filters
-        // Añadimos genres.name, platforms.name y summary
-        body: "fields name, cover.url, summary, total_rating, first_release_date, genres.name, platforms.name; where cover != null & total_rating != null; sort total_rating desc; limit 70;",
-      });
+      );
 
-      const rawGames: any = await response.json();
       if (!response.ok || !Array.isArray(rawGames)) {
         throw new Error(`IGDB rechazó la solicitud (${response.status})`);
       }
@@ -540,20 +664,16 @@ const app = new Elysia()
       // QUE HACE: Convierte la respuesta cruda de IGDB al contrato Game que consume frontend.
       // POR QUE LO USO: Evita exponer formato externo directo y mantiene un API estable.
       // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
-      return rawGames.map((game: any) => ({
-        id: game.id.toString(),
-        title: game.name,
-        type: "game" as const,
-        // Usamos t_cover_big para mayor calidad en la tarjeta
-        image: game.cover
-          ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}`
-          : null,
-        rating: Math.round(game.total_rating || 0),
-        firstReleaseDate: game.first_release_date || null,
-        summary: game.summary || "Sin descripción disponible.",
-        genres: game.genres ? game.genres.map((g: any) => g.name) : [],
-        platforms: game.platforms ? game.platforms.map((p: any) => p.name) : [],
-      }));
+      const normalizedGames = rawGames.map((game: any) =>
+        mapIgdbBaseGameFields(game),
+      );
+
+      gamesListCache = {
+        data: normalizedGames,
+        ts: Date.now(),
+      };
+
+      return normalizedGames;
     },
     {
       // CONCEPTO: Validacion de Respuesta en Runtime
@@ -577,36 +697,36 @@ const app = new Elysia()
       // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger
       const parsedGameId = parsePositiveEntityId(id, "juego");
 
-      const token = await getTwitchToken();
-      const response = await fetch("https://api.igdb.com/v4/games", {
-        method: "POST",
-        headers: {
-          "Client-ID": process.env.TWITCH_CLIENT_ID!,
-          Authorization: `Bearer ${token}`,
-        },
-        // Pedimos campos extendidos: capturas de pantalla y compañías involucradas
-        body: `fields name, cover.url, summary, storyline, total_rating, first_release_date, genres.name, platforms.name, screenshots.url, involved_companies.company.name; where id = ${parsedGameId};`,
-      });
+      const cachedGameDetail = gameDetailCache.get(parsedGameId);
+      if (
+        cachedGameDetail &&
+        Date.now() - cachedGameDetail.ts < GAME_DETAIL_CACHE_TTL
+      ) {
+        return cachedGameDetail.data;
+      }
 
-      const rawGames: any = await response.json();
+      const token = await getTwitchToken();
+      const { response, payload: rawGames } = await fetchJsonWithTimeout(
+        "https://api.igdb.com/v4/games",
+        {
+          method: "POST",
+          headers: {
+            "Client-ID": process.env.TWITCH_CLIENT_ID!,
+            Authorization: `Bearer ${token}`,
+          },
+          // Pedimos campos extendidos: capturas de pantalla y compañías involucradas
+          body: `fields name, cover.url, summary, storyline, total_rating, first_release_date, genres.name, platforms.name, screenshots.url, involved_companies.company.name; where id = ${parsedGameId};`,
+        },
+      );
+
       if (!response.ok || rawGames.length === 0) {
         throw new Error(`Juego no encontrado o error en IGDB`);
       }
 
       const game = rawGames[0];
-      return {
-        id: game.id.toString(),
-        title: game.name,
-        type: "game" as const,
-        image: game.cover
-          ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}`
-          : null,
-        rating: Math.round(game.total_rating || 0),
-        firstReleaseDate: game.first_release_date || null,
-        summary: game.summary || "Sin descripción disponible.",
+      const normalizedGameDetail = {
+        ...mapIgdbBaseGameFields(game),
         storyline: game.storyline || null,
-        genres: game.genres ? game.genres.map((g: any) => g.name) : [],
-        platforms: game.platforms ? game.platforms.map((p: any) => p.name) : [],
         // Mapeamos las capturas a alta resolución (1080p)
         screenshots: game.screenshots
           ? game.screenshots.map(
@@ -618,6 +738,13 @@ const app = new Elysia()
           ? game.involved_companies[0].company.name
           : "Desarrollador Desconocido",
       };
+
+      gameDetailCache.set(parsedGameId, {
+        data: normalizedGameDetail,
+        ts: Date.now(),
+      });
+
+      return normalizedGameDetail;
     },
     {
       // CONCEPTO: Validación de Parámetros (TypeBox)
