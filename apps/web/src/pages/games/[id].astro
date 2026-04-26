@@ -1,0 +1,61 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import GameDetailsClient from "../../components/games/GameDetailsClient";
+import { getGameById } from "../../lib/api";
+
+// CONCEPTO: Rutas Dinamicas con Astro.params
+// QUE HACE: Lee el parametro [id] de la URL para resolver el juego solicitado.
+// POR QUE LO USO: Permite generar una sola plantilla reutilizable para todos los detalles de juegos.
+// DOCUMENTACION: https://docs.astro.build/en/guides/routing/#dynamic-routes
+const { id } = Astro.params;
+
+let game = null;
+let errorMessage = "";
+
+try {
+  // CONCEPTO: Guard Clause de Parametro
+  // QUE HACE: Detiene la ejecucion si falta el id en la ruta.
+  // POR QUE LO USO: Evita consultas invalidas y facilita mostrar un mensaje claro al usuario.
+  // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Glossary/Guard
+  if (!id) {
+    throw new Error("ID de juego no proporcionado");
+  }
+
+  // CONCEPTO: Carga de Datos en SSR
+  // QUE HACE: Recupera en servidor el detalle del juego antes de renderizar la pagina.
+  // POR QUE LO USO: Mejora SEO y evita pantallas vacias al primer render.
+  // DOCUMENTACION: https://docs.astro.build/en/guides/data-fetching/
+  game = await getGameById(id);
+} catch (error) {
+  errorMessage =
+    error instanceof Error
+      ? error.message
+      : "Ocurrio un error al cargar los detalles del juego";
+}
+---
+
+<Layout
+  title={game ? `${game.title} - Detalles | Alexandria` : "Error | Alexandria"}
+>
+  {
+    errorMessage || !game ? (
+      <div class="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white">
+        <h1 class="text-4xl font-bold text-red-500 mb-4">Ups...</h1>
+        {/* CONCEPTO: Mensaje de Fallback
+            QUE HACE: Muestra error explicito cuando no hay datos validos para hidratar la vista de detalle.
+            POR QUE LO USO: Evita pasar `null` al componente React tipado como `Game`.
+            DOCUMENTACION: https://www.typescriptlang.org/docs/handbook/2/narrowing.html */}
+        <p class="text-gray-400">{errorMessage || "Juego no encontrado"}</p>
+        <a href="/games" class="mt-8 text-blue-400 hover:underline">
+          Volver al catalogo
+        </a>
+      </div>
+    ) : (
+      // CONCEPTO: Hidratacion de Isla React
+      // QUE HACE: Activa comportamiento interactivo del detalle (botones, comentarios, etc.).
+      // POR QUE LO USO: Mantiene el render inicial en SSR y la interactividad en cliente.
+      // DOCUMENTACION: https://docs.astro.build/en/reference/directives-reference/#clientload
+      <GameDetailsClient client:load game={game} />
+    )
+  }
+</Layout>

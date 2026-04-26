@@ -1,0 +1,59 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import MovieDetailsClient from "../../components/movies/MovieDetailsClient";
+import { getMovieById } from "../../lib/api";
+
+// CONCEPTO: Rutas Dinamicas con Astro.params
+// QUE HACE: Lee el parametro [id] de la URL para resolver la pelicula solicitada.
+// POR QUE LO USO: Permite una sola plantilla reutilizable para todos los detalles de peliculas.
+// DOCUMENTACION: https://docs.astro.build/en/guides/routing/#dynamic-routes
+const { id } = Astro.params;
+
+let movie = null;
+let errorMessage = "";
+
+try {
+  // CONCEPTO: Guard Clause de Parametro
+  // QUE HACE: Corta la ejecucion si falta el id en la URL.
+  // POR QUE LO USO: Evita llamadas invalidas al backend y simplifica el control de errores.
+  // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Glossary/Guard
+  if (!id) {
+    throw new Error("ID de pelicula no proporcionado");
+  }
+
+  // CONCEPTO: Carga de Datos en SSR
+  // QUE HACE: Trae en servidor el detalle completo antes de pintar la pagina.
+  // POR QUE LO USO: Mejora SEO y reduce parpadeos de contenido.
+  // DOCUMENTACION: https://docs.astro.build/en/guides/data-fetching/
+  movie = await getMovieById(id);
+} catch (error) {
+  errorMessage =
+    error instanceof Error
+      ? error.message
+      : "Ocurrio un error al cargar los detalles de la pelicula";
+}
+---
+
+<Layout
+  title={movie
+    ? `${movie.title} - Detalles | Alexandria`
+    : "Error | Alexandria"}
+>
+  {
+    errorMessage || !movie ? (
+      <div class="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white">
+        <h1 class="text-4xl font-bold text-red-500 mb-4">Ups...</h1>
+        <p class="text-gray-400">{errorMessage || "Pelicula no encontrada"}</p>
+        <a href="/movies" class="mt-8 text-blue-400 hover:underline">
+          Volver al catalogo
+        </a>
+      </div>
+    ) : (
+      // CONCEPTO: Hidratacion de Isla React
+      // QUE HACE: Activa interacciones del detalle de pelicula en cliente.
+      // POR QUE LO USO: Combina SSR inicial con UX interactiva.
+      // DOCUMENTACION: https://docs.astro.build/en/reference/directives-reference/#clientload
+      <MovieDetailsClient client:load movie={movie} />
+    )
+  }
+</Layout>
