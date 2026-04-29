@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Icon } from "@iconify/react";
 
 export default function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
@@ -12,10 +13,13 @@ export default function ThemeToggle() {
   }, []);
 
   const toggle = () => {
+    const html = document.documentElement;
+    html.classList.add("theme-transitioning");
     const next = !isDark;
     setIsDark(next);
-    document.documentElement.classList.toggle("dark", next);
+    html.classList.toggle("dark", next);
     localStorage.setItem("theme", next ? "dark" : "light");
+    window.setTimeout(() => html.classList.remove("theme-transitioning"), 300);
   };
 
   return (
@@ -25,15 +29,9 @@ export default function ThemeToggle() {
       aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
     >
       {isDark ? (
-        /* Sun */
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
-        </svg>
+        <Icon icon="tabler:sun" width={20} height={20} aria-hidden="true" />
       ) : (
-        /* Moon */
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-        </svg>
+        <Icon icon="tabler:moon" width={20} height={20} aria-hidden="true" />
       )}
     </button>
   );

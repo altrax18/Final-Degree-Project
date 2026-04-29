@@ -2,6 +2,7 @@
 import Layout from "../../layouts/Layout.astro";
 import GameDetailsClient from "../../components/games/GameDetailsClient";
 import { serverApi } from "../../lib/server-api";
+import type { Game } from "../../types/game";
 
 // CONCEPTO: Rutas Dinamicas con Astro.params
 // QUE HACE: Lee el parametro [id] de la URL para resolver el juego solicitado.
@@ -9,7 +10,7 @@ import { serverApi } from "../../lib/server-api";
 // DOCUMENTACION: https://docs.astro.build/en/guides/routing/#dynamic-routes
 const { id } = Astro.params;
 
-let game = null;
+let game: Game | null = null;
 let errorMessage = "";
 
 try {
@@ -30,7 +31,7 @@ try {
     throw new Error(
       typeof error.value === "string" ? error.value : "API no disponible",
     );
-  game = data;
+  game = data as Game;
 } catch (error) {
   errorMessage =
     error instanceof Error
@@ -44,14 +45,14 @@ try {
 >
   {
     errorMessage || !game ? (
-      <div class="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white">
+      <div class="min-h-screen flex flex-col items-center justify-center bg-parchment dark:bg-obsidian text-ink dark:text-screen">
         <h1 class="text-4xl font-bold text-red-500 mb-4">Ups...</h1>
         {/* CONCEPTO: Mensaje de Fallback
             QUE HACE: Muestra error explicito cuando no hay datos validos para hidratar la vista de detalle.
             POR QUE LO USO: Evita pasar `null` al componente React tipado como `Game`.
             DOCUMENTACION: https://www.typescriptlang.org/docs/handbook/2/narrowing.html */}
-        <p class="text-gray-400">{errorMessage || "Juego no encontrado"}</p>
-        <a href="/games" class="mt-8 text-blue-400 hover:underline">
+        <p class="text-slate dark:text-mist">{errorMessage || "Juego no encontrado"}</p>
+        <a href="/games" class="mt-8 text-sapphire dark:text-electric-sky hover:underline">
           Volver al catalogo
         </a>
       </div>

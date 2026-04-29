@@ -6,8 +6,8 @@ export default function MediaCard({ title, type, image }) {
   const fallback = "https://placehold.co/400x600/1f2937/e5e7eb?text=No+Image";
 
   return (
-    <article className="group overflow-hidden rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm transition hover:-translate-y-1 hover:border-white/30">
-      <div className="aspect-[2/3] w-full overflow-hidden bg-slate-800">
+    <article className="group overflow-hidden rounded-xl border border-bone dark:border-night-edge bg-linen dark:bg-coal backdrop-blur-sm transition hover:-translate-y-1 hover:border-bone dark:hover:border-night-edge">
+      <div className="aspect-[2/3] w-full overflow-hidden bg-sand dark:bg-coal">
         <img
           src={image || fallback}
           alt={title}
@@ -17,10 +17,10 @@ export default function MediaCard({ title, type, image }) {
       </div>
 
       <div className="p-3">
-        <p className="mb-1 text-xs uppercase tracking-wide text-cyan-300">
+        <p className="mb-1 text-xs uppercase tracking-wide text-electric-sky">
           {type}
         </p>
-        <h3 className="line-clamp-2 text-sm font-semibold text-white">
+        <h3 className="line-clamp-2 text-sm font-semibold text-ink dark:text-screen">
           {title}
         </h3>
       </div>

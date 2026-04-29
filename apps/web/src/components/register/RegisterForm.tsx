@@ -5,9 +5,10 @@ type Tab = "login" | "register";
 
 type Props = {
   onClose: () => void;
+  dropdown?: boolean;
 };
 
-export default function RegisterForm({ onClose }: Props) {
+export default function RegisterForm({ onClose, dropdown = false }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("login");
 
   // Login state
@@ -30,9 +31,8 @@ export default function RegisterForm({ onClose }: Props) {
     // TODO: call register API
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 dark:bg-abyss/60 backdrop-blur-sm">
-      <div className="relative w-full max-w-sm rounded-2xl bg-parchment border border-bone shadow-2xl dark:bg-obsidian dark:border-night-edge">
+  const card = (
+    <div className="relative w-full max-w-sm rounded-2xl bg-parchment border border-bone shadow-2xl dark:bg-obsidian dark:border-night-edge">
         {/* Header */}
         <div className="flex items-center justify-between bg-sand text-ink px-5 py-4 rounded-t-2xl dark:bg-coal dark:text-screen">
           {/* Tabs */}
@@ -210,7 +210,14 @@ export default function RegisterForm({ onClose }: Props) {
             </form>
           )}
         </div>
-      </div>
+    </div>
+  );
+
+  if (dropdown) return card;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 dark:bg-abyss/60 backdrop-blur-sm">
+      {card}
     </div>
   );
 }
