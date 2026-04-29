@@ -1,0 +1,140 @@
+---
+import SearchBar from "../search-bar/SearchBar.tsx";
+import ThemeToggle from "../theme-toggle/ThemeToggle.tsx";
+import NavProfileBtn from "../register/NavProfileBtn.tsx";
+import { Icon } from "astro-icon/components";
+
+const currentPath = Astro.url.pathname;
+
+const navLinks = [
+  { href: "/movies", label: "Movies", icon: "tabler:movie" },
+  { href: "/music", label: "Music", icon: "tabler:vinyl" },
+  { href: "/games", label: "Games", icon: "tabler:device-gamepad-2" },
+  { href: "/groups", label: "Groups", icon: "tabler:users-group" },
+];
+---
+
+<header
+  id="main-navbar"
+  class="sticky top-0 z-50 border-b border-bone dark:border-night-edge bg-parchment/80 dark:bg-obsidian/80 backdrop-blur-xl shadow-[0_1px_24px_rgba(0,0,0,0.2)]"
+>
+  <!-- Fila de escritorio -->
+  <div class="mx-auto flex h-16 max-w-7xl items-center gap-5 px-5">
+    <!-- Logotipo -->
+    <a
+      href="/"
+      aria-label="Alexandria home"
+      class="flex shrink-0 items-center gap-2 no-underline opacity-100 transition-opacity duration-200 hover:opacity-85"
+    >
+      <Icon name="tabler:books" class="h-7 w-7 text-amethyst dark:text-electric-sky" />
+      <span class="text-[1.1rem] font-bold tracking-tight text-ink dark:text-screen">Alexandria</span>
+    </a>
+
+    <!-- Barra de búsqueda -->
+    <SearchBar client:load currentPath={currentPath} />
+
+    <!-- Enlaces de navegación (escritorio) -->
+    <nav
+      class="hidden md:flex shrink-0 items-center gap-1"
+      aria-label="Main navigation"
+    >
+      {
+        navLinks.map(({ href, label, icon }) => {
+          const isActive = currentPath.startsWith(href);
+          return (
+            <a
+              href={href}
+              aria-current={isActive ? "page" : undefined}
+              class={[
+                "flex items-center gap-[0.4rem] rounded-lg px-[0.85rem] py-[0.45rem] text-sm font-medium no-underline whitespace-nowrap transition-[color,background] duration-[180ms]",
+                isActive
+                  ? "bg-lilac-mist dark:bg-depth text-amethyst dark:text-electric-sky hover:bg-lilac-mist dark:hover:bg-depth hover:text-amethyst dark:hover:text-electric-sky"
+                  : "text-slate dark:text-mist hover:bg-sand dark:hover:bg-coal hover:text-ink dark:hover:text-screen",
+              ].join(" ")}
+            >
+              <Icon name={icon} class="h-[1.1rem] w-[1.1rem] shrink-0" aria-hidden="true" />
+              <span class="hidden lg:inline leading-none">{label}</span>
+            </a>
+          );
+        })
+      }
+    </nav>
+
+    <!-- Theme toggle (escritorio) -->
+    <ThemeToggle client:load />
+
+    <!-- Icono de perfil / registro (escritorio) -->
+    <div class="hidden md:flex">
+      <NavProfileBtn client:load />
+    </div>
+
+    <!-- Menú hamburguesa móvil -->
+    <button
+      id="mobile-menu-btn"
+      aria-label="Toggle menu"
+      aria-expanded="false"
+      aria-controls="mobile-drawer"
+      class="md:hidden ml-auto flex shrink-0 flex-col items-center justify-center gap-[4px] w-[38px] h-[38px] rounded-lg border border-bone dark:border-night-edge bg-transparent p-[0.55rem] cursor-pointer transition-[background] duration-[180ms] hover:bg-sand dark:hover:bg-coal"
+    >
+      <span
+        class="block w-full h-[2px] rounded-sm bg-slate dark:bg-mist transition-[transform,opacity] duration-200"
+      ></span>
+      <span
+        class="block w-full h-[2px] rounded-sm bg-slate dark:bg-mist transition-[transform,opacity] duration-200"
+      ></span>
+      <span
+        class="block w-full h-[2px] rounded-sm bg-slate dark:bg-mist transition-[transform,opacity] duration-200"
+      ></span>
+    </button>
+  </div>
+
+  <!-- Cajón móvil (oculto por defecto, alternado vía JS) -->
+  <div
+    id="mobile-drawer"
+    aria-hidden="true"
+    class="hidden flex-col gap-2 border-t border-bone dark:border-night-edge bg-parchment/[0.96] dark:bg-obsidian/[0.96] px-5 pt-3 pb-4 md:hidden"
+  >
+
+    <!-- Enlaces de navegación móviles -->
+    <nav class="flex flex-col gap-[0.1rem]" aria-label="Mobile navigation">
+      {
+        navLinks.map(({ href, label, icon }) => {
+          const isActive = currentPath.startsWith(href);
+          return (
+            <a
+              href={href}
+              aria-current={isActive ? "page" : undefined}
+              class={[
+                "flex items-center gap-[0.6rem] rounded-lg px-3 py-[0.65rem] text-[0.9rem] font-medium no-underline transition-[color,background] duration-150",
+                isActive
+                  ? "bg-lilac-mist dark:bg-depth text-amethyst dark:text-electric-sky"
+                  : "text-slate dark:text-mist hover:bg-sand dark:hover:bg-coal hover:text-ink dark:hover:text-screen",
+              ].join(" ")}
+            >
+              <Icon name={icon} class="h-[1.1rem] w-[1.1rem] shrink-0" aria-hidden="true" />
+              {label}
+            </a>
+          );
+        })
+      }
+      <NavProfileBtn client:load mobile={true} />
+    </nav>
+
+    <!-- Theme toggle (móvil) -->
+    <div class="flex items-center px-1 pt-1">
+      <ThemeToggle client:load />
+    </div>
+  </div>
+</header>
+
+<script>
+  const btn = document.getElementById("mobile-menu-btn");
+  const drawer = document.getElementById("mobile-drawer");
+
+  btn?.addEventListener("click", () => {
+    const isOpen = drawer?.classList.toggle("hidden") === false;
+    drawer?.classList.toggle("flex", isOpen);
+    btn.setAttribute("aria-expanded", String(isOpen));
+    drawer?.setAttribute("aria-hidden", String(!isOpen));
+  });
+</script>

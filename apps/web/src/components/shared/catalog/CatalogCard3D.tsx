@@ -76,7 +76,7 @@ function CatalogCard3D({ item }: CatalogCard3DProps) {
           QUE HACE: Encierra la imagen principal, el degradado y la información de la card.
           POR QUE LO USO: Separa la parte visual compartida del comportamiento interactivo.
           DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/CSS/position */}
-      <div className="absolute inset-0 rounded-xl overflow-hidden border border-white/10 bg-[#1a1a1a] z-10">
+      <div className="absolute inset-0 rounded-xl overflow-hidden border border-bone dark:border-night-edge bg-sand dark:bg-coal z-10">
         {/* CONCEPTO: Fallback de Imagen
             QUE HACE: Usa una imagen genérica si el catálogo no trae portada.
             POR QUE LO USO: Mantiene consistencia visual incluso con datos incompletos.
