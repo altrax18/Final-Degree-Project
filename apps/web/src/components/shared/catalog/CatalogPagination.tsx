@@ -49,7 +49,7 @@ export default function CatalogPagination({
     // POR QUE LO USO: Mejora accesibilidad y deja claro que este bloque cambia el resultado visible.
     // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/nav
     <nav className="mt-10 flex justify-center" aria-label="Catalog pagination">
-      <div className="inline-flex items-center overflow-hidden rounded-xl border border-black/15 bg-white text-sm shadow-sm">
+      <div className="inline-flex items-center overflow-hidden rounded-xl border border-bone dark:border-night-edge bg-parchment dark:bg-coal text-sm shadow-sm">
         {/* CONCEPTO: Botón de Página Anterior
             QUE HACE: Retrocede una página sin bajar de la primera.
             POR QUE LO USO: Mantiene una navegación predecible y segura.
@@ -58,14 +58,14 @@ export default function CatalogPagination({
           type="button"
           onClick={() => goToPage(currentPage - 1)}
           disabled={currentPage === 1}
-          className="flex items-center gap-2 px-4 py-3 text-gray-700 transition-colors hover:bg-black/5 disabled:cursor-not-allowed disabled:text-gray-400"
+          className="flex items-center gap-2 px-4 py-3 text-slate dark:text-mist transition-colors hover:bg-sand dark:hover:bg-night-edge disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="Previous page"
         >
           <span aria-hidden="true">‹</span>
           <span>Anterior</span>
         </button>
 
-        <div className="h-9 w-px bg-black/10" />
+        <div className="h-9 w-px bg-bone dark:bg-night-edge" />
 
         {/* CONCEPTO: Generación de Botones de Página
             QUE HACE: Crea un botón por cada número visible de la ventana de paginación.
@@ -81,8 +81,8 @@ export default function CatalogPagination({
               onClick={() => goToPage(page)}
               className={`min-w-11 px-3 py-3 font-semibold transition-colors ${
                 isActive
-                  ? "border-x border-black bg-white text-black"
-                  : "text-gray-800 hover:bg-black/5"
+                  ? "border-x border-ink dark:border-screen bg-sand dark:bg-night-edge text-ink dark:text-screen"
+                  : "text-slate dark:text-mist hover:bg-sand dark:hover:bg-night-edge"
               }`}
               aria-current={isActive ? "page" : undefined}
               aria-label={`Go to page ${page}`}
@@ -92,7 +92,7 @@ export default function CatalogPagination({
           );
         })}
 
-        <div className="h-9 w-px bg-black/10" />
+        <div className="h-9 w-px bg-bone dark:bg-night-edge" />
 
         {/* CONCEPTO: Botón de Página Siguiente
             QUE HACE: Avanza una página sin superar el máximo.
@@ -102,7 +102,7 @@ export default function CatalogPagination({
           type="button"
           onClick={() => goToPage(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="flex items-center gap-2 px-4 py-3 text-gray-900 transition-colors hover:bg-black/5 disabled:cursor-not-allowed disabled:text-gray-400"
+          className="flex items-center gap-2 px-4 py-3 text-slate dark:text-mist transition-colors hover:bg-sand dark:hover:bg-night-edge disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="Next page"
         >
           <span>Siguiente</span>

@@ -54,11 +54,11 @@ export default function MusicGrid({ initialTracks = [], pageSize = 24 }) {
               ref={batchIdx === pages.length - 1 ? loadMoreRef : null}
               className="flex items-center gap-4 mb-6"
             >
-              <div className="flex-1 h-px bg-white/[0.07]" />
-              <span className="text-xs font-semibold text-white/30 uppercase tracking-widest">
+              <div className="flex-1 h-px bg-bone dark:bg-night-edge" />
+              <span className="text-xs font-semibold text-slate dark:text-mist uppercase tracking-widest">
                 More songs
               </span>
-              <div className="flex-1 h-px bg-white/[0.07]" />
+              <div className="flex-1 h-px bg-bone dark:bg-night-edge" />
             </div>
           )}
 
@@ -80,15 +80,15 @@ export default function MusicGrid({ initialTracks = [], pageSize = 24 }) {
               "inline-flex items-center gap-2.5 px-7 py-3 rounded-full text-sm font-semibold",
               "border transition-all duration-200",
               loading
-                ? "border-white/10 text-white/30 bg-white/5 cursor-not-allowed"
-                : "border-white/15 text-white bg-white/[0.06] hover:bg-white/[0.12] hover:border-white/30 cursor-pointer active:scale-95",
+                ? "border-bone dark:border-night-edge text-slate dark:text-mist bg-sand dark:bg-coal cursor-not-allowed"
+                : "border-bone dark:border-night-edge text-ink dark:text-screen bg-sand dark:bg-coal hover:bg-linen dark:hover:bg-coal hover:border-bone dark:hover:border-night-edge cursor-pointer active:scale-95",
             ].join(" ")}
           >
             {loading ? (
               <>
                 {/* Cargando */}
                 <svg
-                  className="w-4 h-4 animate-spin text-white/50"
+                  className="w-4 h-4 animate-spin text-slate dark:text-mist"
                   viewBox="0 0 24 24"
                   fill="none"
                 >

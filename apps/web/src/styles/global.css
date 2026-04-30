@@ -3,6 +3,22 @@
 /* Enable class-based dark mode */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Smooth theme transition — only active while the toggle is animating */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition-property: color, background-color, border-color, fill, stroke !important;
+  transition-timing-function: ease !important;
+  transition-duration: 250ms !important;
+}
+
+/* Base body styles — switch automatically with .dark on <html> */
+body {
+  @apply bg-parchment dark:bg-obsidian text-ink dark:text-screen;
+  font-family: "Inter", sans-serif;
+}
+
 /* Dark — Abyss */
 @theme {
   --color-abyss: #000000;

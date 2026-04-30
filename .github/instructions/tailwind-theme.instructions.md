@@ -5,7 +5,7 @@ applyTo: "**/*.{tsx,astro,css}"
 
 # Tailwind Theme — Color Palette
 
-The app supports dark and light themes. Custom colors are defined in `src/styles/global.css` via `@theme` and available as Tailwind utilities (e.g., `bg-abyss`, `text-screen`).
+The app supports dark and light themes. Custom colors are defined in `/apps/web/src/styles/global.css` via `@theme` and available as Tailwind utilities (e.g., `bg-abyss`, `text-screen`).
 
 ## Dark Theme — "Abyss"
 

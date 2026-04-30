@@ -195,7 +195,7 @@ export default function FooterPlayer() {
       role="region"
       aria-label="Music player"
       className="fixed bottom-0 left-0 right-0 z-[100] h-20 flex items-center px-6 gap-4
-        bg-black/[0.92] backdrop-blur-xl border-t border-white/[0.08] font-sans text-white"
+        bg-parchment/95 dark:bg-abyss/95 backdrop-blur-xl border-t border-bone dark:border-night-edge font-sans text-ink dark:text-screen"
     >
       <div className="flex items-center gap-3 w-[28%] min-w-[180px] overflow-hidden">
         {currentTrack?.cover ? (
@@ -205,7 +205,7 @@ export default function FooterPlayer() {
             className="w-[52px] h-[52px] rounded-md object-cover flex-shrink-0 shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
           />
         ) : (
-          <div className="w-[52px] h-[52px] rounded-md bg-[#1f1f2e] flex items-center justify-center text-zinc-400 flex-shrink-0">
+          <div className="w-[52px] h-[52px] rounded-md bg-linen dark:bg-coal flex items-center justify-center text-slate dark:text-mist flex-shrink-0">
             <span className="material-symbols-rounded text-[28px]">music_note</span>
           </div>
         )}
@@ -213,16 +213,16 @@ export default function FooterPlayer() {
           {currentTrack ? (
             <a
               href={`/music/${currentTrack.id}`}
-              className="block m-0 text-[13px] font-semibold text-white truncate hover:underline hover:text-violet-300 transition-colors"
+              className="block m-0 text-[13px] font-semibold text-ink dark:text-screen truncate hover:underline hover:text-amethyst dark:hover:text-orchid transition-colors"
             >
               {currentTrack.title}
             </a>
           ) : (
-            <p className="m-0 text-[13px] font-semibold text-white truncate">
+            <p className="m-0 text-[13px] font-semibold text-ink dark:text-screen truncate">
               —
             </p>
           )}
-          <p className="m-0 text-[11px] text-zinc-400 truncate">
+          <p className="m-0 text-[11px] text-slate dark:text-mist truncate">
             {currentTrack?.artist ?? ""}
           </p>
         </div>
@@ -237,7 +237,7 @@ export default function FooterPlayer() {
             aria-label="Shuffle"
             aria-pressed={isShuffle}
             className={`bg-transparent border-none cursor-pointer p-1 transition-colors leading-none flex items-center justify-center ${
-              isShuffle ? "text-violet-400" : "text-zinc-500"
+              isShuffle ? "text-amethyst dark:text-orchid" : "text-slate dark:text-mist"
             }`}
           >
             <span className="material-symbols-rounded text-[22px]">shuffle</span>
@@ -248,7 +248,7 @@ export default function FooterPlayer() {
             id="player-prev"
             onClick={() => skipTo("prev")}
             aria-label="Previous track"
-            className="bg-transparent border-none cursor-pointer p-1 transition-colors leading-none text-zinc-400 hover:text-white flex items-center justify-center"
+            className="bg-transparent border-none cursor-pointer p-1 transition-colors leading-none text-slate dark:text-mist hover:text-ink dark:hover:text-screen flex items-center justify-center"
           >
             <span className="material-symbols-rounded text-[28px]">skip_previous</span>
           </button>
@@ -258,10 +258,10 @@ export default function FooterPlayer() {
             id="player-play-pause"
             onClick={togglePlay}
             aria-label={isPlaying ? "Pause" : "Play"}
-            className="w-[38px] h-[38px] rounded-full bg-white border-none flex items-center justify-center
-              cursor-pointer text-black flex-shrink-0
+            className="w-[38px] h-[38px] rounded-full bg-ink dark:bg-screen border-none flex items-center justify-center
+              cursor-pointer text-screen dark:text-ink flex-shrink-0
               transition-[transform,background] duration-150
-              hover:scale-[1.07] hover:bg-[#e8d5ff]"
+              hover:scale-[1.07] hover:bg-lilac-mist"
           >
             <span className="material-symbols-rounded text-[28px]">
               {isPlaying ? "pause" : "play_arrow"}
@@ -273,7 +273,7 @@ export default function FooterPlayer() {
             id="player-next"
             onClick={() => skipTo("next")}
             aria-label="Next track"
-            className="bg-transparent border-none cursor-pointer p-1 transition-colors leading-none text-zinc-400 hover:text-white flex items-center justify-center"
+            className="bg-transparent border-none cursor-pointer p-1 transition-colors leading-none text-slate dark:text-mist hover:text-ink dark:hover:text-screen flex items-center justify-center"
           >
             <span className="material-symbols-rounded text-[28px]">skip_next</span>
           </button>
@@ -285,7 +285,7 @@ export default function FooterPlayer() {
             aria-label="Repeat"
             aria-pressed={isLoop}
             className={`bg-transparent border-none cursor-pointer p-1 transition-colors leading-none flex items-center justify-center ${
-              isLoop ? "text-violet-400" : "text-zinc-500"
+              isLoop ? "text-amethyst dark:text-orchid" : "text-slate dark:text-mist"
             }`}
           >
             <span className="material-symbols-rounded text-[22px]">repeat</span>
@@ -293,14 +293,14 @@ export default function FooterPlayer() {
         </div>
 
         <div className="flex items-center gap-2 w-full max-w-[520px]">
-          <span className="text-[10px] text-[#8080a0] min-w-8 text-right tabular-nums">
+          <span className="text-[10px] text-slate dark:text-mist min-w-8 text-right tabular-nums">
             {fmt(currentTime)}
           </span>
 
           <div className="relative flex-1 h-1 cursor-pointer">
-            <div className="absolute inset-0 bg-zinc-700 rounded-full" />
+            <div className="absolute inset-0 bg-bone dark:bg-night-edge rounded-full" />
             <div
-              className="absolute top-0 left-0 h-full bg-violet-400 rounded-full transition-[width] duration-100 ease-linear"
+              className="absolute top-0 left-0 h-full bg-amethyst rounded-full transition-[width] duration-100 ease-linear"
               style={{ width: `${progressPct}%` }}
             />
             <input
@@ -316,7 +316,7 @@ export default function FooterPlayer() {
             />
           </div>
 
-          <span className="text-[10px] text-[#8080a0] min-w-8 tabular-nums">
+          <span className="text-[10px] text-slate dark:text-mist min-w-8 tabular-nums">
             {fmt(duration)}
           </span>
         </div>
@@ -327,15 +327,15 @@ export default function FooterPlayer() {
           id="player-mute"
           onClick={toggleMute}
           aria-label={isMuted ? "Unmute" : "Mute"}
-          className="bg-transparent border-none cursor-pointer text-zinc-400 transition-colors leading-none p-1 flex items-center justify-center"
+          className="bg-transparent border-none cursor-pointer text-slate dark:text-mist transition-colors leading-none p-1 flex items-center justify-center"
         >
           <span className="material-symbols-rounded text-[20px]">{volumeIcon}</span>
         </button>
 
         <div className="relative w-20 h-1 cursor-pointer">
-          <div className="absolute inset-0 bg-zinc-700 rounded-full" />
+          <div className="absolute inset-0 bg-bone dark:bg-night-edge rounded-full" />
           <div
-            className="absolute top-0 left-0 h-full bg-violet-400 rounded-full"
+            className="absolute top-0 left-0 h-full bg-amethyst rounded-full"
             style={{ width: `${volumePct}%` }}
           />
           <input

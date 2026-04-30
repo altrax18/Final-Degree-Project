@@ -1,6 +1,12 @@
-// src/components/MediaCard.jsx
+type MediaType = "movie" | "game" | "series";
 
-const TYPE_STYLES = {
+type Props = {
+  title: string;
+  type: MediaType;
+  image: string;
+};
+
+const TYPE_STYLES: Record<MediaType, { label: string; badge: string; glow: string }> = {
   movie: {
     label: "Movie",
     badge: "bg-rose-500/20 text-rose-300 border-rose-500/30",
@@ -18,17 +24,14 @@ const TYPE_STYLES = {
   },
 };
 
-/**
- * @param {{ title: string, type: 'movie' | 'game' | 'series', image: string }} props
- */
-export default function MediaCard({ title, type, image }) {
+export default function MediaCard({ title, type, image }: Props) {
   const style = TYPE_STYLES[type] ?? TYPE_STYLES.movie;
 
   return (
     <article
-      className={`group relative rounded-2xl overflow-hidden bg-gray-900 border border-gray-800
+      className={`group relative rounded-2xl overflow-hidden bg-sand dark:bg-coal border border-bone dark:border-night-edge
         shadow-lg transition-all duration-300 hover:-translate-y-1
-        hover:shadow-2xl ${style.glow} hover:border-gray-700 cursor-pointer`}
+        hover:shadow-2xl ${style.glow} hover:border-bone dark:hover:border-night-edge cursor-pointer`}
     >
       {/* Póster */}
       <div className="relative aspect-[2/3] overflow-hidden">
@@ -39,7 +42,7 @@ export default function MediaCard({ title, type, image }) {
           loading="lazy"
         />
         {/* Capa de degradado */}
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-sand dark:from-coal via-transparent to-transparent opacity-80" />
       </div>
 
       {/* Información */}
@@ -49,7 +52,7 @@ export default function MediaCard({ title, type, image }) {
         >
           {style.label}
         </span>
-        <h3 className="font-semibold text-white text-sm leading-snug line-clamp-2">
+        <h3 className="font-semibold text-ink dark:text-screen text-sm leading-snug line-clamp-2">
           {title}
         </h3>
       </div>

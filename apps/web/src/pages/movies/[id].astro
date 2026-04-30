@@ -44,9 +44,9 @@ try {
 >
   {
     errorMessage || !movie ? (
-      <div class="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white">
+      <div class="min-h-screen flex flex-col items-center justify-center bg-parchment dark:bg-obsidian text-ink dark:text-screen">
         <h1 class="text-4xl font-bold text-red-500 mb-4">Ups...</h1>
-        <p class="text-gray-400">{errorMessage || "Pelicula no encontrada"}</p>
+        <p class="text-slate dark:text-mist">{errorMessage || "Pelicula no encontrada"}</p>
         <a href="/movies" class="mt-8 text-blue-400 hover:underline">
           Volver al catalogo
         </a>

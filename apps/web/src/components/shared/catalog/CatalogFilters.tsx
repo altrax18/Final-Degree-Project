@@ -33,12 +33,12 @@ export default function CatalogFilters({
           placeholder={searchPlaceholder}
           value={searchTerm}
           onChange={(event) => onSearchTermChange(event.target.value)}
-          className="w-full bg-transparent border-b-2 border-white/20 px-4 py-3 text-xl text-white placeholder-white/30 transition-all focus:border-blue-500 focus:outline-none text-center"
+          className="w-full bg-transparent border-b-2 border-bone dark:border-night-edge px-4 py-3 text-xl text-ink dark:text-screen placeholder:text-slate dark:placeholder:text-mist transition-all focus:border-amethyst dark:focus:border-electric-sky focus:outline-none text-center"
         />
       </div>
 
       <div>
-        <h3 className="text-xs uppercase tracking-[0.2em] text-white/40 mb-4 text-center font-bold">
+        <h3 className="text-xs uppercase tracking-[0.2em] text-slate dark:text-mist mb-4 text-center font-bold">
           {filterTitle}
         </h3>
 
@@ -57,8 +57,8 @@ export default function CatalogFilters({
                 onClick={() => onGenreChange(genre)}
                 className={`px-4 py-2 text-xs font-bold tracking-wider uppercase transition-all duration-200 border ${
                   isSelected
-                    ? "border-white text-white bg-white/5 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
-                    : "border-white/10 text-white/40 hover:border-white/40 hover:text-white/80 bg-transparent"
+                    ? "border-ink dark:border-screen text-ink dark:text-screen bg-ink/5 dark:bg-screen/5 shadow-[0_0_15px_rgba(0,0,0,0.1)] dark:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                    : "border-bone dark:border-night-edge text-slate dark:text-mist hover:border-ink/40 dark:hover:border-screen/40 hover:text-ink/80 dark:hover:text-screen/80 bg-transparent"
                 }`}
               >
                 {genre}

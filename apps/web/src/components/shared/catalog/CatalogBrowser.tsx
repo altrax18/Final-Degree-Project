@@ -120,7 +120,7 @@ export default function CatalogBrowser<T>({
         </>
       ) : (
         <div className="py-20 text-center">
-          <p className="text-xl text-gray-400">{emptyMessage}</p>
+          <p className="text-xl text-slate dark:text-mist">{emptyMessage}</p>
           {/* CONCEPTO: Acción de Reinicio
               QUE HACE: Limpia búsqueda, género y página del catálogo actual.
               POR QUE LO USO: Da una salida clara cuando el usuario llega a un estado sin resultados.
@@ -128,7 +128,7 @@ export default function CatalogBrowser<T>({
           <button
             type="button"
             onClick={resetCatalogFilters}
-            className="mt-4 text-blue-400 hover:text-blue-300 underline"
+            className="mt-4 text-sapphire dark:text-electric-sky hover:text-sapphire/80 dark:hover:text-electric-sky/80 underline"
           >
             Limpiar filtros
           </button>

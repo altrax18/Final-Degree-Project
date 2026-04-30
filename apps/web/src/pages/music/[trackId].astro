@@ -25,7 +25,7 @@ if (trackId) {
   <div class="mb-6">
     <a
       href="/music"
-      class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors group"
+      class="inline-flex items-center gap-2 text-sm text-slate dark:text-mist hover:text-ink dark:hover:text-screen transition-colors group"
     >
       <span
         class="material-symbols-rounded text-[18px] group-hover:-translate-x-0.5 transition-transform"
@@ -52,12 +52,12 @@ if (trackId) {
   <!-- No encontrado -->
   {
     !fetchError && !track && (
-      <div class="flex flex-col items-center justify-center py-32 gap-4 text-gray-500">
+      <div class="flex flex-col items-center justify-center py-32 gap-4 text-slate dark:text-mist">
         <span class="text-6xl">🎵</span>
         <p class="text-lg font-medium">Canción no encontrada</p>
         <a
           href="/music"
-          class="text-purple-400 hover:text-purple-300 text-sm underline"
+          class="text-amethyst dark:text-orchid hover:text-amethyst/80 dark:hover:text-orchid/80 text-sm underline"
         >
           Volver a Música
         </a>
