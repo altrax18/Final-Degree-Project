@@ -226,41 +226,43 @@ export default function SearchBar({ currentPath }: Props) {
         </div>
       )}
 
-      {/* Search icon */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute flex items-center text-slate dark:text-mist"
-        style={{ left: inferredCategory === null ? "5.5rem" : "0.75rem" }}
-      >
-        <Icon icon="tabler:search" width={16} height={16} />
-      </span>
+      {/* Input area wrapper */}
+      <div className="relative flex flex-1 items-center w-full">
+        {/* Search icon */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute left-3 flex items-center text-slate dark:text-mist"
+        >
+          <Icon icon="tabler:search" width={16} height={16} />
+        </span>
 
-      <input
-        ref={inputRef}
-        id="global-search"
-        type="search"
-        value={searchTerm}
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-          if (!showDropdown && e.target.value.trim().length >= 2)
-            setShowDropdown(true);
-        }}
-        onFocus={() => {
-          if (results.length > 0) setShowDropdown(true);
-        }}
-        onKeyDown={handleKeyDown}
-        autoComplete="off"
-        aria-label="Global search"
-        className={`w-full border border-bone dark:border-night-edge bg-linen dark:bg-coal py-2 pr-10 text-sm text-ink dark:text-screen outline-none placeholder:text-slate dark:placeholder:text-mist transition-[border-color,background,box-shadow] duration-200 focus:border-amethyst dark:focus:border-electric-sky focus:bg-lilac-mist/30 dark:focus:bg-depth/30 focus:shadow-[0_0_0_3px_rgba(139,111,189,0.15)] dark:focus:shadow-[0_0_0_3px_rgba(91,181,245,0.15)] [&::-webkit-search-cancel-button]:hidden ${
-          inferredCategory === null
-            ? "rounded-r-[0.6rem] pl-9"
-            : "rounded-[0.6rem] pl-10"
-        }`}
-      />
+        <input
+          ref={inputRef}
+          id="global-search"
+          type="search"
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            if (!showDropdown && e.target.value.trim().length >= 2)
+              setShowDropdown(true);
+          }}
+          onFocus={() => {
+            if (results.length > 0) setShowDropdown(true);
+          }}
+          onKeyDown={handleKeyDown}
+          autoComplete="off"
+          aria-label="Global search"
+          className={`w-full border border-bone dark:border-night-edge bg-linen dark:bg-coal py-2 pl-9 pr-10 text-sm text-ink dark:text-screen outline-none placeholder:text-slate dark:placeholder:text-mist transition-[border-color,background,box-shadow] duration-200 focus:border-amethyst dark:focus:border-electric-sky focus:bg-lilac-mist/30 dark:focus:bg-depth/30 focus:shadow-[0_0_0_3px_rgba(139,111,189,0.15)] dark:focus:shadow-[0_0_0_3px_rgba(91,181,245,0.15)] [&::-webkit-search-cancel-button]:hidden ${
+            inferredCategory === null
+              ? "rounded-r-[0.6rem] border-l-0"
+              : "rounded-[0.6rem]"
+          }`}
+        />
 
-      <kbd className="pointer-events-none absolute right-[0.65rem] rounded-[0.3rem] border border-bone dark:border-night-edge bg-linen dark:bg-coal px-[0.35rem] py-[0.1rem] font-[inherit] text-[0.65rem] text-slate dark:text-mist">
-        Ctrl+K
-      </kbd>
+        <kbd className="pointer-events-none absolute right-[0.65rem] rounded-[0.3rem] border border-bone dark:border-night-edge bg-linen dark:bg-coal px-[0.35rem] py-[0.1rem] font-[inherit] text-[0.65rem] text-slate dark:text-mist">
+          Ctrl+K
+        </kbd>
+      </div>
 
       {/* Dropdown results */}
       {showDropdown && searchTerm.trim().length >= 2 && (
