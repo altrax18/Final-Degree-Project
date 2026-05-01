@@ -7,6 +7,7 @@ export default function RegisterBtn() {
   return (
     <>
       <button
+        id="register-btn"
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 rounded-full bg-amethyst px-4 py-2 text-sm font-medium text-screen shadow-lg hover:bg-orchid dark:bg-sapphire dark:hover:bg-depth transition-colors cursor-pointer"
         aria-label={isOpen ? "Close sign in" : "Sign in or register"}

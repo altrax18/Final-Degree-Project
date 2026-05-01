@@ -1,0 +1,16 @@
+---
+// src/pages/profile.astro
+// CONCEPTO: Pagina de Perfil (Shell SSR)
+// QUE HACE: Sirve como contenedor Astro del componente ProfilePage, que se
+//           hidrata completamente en el cliente para poder leer localStorage
+//           y hacer llamadas a la API sin pasar por SSR.
+// POR QUE LO USO: Separar el shell SSR del componente cliente es el patron
+//                 estandar de Astro para paginas con estado de sesion dinamico.
+// DOCUMENTACION: https://docs.astro.build/en/guides/client-side-scripts/
+import Layout from "../layouts/Layout.astro";
+import ProfilePage from "../components/profile/ProfilePage.tsx";
+---
+
+<Layout title="Perfil">
+  <ProfilePage client:only="react" />
+</Layout>

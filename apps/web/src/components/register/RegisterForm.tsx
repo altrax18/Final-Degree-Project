@@ -1,5 +1,16 @@
+// CONCEPTO: Formulario de Autenticacion
+// QUE HACE: Gestiona el login y registro del usuario, llama a los endpoints
+//           de la API y persiste la sesion en localStorage.
+// POR QUE LO USO: Centraliza la logica de auth en el cliente y evita duplicar
+//                 logica de fetch en otros componentes.
+// DOCUMENTACION: https://react.dev/reference/react/useState
 import { useState } from "react";
-import type { SyntheticEvent } from "react";
+
+const SESSION_KEY = "alex_user";
+
+function saveSession(user: Record<string, unknown>) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+}
 
 type Tab = "login" | "register";
 
@@ -11,24 +22,99 @@ type Props = {
 export default function RegisterForm({ onClose, dropdown = false }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("login");
 
-  // Login state
+  // Estado de Login
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
-  // Register state
+  // Estado de Registro
   const [registerUsername, setRegisterUsername] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerConfirm, setRegisterConfirm] = useState("");
 
-  const handleLogin = (e: SyntheticEvent<HTMLFormElement>) => {
+  // Estado compartido
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // CONCEPTO: Login con Persistencia de Sesion
+  // QUE HACE: Llama a POST /api/users/login, y si las credenciales son correctas
+  //           guarda el objeto usuario en localStorage y recarga la pagina para
+  //           que todos los componentes lean la nueva sesion.
+  // POR QUE LO USO: Es el punto de entrada de la sesion en el cliente; al recargar
+  //                 ProfilePage y NavBar reflejan el estado autenticado.
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: call login API
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? "Credenciales incorrectas");
+      }
+
+      const user = await res.json();
+      saveSession(user);
+      onClose();
+      window.location.reload();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error al iniciar sesion");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleRegister = (e: SyntheticEvent<HTMLFormElement>) => {
+  // CONCEPTO: Registro con Auto-Login
+  // QUE HACE: Llama a POST /api/users para crear la cuenta, y si tiene exito
+  //           guarda el objeto usuario en localStorage (auto-login inmediato).
+  // POR QUE LO USO: Mejora la experiencia de usuario al no obligarle a hacer
+  //                 login manualmente justo despues de registrarse.
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: call register API
+    setError("");
+
+    if (registerPassword !== registerConfirm) {
+      setError("Las contraseñas no coinciden");
+      return;
+    }
+    if (registerPassword.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: registerUsername,
+          email: registerEmail,
+          password: registerPassword,
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? "No se pudo crear la cuenta");
+      }
+
+      const user = await res.json();
+      saveSession(user);
+      onClose();
+      window.location.reload();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error al registrarse");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const card = (
@@ -106,11 +192,19 @@ export default function RegisterForm({ onClose, dropdown = false }: Props) {
                 />
               </div>
 
+              {/* Banner de error */}
+              {error && (
+                <p className="text-xs text-red-500 dark:text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                  {error}
+                </p>
+              )}
+
               <button
                 type="submit"
+                disabled={loading}
                 className="mt-1 rounded-lg bg-amethyst py-2 text-sm font-semibold text-screen hover:bg-orchid dark:bg-sapphire dark:hover:bg-depth transition-colors cursor-pointer disabled:opacity-40"
               >
-                Sign in
+                {loading ? "Iniciando sesión…" : "Sign in"}
               </button>
 
               <p className="text-center text-xs text-slate dark:text-mist">
@@ -190,11 +284,19 @@ export default function RegisterForm({ onClose, dropdown = false }: Props) {
                 />
               </div>
 
+              {/* Banner de error */}
+              {error && (
+                <p className="text-xs text-red-500 dark:text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                  {error}
+                </p>
+              )}
+
               <button
                 type="submit"
+                disabled={loading}
                 className="mt-1 rounded-lg bg-amethyst py-2 text-sm font-semibold text-screen hover:bg-orchid dark:bg-sapphire dark:hover:bg-depth transition-colors cursor-pointer disabled:opacity-40"
               >
-                Create account
+                {loading ? "Creando cuenta…" : "Create account"}
               </button>
 
               <p className="text-center text-xs text-slate dark:text-mist">
