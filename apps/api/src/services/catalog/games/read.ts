@@ -114,12 +114,34 @@ async function getTwitchToken() {
   return String(payload.access_token);
 }
 
-export async function browseGames(_query?: string): Promise<unknown[]> {
+export async function browseGames(query?: string): Promise<unknown[]> {
+  const token = await getTwitchToken();
+
+  if (query) {
+    const safeQuery = query.replace(/"/g, "");
+    const { response, payload: rawGames } = await fetchJsonWithTimeout(
+      "https://api.igdb.com/v4/games",
+      {
+        method: "POST",
+        headers: {
+          "Client-ID": process.env.TWITCH_CLIENT_ID!,
+          Authorization: `Bearer ${token}`,
+        },
+        body: `search "${safeQuery}"; fields name, cover.url, summary, total_rating, first_release_date, genres.name, platforms.name; where cover != null; limit 20;`,
+      },
+    );
+
+    if (!response.ok || !Array.isArray(rawGames)) {
+      throw new Error(`IGDB search rechazo la solicitud (${response.status})`);
+    }
+
+    return rawGames.map((game: any) => mapIgdbBaseGameFields(game));
+  }
+
   if (gamesListCache && Date.now() - gamesListCache.ts < GAMES_LIST_CACHE_TTL) {
     return gamesListCache.data;
   }
 
-  const token = await getTwitchToken();
   const { response, payload: rawGames } = await fetchJsonWithTimeout(
     "https://api.igdb.com/v4/games",
     {

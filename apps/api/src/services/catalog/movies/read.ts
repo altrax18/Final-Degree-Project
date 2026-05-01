@@ -78,63 +78,34 @@ function parsePositiveMovieId(rawId: string): number {
   return parsedId;
 }
 
-export async function browseMovies(_query?: string): Promise<unknown[]> {
-  if (
-    moviesListCache &&
-    Date.now() - moviesListCache.ts < MOVIES_LIST_CACHE_TTL
-  ) {
-    return moviesListCache.data;
-  }
+let genreCache: Map<number, string> | null = null;
+let genreCacheTs = 0;
+const GENRE_CACHE_TTL = 24 * 60 * 60 * 1000;
 
-  const { headers, authQuery } = resolveTmdbAuth();
-  const tmdbPagesToFetch = 4;
-  const pages = Array.from(
-    { length: tmdbPagesToFetch },
-    (_, index) => index + 1,
+async function getGenreMap(headers: Headers, authQuery: string) {
+  if (genreCache && Date.now() - genreCacheTs < GENRE_CACHE_TTL) {
+    return genreCache;
+  }
+  const { response, payload } = await fetchJsonWithTimeout(
+    `https://api.themoviedb.org/3/genre/movie/list?${authQuery}language=es-ES`,
+    { headers },
   );
-
-  const [genresResult, ...discoverResults] = await Promise.all([
-    fetchJsonWithTimeout(
-      `https://api.themoviedb.org/3/genre/movie/list?${authQuery}language=es-ES`,
-      { headers },
-    ),
-    ...pages.map((page) =>
-      fetchJsonWithTimeout(
-        `https://api.themoviedb.org/3/discover/movie?${authQuery}include_adult=false&include_video=false&language=es-ES&page=${page}&sort_by=popularity.desc&vote_count.gte=150`,
-        { headers },
-      ),
-    ),
-  ]);
-
-  const genresPayload: any = genresResult.payload;
-  const discoverResponses = discoverResults.map((result) => result.response);
-  const discoverPayloads: any[] = discoverResults.map(
-    (result) => result.payload,
+  if (!response.ok || !Array.isArray(payload?.genres)) {
+    throw new Error(`TMDB genero fallo (${response.status})`);
+  }
+  genreCache = new Map<number, string>(
+    payload.genres.map((genre: any) => [genre.id, genre.name]),
   );
+  genreCacheTs = Date.now();
+  return genreCache;
+}
 
-  if (!genresResult.response.ok || !Array.isArray(genresPayload?.genres)) {
-    throw new Error(`TMDB genero fallo (${genresResult.response.status})`);
-  }
-
-  if (discoverResponses.some((response) => !response.ok)) {
-    const failedResponse = discoverResponses.find((response) => !response.ok);
-    throw new Error(`TMDB discover fallo (${failedResponse?.status ?? 500})`);
-  }
-
-  if (discoverPayloads.some((payload) => !Array.isArray(payload?.results))) {
-    throw new Error("TMDB discover devolvio una estructura invalida");
-  }
-
-  const genreById = new Map<number, string>(
-    genresPayload.genres.map((genre: any) => [genre.id, genre.name]),
-  );
-
-  const mergedMovies = discoverPayloads.flatMap((payload) => payload.results);
+function normalizeMovies(movies: any[], genreById: Map<number, string>) {
   const uniqueMovies = Array.from(
-    new Map(mergedMovies.map((movie: any) => [movie.id, movie])).values(),
+    new Map(movies.map((movie: any) => [movie.id, movie])).values(),
   );
 
-  const normalizedMovies = uniqueMovies.map((movie: any) => {
+  return uniqueMovies.map((movie: any) => {
     const parsedDate = movie.release_date
       ? Date.parse(`${movie.release_date}T00:00:00Z`)
       : NaN;
@@ -158,6 +129,58 @@ export async function browseMovies(_query?: string): Promise<unknown[]> {
         : [],
     };
   });
+}
+
+export async function browseMovies(query?: string): Promise<unknown[]> {
+  const { headers, authQuery } = resolveTmdbAuth();
+
+  if (query) {
+    const [genreById, searchResult] = await Promise.all([
+      getGenreMap(headers, authQuery),
+      fetchJsonWithTimeout(
+        `https://api.themoviedb.org/3/search/movie?${authQuery}language=es-ES&query=${encodeURIComponent(query)}&include_adult=false`,
+        { headers }
+      )
+    ]);
+    
+    const searchPayload: any = searchResult.payload;
+    if (!searchResult.response.ok || !Array.isArray(searchPayload?.results)) {
+      throw new Error(`TMDB search fallo (${searchResult.response.status})`);
+    }
+    
+    return normalizeMovies(searchPayload.results, genreById);
+  }
+
+  if (
+    moviesListCache &&
+    Date.now() - moviesListCache.ts < MOVIES_LIST_CACHE_TTL
+  ) {
+    return moviesListCache.data;
+  }
+
+  const tmdbPagesToFetch = 4;
+  const pages = Array.from(
+    { length: tmdbPagesToFetch },
+    (_, index) => index + 1,
+  );
+
+  const [genreById, ...discoverResults] = await Promise.all([
+    getGenreMap(headers, authQuery),
+    ...pages.map((page) =>
+      fetchJsonWithTimeout(
+        `https://api.themoviedb.org/3/discover/movie?${authQuery}include_adult=false&include_video=false&language=es-ES&page=${page}&sort_by=popularity.desc&vote_count.gte=150`,
+        { headers },
+      ),
+    ),
+  ]);
+
+  const discoverResponses = discoverResults.map((result) => result.response);
+  const discoverPayloads: any[] = discoverResults.map(
+    (result) => result.payload,
+  );
+
+  const mergedMovies = discoverPayloads.flatMap((payload) => payload.results);
+  const normalizedMovies = normalizeMovies(mergedMovies, genreById);
 
   moviesListCache = {
     data: normalizedMovies,

@@ -49,18 +49,24 @@ async function fetchResults(
     const res = await fetch(`/api/movies?q=${encodeURIComponent(term)}`);
     const data = await res.json();
     if (!Array.isArray(data)) return [];
-    return (data as { id: string; title: string; image: string | null }[])
+    return (data as { id: string; title: string; image: string | null; firstReleaseDate?: number | null }[])
       .slice(0, 12)
-      .map((r) => ({ id: r.id, title: r.title, image: r.image }));
+      .map((r) => {
+        const year = r.firstReleaseDate ? new Date(r.firstReleaseDate).getFullYear().toString() : undefined;
+        return { id: r.id, title: r.title, subtitle: year, image: r.image };
+      });
   }
 
   if (category === "games") {
     const res = await fetch(`/api/games?q=${encodeURIComponent(term)}`);
     const data = await res.json();
     if (!Array.isArray(data)) return [];
-    return (data as { id: string; title: string; image: string | null }[])
+    return (data as { id: string; title: string; image: string | null; genres?: string[] }[])
       .slice(0, 12)
-      .map((r) => ({ id: r.id, title: r.title, image: r.image }));
+      .map((r) => {
+        const genre = r.genres && r.genres.length > 0 ? r.genres[0] : undefined;
+        return { id: r.id, title: r.title, subtitle: genre, image: r.image };
+      });
   }
 
   return [];
