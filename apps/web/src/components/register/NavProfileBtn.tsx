@@ -1,14 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import RegisterForm from "./RegisterForm";
+import { readSession, type SessionUser } from "../../types/user";
 
 type Props = {
   mobile?: boolean;
 };
 
 export default function NavProfileBtn({ mobile = false }: Props) {
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
+  // Cargar usuario desde localStorage al montar
+  useEffect(() => {
+    setUser(readSession());
+  }, []);
+
+  // Si hay usuario, mostramos su foto de perfil y enlace al perfil
+  if (user) {
+    return (
+      <a
+        href="/profile"
+        className={
+          mobile
+            ? "flex items-center gap-[0.6rem] w-full rounded-lg px-3 py-[0.65rem] text-[0.9rem] font-medium text-slate dark:text-mist transition-[color,background] duration-150 hover:bg-sand dark:hover:bg-coal hover:text-ink dark:hover:text-screen no-underline"
+            : "flex shrink-0 items-center justify-center w-[38px] h-[38px] rounded-full border border-bone dark:border-night-edge overflow-hidden hover:border-amethyst dark:hover:border-electric-sky transition-all hover:scale-105"
+        }
+      >
+        <img
+          src={user.profileImageUrl}
+          alt={user.username}
+          className="w-full h-full object-cover"
+        />
+        {mobile && <span>{user.username}</span>}
+      </a>
+    );
+  }
+
+  // Si no hay usuario, mostramos el botón de login/registro original
   return (
     <>
       {mobile ? (
