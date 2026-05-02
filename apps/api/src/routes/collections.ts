@@ -20,13 +20,19 @@ type CollectionItemBody = {
   metadata?: Record<string, unknown>;
 };
 
-export const collectionsRoutes = new Elysia({ prefix: "/users/:userId" })
+export const collectionsRoutes = new Elysia({ prefix: "/api/users/:userId" })
   // Collections
   .get("/collections", async ({ params }) => {
     return getCollectionsByUserId(Number(params.userId));
   })
-  .post("/collections", async ({ params, body }) => {
-    return createCollection(Number(params.userId), body as CollectionBody);
+  .post("/collections", async ({ params, body, set }) => {
+    try {
+      return await createCollection(Number(params.userId), body as CollectionBody);
+    } catch (err: any) {
+      console.error("Error al crear colección:", err);
+      set.status = 500;
+      return { error: err.message || "Internal Server Error" };
+    }
   })
   .get("/collections/:collectionId", async ({ params }) => {
     const collection = await getCollectionById(Number(params.userId), Number(params.collectionId));

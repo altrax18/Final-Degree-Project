@@ -1,11 +1,45 @@
-// apps/web/src/components/movies/MovieDetailsClient.tsx
+import { useState, useEffect, useRef } from "react";
 import type { Movie } from "../../types/movie";
+import { useCollections } from "../../hooks/useCollections";
+import { Icon } from "@iconify/react";
 
 interface Props {
   movie: Movie;
 }
 
 export default function MovieDetailsClient({ movie }: Props) {
+  const [showCollections, setShowCollections] = useState(false);
+  const { collections, addItem } = useCollections();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar menú al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (event: any) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowCollections(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleAddToCollection = async (collectionId: number) => {
+    await addItem(collectionId, {
+      apiId: movie.id,
+      title: movie.title,
+      type: "movie",
+      metadata: {
+        image: movie.image,
+        rating: movie.rating,
+        genres: movie.genres,
+        director: movie.director
+      }
+    });
+    setShowCollections(false);
+    alert("¡Película añadida a la colección!");
+  };
+
+  const relevantCollections = collections.filter(c => c.type === "movie");
   // CONCEPTO: Formateo Localizado de Fechas
   // QUE HACE: Convierte timestamp UNIX en fecha legible para interfaz en espanol.
   // POR QUE LO USO: Mejora la lectura de metadatos sin agregar librerias extra.
@@ -265,9 +299,46 @@ export default function MovieDetailsClient({ movie }: Props) {
               )}
             </div>
             
-            <button className="w-full py-4 bg-red-600 text-white font-bold rounded-xl hover:bg-red-500 transition-transform active:scale-95 shadow-[0_0_20px_rgba(220,38,38,0.2)]">
-              + Añadir a mi Watchlist
-            </button>
+            <div className="relative" ref={menuRef}>
+              <button 
+                onClick={() => setShowCollections(!showCollections)}
+                className="w-full py-4 bg-red-600 text-white font-bold rounded-xl hover:bg-red-500 transition-transform active:scale-95 shadow-[0_0_20px_rgba(220,38,38,0.2)] flex items-center justify-center gap-2"
+              >
+                <Icon icon="tabler:plus" className="w-5 h-5" />
+                Añadir a mi Watchlist
+              </button>
+
+              {showCollections && (
+                <div className="absolute bottom-full left-0 mb-3 w-full bg-white dark:bg-night-edge border border-bone dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <div className="p-3 border-b border-bone dark:border-white/5">
+                    <p className="text-[10px] font-bold text-slate dark:text-white/40 uppercase tracking-widest px-2 text-left">Mis Listas de Películas</p>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto">
+                    {relevantCollections.length === 0 ? (
+                      <p className="text-xs text-slate dark:text-white/30 p-4 italic text-center">No tienes listas de películas</p>
+                    ) : (
+                      relevantCollections.map(col => (
+                        <button
+                          key={col.id}
+                          onClick={() => handleAddToCollection(col.id)}
+                          className="w-full text-left px-4 py-3 text-sm text-ink dark:text-white/70 hover:bg-red-600/10 hover:text-red-500 transition-colors flex items-center gap-3"
+                        >
+                          <Icon icon="tabler:list" className="w-5 h-5 opacity-40" />
+                          <span className="truncate">{col.name}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                  <a 
+                    href="/profile" 
+                    className="block text-center p-3 text-[10px] font-bold text-red-500 hover:text-red-400 border-t border-bone dark:border-white/5 uppercase tracking-wider"
+                  >
+                    + Nueva Lista
+                  </a>
+                </div>
+              )}
+            </div>
+
           </aside>
         </div>
       </div>

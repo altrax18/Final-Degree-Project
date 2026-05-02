@@ -1,5 +1,5 @@
-// src/components/music/FooterPlayer.jsx
 import { useState, useEffect, useRef, useCallback } from "react";
+import { Icon } from "@iconify/react";
 
 /** Formatear segundos → "m:ss" */
 function fmt(s) {
@@ -183,7 +183,7 @@ export default function FooterPlayer() {
   };
 
   const volumeIcon =
-    isMuted || volume === 0 ? "volume_off" : "volume_up";
+    isMuted || volume === 0 ? "tabler:volume-off" : "tabler:volume";
   const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
   const volumePct = isMuted ? 0 : volume * 100;
 
@@ -206,7 +206,7 @@ export default function FooterPlayer() {
           />
         ) : (
           <div className="w-[52px] h-[52px] rounded-md bg-linen dark:bg-coal flex items-center justify-center text-slate dark:text-mist flex-shrink-0">
-            <span className="material-symbols-rounded text-[28px]">music_note</span>
+            <Icon icon="tabler:music" className="text-[28px]" />
           </div>
         )}
         <div className="overflow-hidden">
@@ -236,11 +236,16 @@ export default function FooterPlayer() {
             onClick={toggleShuffle}
             aria-label="Shuffle"
             aria-pressed={isShuffle}
-            className={`bg-transparent border-none cursor-pointer p-1 transition-colors leading-none flex items-center justify-center ${
-              isShuffle ? "text-amethyst dark:text-orchid" : "text-slate dark:text-mist"
+            className={`relative bg-transparent border-none cursor-pointer p-1.5 transition-all leading-none flex items-center justify-center rounded-full ${
+              isShuffle 
+                ? "text-electric-sky bg-electric-sky/10" 
+                : "text-slate dark:text-mist hover:text-ink dark:hover:text-screen hover:bg-white/5"
             }`}
           >
-            <span className="material-symbols-rounded text-[22px]">shuffle</span>
+            <Icon icon="tabler:arrows-shuffle" className="text-[20px]" />
+            {isShuffle && (
+              <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-electric-sky rounded-full shadow-[0_0_6px_rgba(91,181,245,0.8)]" />
+            )}
           </button>
 
           {/* Anterior */}
@@ -250,7 +255,7 @@ export default function FooterPlayer() {
             aria-label="Previous track"
             className="bg-transparent border-none cursor-pointer p-1 transition-colors leading-none text-slate dark:text-mist hover:text-ink dark:hover:text-screen flex items-center justify-center"
           >
-            <span className="material-symbols-rounded text-[28px]">skip_previous</span>
+            <Icon icon="tabler:player-skip-back-filled" className="text-[28px]" />
           </button>
 
           {/* Reproducir/Pausa */}
@@ -263,9 +268,10 @@ export default function FooterPlayer() {
               transition-[transform,background] duration-150
               hover:scale-[1.07] hover:bg-lilac-mist"
           >
-            <span className="material-symbols-rounded text-[28px]">
-              {isPlaying ? "pause" : "play_arrow"}
-            </span>
+            <Icon 
+              icon={isPlaying ? "tabler:player-pause-filled" : "tabler:player-play-filled"} 
+              className="text-[28px]" 
+            />
           </button>
 
           {/* Siguiente */}
@@ -275,7 +281,7 @@ export default function FooterPlayer() {
             aria-label="Next track"
             className="bg-transparent border-none cursor-pointer p-1 transition-colors leading-none text-slate dark:text-mist hover:text-ink dark:hover:text-screen flex items-center justify-center"
           >
-            <span className="material-symbols-rounded text-[28px]">skip_next</span>
+            <Icon icon="tabler:player-skip-forward-filled" className="text-[28px]" />
           </button>
 
           {/* Bucle */}
@@ -284,11 +290,16 @@ export default function FooterPlayer() {
             onClick={() => setIsLoop((l) => !l)}
             aria-label="Repeat"
             aria-pressed={isLoop}
-            className={`bg-transparent border-none cursor-pointer p-1 transition-colors leading-none flex items-center justify-center ${
-              isLoop ? "text-amethyst dark:text-orchid" : "text-slate dark:text-mist"
+            className={`relative bg-transparent border-none cursor-pointer p-1.5 transition-all leading-none flex items-center justify-center rounded-full ${
+              isLoop 
+                ? "text-electric-sky bg-electric-sky/10" 
+                : "text-slate dark:text-mist hover:text-ink dark:hover:text-screen hover:bg-white/5"
             }`}
           >
-            <span className="material-symbols-rounded text-[22px]">repeat</span>
+            <Icon icon="tabler:repeat" className="text-[20px]" />
+            {isLoop && (
+              <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-electric-sky rounded-full shadow-[0_0_6px_rgba(91,181,245,0.8)]" />
+            )}
           </button>
         </div>
 
@@ -329,7 +340,7 @@ export default function FooterPlayer() {
           aria-label={isMuted ? "Unmute" : "Mute"}
           className="bg-transparent border-none cursor-pointer text-slate dark:text-mist transition-colors leading-none p-1 flex items-center justify-center"
         >
-          <span className="material-symbols-rounded text-[20px]">{volumeIcon}</span>
+          <Icon icon={volumeIcon} className="text-[20px]" />
         </button>
 
         <div className="relative w-20 h-1 cursor-pointer">
