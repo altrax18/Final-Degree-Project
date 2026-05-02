@@ -77,7 +77,19 @@ export function useCollections() {
         body: JSON.stringify(item),
       });
       if (!res.ok) throw new Error("Error al añadir item");
-      return await res.json();
+      const newItem = await res.json();
+      
+      setCollections(prev => prev.map(col => {
+        if (col.id === collectionId) {
+          // Evitar duplicados en el estado local
+          const exists = col.items.some(i => i.apiId === newItem.apiId);
+          if (exists) return col;
+          return { ...col, items: [...col.items, newItem] };
+        }
+        return col;
+      }));
+      
+      return newItem;
     } catch (err: any) {
       setError(err.message);
       return null;
@@ -91,6 +103,13 @@ export function useCollections() {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Error al eliminar item");
+      
+      setCollections(prev => prev.map(col => {
+        if (col.id === collectionId) {
+          return { ...col, items: col.items.filter(i => i.id !== itemId) };
+        }
+        return col;
+      }));
     } catch (err: any) {
       setError(err.message);
     }

@@ -3,16 +3,19 @@ import { userCollections } from "../../../db/schema";
 import { eq, and } from "drizzle-orm";
 
 export async function getCollectionsByUserId(userId: number) {
-  return await db
-    .select()
-    .from(userCollections)
-    .where(eq(userCollections.userId, userId));
+  return await db.query.userCollections.findMany({
+    where: eq(userCollections.userId, userId),
+    with: {
+      items: true,
+    },
+  });
 }
 
 export async function getCollectionById(userId: number, collectionId: number) {
-  const [collection] = await db
-    .select()
-    .from(userCollections)
-    .where(and(eq(userCollections.id, collectionId), eq(userCollections.userId, userId)));
-  return collection;
+  return await db.query.userCollections.findFirst({
+    where: and(eq(userCollections.id, collectionId), eq(userCollections.userId, userId)),
+    with: {
+      items: true,
+    },
+  });
 }

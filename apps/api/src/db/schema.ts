@@ -97,3 +97,17 @@ export const collectionItems = pgTable("collection_items", {
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
+
+// Relations
+import { relations } from "drizzle-orm";
+
+export const userCollectionsRelations = relations(userCollections, ({ many }) => ({
+  items: many(collectionItems),
+}));
+
+export const collectionItemsRelations = relations(collectionItems, ({ one }) => ({
+  collection: one(userCollections, {
+    fields: [collectionItems.collectionId],
+    references: [userCollections.id],
+  }),
+}));

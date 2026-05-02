@@ -3,6 +3,7 @@ export interface UserCollection {
   userId: number;
   name: string;
   type: "movie" | "music" | "game";
+  items: CollectionItem[];
   createdAt: string;
 }
 

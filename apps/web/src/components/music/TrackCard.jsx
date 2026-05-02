@@ -117,16 +117,27 @@ export default function TrackCard({ track, queue = [] }) {
                 {musicCollections.length === 0 ? (
                   <p className="text-xs text-slate dark:text-white/30 p-3 italic text-center">No tienes listas de música</p>
                 ) : (
-                  musicCollections.map(col => (
-                    <button
-                      key={col.id}
-                      onClick={(e) => handleAddToCollection(e, col.id)}
-                      className="w-full text-left px-4 py-2 text-sm text-ink dark:text-white/70 hover:bg-amethyst/10 hover:text-amethyst transition-colors flex items-center gap-2"
-                    >
-                      <Icon icon="tabler:list" className="w-4 h-4 opacity-40" />
-                      <span className="truncate">{col.name}</span>
-                    </button>
-                  ))
+                  musicCollections.map(col => {
+                    const isAdded = col.items.some(i => i.apiId === track.id);
+                    return (
+                      <button
+                        key={col.id}
+                        onClick={(e) => !isAdded && handleAddToCollection(e, col.id)}
+                        disabled={isAdded}
+                        className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between transition-colors ${
+                          isAdded 
+                            ? "text-amethyst bg-amethyst/5 cursor-default" 
+                            : "text-ink dark:text-white/70 hover:bg-amethyst/10 hover:text-amethyst"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <Icon icon="tabler:list" className="w-4 h-4 opacity-40" />
+                          <span className="truncate">{col.name}</span>
+                        </div>
+                        {isAdded && <Icon icon="tabler:check" className="w-4 h-4" />}
+                      </button>
+                    );
+                  })
                 )}
               </div>
               <a 

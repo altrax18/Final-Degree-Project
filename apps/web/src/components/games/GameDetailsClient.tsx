@@ -157,16 +157,27 @@ export default function GameDetailsClient({ game }: Props) {
                     {relevantCollections.length === 0 ? (
                       <p className="text-xs text-slate dark:text-white/30 p-4 italic text-center">No tienes listas de juegos</p>
                     ) : (
-                      relevantCollections.map(col => (
-                        <button
-                          key={col.id}
-                          onClick={() => handleAddToCollection(col.id)}
-                          className="w-full text-left px-4 py-3 text-sm text-ink dark:text-white/70 hover:bg-blue-600/10 hover:text-blue-500 transition-colors flex items-center gap-3"
-                        >
-                          <Icon icon="tabler:list" className="w-5 h-5 opacity-40" />
-                          <span className="truncate">{col.name}</span>
-                        </button>
-                      ))
+                      relevantCollections.map(col => {
+                        const isAdded = col.items.some(i => i.apiId === game.id);
+                        return (
+                          <button
+                            key={col.id}
+                            onClick={() => !isAdded && handleAddToCollection(col.id)}
+                            disabled={isAdded}
+                            className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between transition-colors ${
+                              isAdded 
+                                ? "text-blue-500 bg-blue-500/5 cursor-default" 
+                                : "text-ink dark:text-white/70 hover:bg-blue-600/10 hover:text-blue-500"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 truncate">
+                              <Icon icon="tabler:list" className="w-5 h-5 opacity-40" />
+                              <span className="truncate">{col.name}</span>
+                            </div>
+                            {isAdded && <Icon icon="tabler:check" className="w-5 h-5" />}
+                          </button>
+                        );
+                      })
                     )}
                   </div>
                   <a 
