@@ -9,6 +9,8 @@ import {
   getTrackById,
   getTrendingSongs,
   searchMusic,
+  searchAlbums,
+  getAlbumWithTracks,
 } from "../services/catalog/music";
 
 export const catalogRoutes = new Elysia()
@@ -55,6 +57,14 @@ export const catalogRoutes = new Elysia()
   )
   .get("/api/music/more", async ({ query }) =>
     getMoreSongs(query as { page?: string; limit?: string }),
+  )
+  // Album endpoints
+  .get("/api/music/search/albums", async ({ query }) => {
+    const { term, limit = "12" } = query as { term?: string; limit?: string };
+    return searchAlbums(term, limit);
+  })
+  .get("/api/music/album/:id", async ({ params }) =>
+    getAlbumWithTracks(params.id),
   )
   .get("/music", async ({ query }) =>
     browseMusic(query.q as string | undefined),

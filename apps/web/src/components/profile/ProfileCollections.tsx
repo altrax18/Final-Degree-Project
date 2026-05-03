@@ -1,7 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCollections } from "../../hooks/useCollections";
 import { Icon } from "@iconify/react";
 import type { UserCollection } from "../../types/collection";
+
+// --- Equalizer animado estilo Spotify ---
+
+const equalizerStyle = `
+  @keyframes bar1 {
+    0%, 100% { height: 4px; }
+    25%       { height: 14px; }
+    75%       { height: 6px; }
+  }
+  @keyframes bar2 {
+    0%, 100% { height: 10px; }
+    40%       { height: 3px; }
+    60%       { height: 14px; }
+  }
+  @keyframes bar3 {
+    0%, 100% { height: 6px; }
+    30%       { height: 14px; }
+    70%       { height: 4px; }
+  }
+  .eq-bar-1 { animation: bar1 1.0s ease-in-out infinite; }
+  .eq-bar-2 { animation: bar2 1.1s ease-in-out infinite 0.18s; }
+  .eq-bar-3 { animation: bar3 0.9s ease-in-out infinite 0.09s; }
+`;
+
+/** Tres barras que se mueven al ritmo, como el indicador de Spotify */
+function NowPlayingBars({ paused = false }) {
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: equalizerStyle }} />
+      <span
+        className="inline-flex items-end gap-[2px] h-[14px] w-[14px]"
+        aria-label="Reproduciendo"
+      >
+        {["eq-bar-1", "eq-bar-2", "eq-bar-3"].map((cls) => (
+          <span
+            key={cls}
+            className={[
+              "w-[3px] rounded-full bg-amethyst dark:bg-orchid origin-bottom",
+              paused ? "" : cls,
+            ].join(" ")}
+            style={paused ? { height: "8px" } : undefined}
+          />
+        ))}
+      </span>
+    </>
+  );
+}
 
 export default function ProfileCollections() {
   const { collections, loading, error, createCollection, deleteCollection, removeItem } = useCollections();
@@ -9,6 +56,18 @@ export default function ProfileCollections() {
   const [newListName, setNewListName] = useState("");
   const [newListType, setNewListType] = useState<"movie" | "music" | "game">("music");
   const [expandedCollection, setExpandedCollection] = useState<number | null>(null);
+  const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Sincronizar con el reproductor
+  useEffect(() => {
+    const onPlayerState = (e: any) => {
+      setCurrentTrackId(e.detail?.id ?? null);
+      setIsPlaying(Boolean(e.detail?.playing));
+    };
+    window.addEventListener("player-state", onPlayerState);
+    return () => window.removeEventListener("player-state", onPlayerState);
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +83,16 @@ export default function ProfileCollections() {
     setExpandedCollection(expandedCollection === id ? null : id);
   };
 
-  const handlePlayCollection = (col: UserCollection) => {
+  /** Devuelve la URL de detalle según el tipo de ítem */
+  const getItemUrl = (item: { type: string; apiId: string }) => {
+    if (item.type === "music") return `/music/${item.apiId}`;
+    if (item.type === "movie") return `/movies/${item.apiId}`;
+    if (item.type === "game") return `/games/${item.apiId}`;
+    return "#";
+  };
+
+  /** Reproduce toda la colección de música empezando por la pista indicada */
+  const handlePlayCollection = (col: UserCollection, startIndex = 0) => {
     if (col.type !== "music" || !col.items || col.items.length === 0) return;
     
     const tracks = col.items.map(item => ({
@@ -36,9 +104,12 @@ export default function ProfileCollections() {
       genre: item.metadata?.genre
     }));
 
+    // Reordena la cola para que empiece en la pista seleccionada
+    const queue = [...tracks.slice(startIndex), ...tracks.slice(0, startIndex)];
+
     window.dispatchEvent(
       new CustomEvent("play-track", {
-        detail: { track: tracks[0], queue: tracks },
+        detail: { track: queue[0], queue },
       })
     );
   };
@@ -233,27 +304,78 @@ export default function ProfileCollections() {
                             {col.items?.length === 0 ? (
                               <p className="text-xs text-white/20 italic py-4 text-center">No hay elementos en esta lista</p>
                             ) : (
-                              col.items?.map((item) => (
-                                <div key={item.id} className="flex items-center justify-between group/item p-2 hover:bg-white/5 rounded-xl transition-colors">
-                                  <div className="flex items-center gap-3">
-                                    <img 
-                                      src={item.metadata?.image || item.metadata?.cover || ""} 
-                                      className="w-8 h-8 rounded-lg object-cover bg-white/5"
-                                      alt=""
-                                    />
-                                    <div className="flex flex-col">
-                                      <span className="text-sm text-white/70 line-clamp-1">{item.title}</span>
-                                      {item.metadata?.artist && <span className="text-[10px] text-white/30">{item.metadata.artist}</span>}
+                              col.items?.map((item, itemIdx) => {
+                                const isItemActive = currentTrackId === item.apiId;
+                                return (
+                                  <div 
+                                    key={item.id} 
+                                    className={[
+                                      "flex items-center justify-between group/item p-2 rounded-xl transition-all duration-200",
+                                      isItemActive 
+                                        ? "bg-amethyst/10 border border-amethyst/20" 
+                                        : "hover:bg-white/5 border border-transparent"
+                                    ].join(" ")}
+                                  >
+                                    {/* Portada + título clicables → página de detalle */}
+                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                      {/* Icono de Play / Equalizer en hover o activo */}
+                                      <div className="relative w-8 h-8 shrink-0 flex items-center justify-center">
+                                        {isItemActive ? (
+                                          <NowPlayingBars paused={!isPlaying} />
+                                        ) : (
+                                          <img 
+                                            src={item.metadata?.image || item.metadata?.cover || ""} 
+                                            className="w-full h-full rounded-lg object-cover bg-white/5 group-hover/item:opacity-40 transition-all"
+                                            alt=""
+                                          />
+                                        )}
+                                        {col.type === "music" && !isItemActive && (
+                                          <button
+                                            onClick={(e) => { e.preventDefault(); handlePlayCollection(col, itemIdx); }}
+                                            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/item:opacity-100 text-white transition-opacity"
+                                          >
+                                            <Icon icon="tabler:player-play-filled" className="w-4 h-4" />
+                                          </button>
+                                        )}
+                                      </div>
+
+                                      <a
+                                        href={getItemUrl(item)}
+                                        className="flex flex-col min-w-0 cursor-pointer"
+                                        title={`Ver detalles de ${item.title}`}
+                                      >
+                                        <span className={[
+                                          "text-sm line-clamp-1 transition-colors",
+                                          isItemActive ? "text-amethyst font-bold" : "text-white/70 group-hover/item:text-white"
+                                        ].join(" ")}>
+                                          {item.title}
+                                        </span>
+                                        {item.metadata?.artist && <span className="text-[10px] text-white/30">{item.metadata.artist}</span>}
+                                      </a>
+                                    </div>
+
+                                    <div className="flex items-center gap-1 shrink-0">
+                                      {/* Botón de play individual para canciones (si no está ya activa) */}
+                                      {col.type === "music" && isItemActive && (
+                                        <button
+                                          onClick={() => handlePlayCollection(col, itemIdx)}
+                                          className="p-1.5 text-amethyst hover:text-orchid hover:bg-amethyst/10 rounded-full transition-all"
+                                          title={isPlaying ? "Pausar" : "Reanudar"}
+                                        >
+                                          <Icon icon={isPlaying ? "tabler:player-pause-filled" : "tabler:player-play-filled"} className="w-3.5 h-3.5" />
+                                        </button>
+                                      )}
+                                      <button 
+                                        onClick={() => removeItem(col.id, item.id)}
+                                        className="opacity-0 group-hover/item:opacity-100 p-1.5 text-white/20 hover:text-rose-500 transition-all"
+                                        title="Eliminar de la lista"
+                                      >
+                                        <Icon icon="tabler:x" className="w-3.5 h-3.5" />
+                                      </button>
                                     </div>
                                   </div>
-                                  <button 
-                                    onClick={() => removeItem(col.id, item.id)}
-                                    className="opacity-0 group-hover/item:opacity-100 p-2 text-white/20 hover:text-rose-500 transition-all"
-                                  >
-                                    <Icon icon="tabler:x" className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              ))
+                                );
+                              })
                             )}
                           </div>
                         )}

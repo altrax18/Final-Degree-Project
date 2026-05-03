@@ -8,6 +8,8 @@ type SearchResult = {
   title: string;
   subtitle?: string;
   image: string | null;
+  isAlbum?: boolean;
+  trackCount?: number;
 };
 
 type Props = {
@@ -35,14 +37,48 @@ async function fetchResults(
   term: string,
 ): Promise<SearchResult[]> {
   if (category === "music") {
-    const res = await fetch(
-      `/api/music/search?term=${encodeURIComponent(term)}&limit=12`,
+    const [songsRes, albumsRes] = await Promise.all([
+      fetch(`/api/music/search?term=${encodeURIComponent(term)}&limit=9`),
+      fetch(`/api/music/search/albums?term=${encodeURIComponent(term)}&limit=6`),
+    ]);
+    const songsData = await songsRes.json();
+    const albumsData = await albumsRes.json();
+
+    const songs: SearchResult[] = (songsData.results ?? []).map(
+      (r: { id: string; title: string; artist: string; cover: string }) => ({
+        id: r.id,
+        title: r.title,
+        subtitle: r.artist,
+        image: r.cover,
+        isAlbum: false,
+      }),
     );
-    const data = await res.json();
-    if (!data.results) return [];
-    return (data.results as { id: string; title: string; artist: string; cover: string }[]).map(
-      (r) => ({ id: r.id, title: r.title, subtitle: r.artist, image: r.cover }),
+
+    const albums: SearchResult[] = (albumsData.results ?? []).map(
+      (r: { id: string; title: string; artist: string; cover: string; trackCount?: number }) => ({
+        id: r.id,
+        title: r.title,
+        subtitle: r.artist,
+        image: r.cover,
+        isAlbum: true,
+        trackCount: r.trackCount,
+      }),
     );
+
+    // Mezclar y ordenar por relevancia (igual que SoundHub)
+    const mixed = [...songs, ...albums];
+    const lowerTerm = term.toLowerCase();
+    mixed.sort((a, b) => {
+      const tA = a.title.toLowerCase();
+      const tB = b.title.toLowerCase();
+      if (tA === lowerTerm && tB !== lowerTerm) return -1;
+      if (tB === lowerTerm && tA !== lowerTerm) return 1;
+      if (tA.startsWith(lowerTerm) && !tB.startsWith(lowerTerm)) return -1;
+      if (tB.startsWith(lowerTerm) && !tA.startsWith(lowerTerm)) return 1;
+      return 0;
+    });
+
+    return mixed.slice(0, 12);
   }
 
   if (category === "movies") {
@@ -72,10 +108,12 @@ async function fetchResults(
   return [];
 }
 
-function buildResultHref(category: Category, id: string): string {
-  if (category === "music") return `/music/${id}`;
-  if (category === "movies") return `/movies/${id}`;
-  return `/games/${id}`;
+function buildResultHref(category: Category, result: SearchResult): string {
+  if (category === "music") {
+    return result.isAlbum ? `/music/album/${result.id}` : `/music/${result.id}`;
+  }
+  if (category === "movies") return `/movies/${result.id}`;
+  return `/games/${result.id}`;
 }
 
 export default function SearchBar({ currentPath }: Props) {
@@ -171,7 +209,7 @@ export default function SearchBar({ currentPath }: Props) {
   const handleSelect = (result: SearchResult) => {
     setSearchTerm(result.title);
     setShowDropdown(false);
-    window.location.href = buildResultHref(activeCategory, result.id);
+    window.location.href = buildResultHref(activeCategory, result);
   };
 
   const handleCategoryChange = (cat: Category) => {
@@ -292,12 +330,22 @@ export default function SearchBar({ currentPath }: Props) {
                     </div>
                   )}
                   <div className="flex flex-col overflow-hidden">
-                    <span className="text-[13px] font-semibold text-ink dark:text-screen truncate">
-                      {result.title}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[13px] font-semibold text-ink dark:text-screen truncate">
+                        {result.title}
+                      </span>
+                      {result.isAlbum && (
+                        <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-amethyst/15 dark:bg-orchid/15 text-amethyst dark:text-orchid border border-amethyst/25 dark:border-orchid/25">
+                          <Icon icon="tabler:vinyl" width={9} height={9} />
+                          Album
+                        </span>
+                      )}
+                    </div>
                     {result.subtitle && (
                       <span className="text-[11px] text-slate dark:text-mist truncate">
-                        {result.subtitle}
+                        {result.isAlbum && result.trackCount
+                          ? `${result.subtitle} · ${result.trackCount} canciones`
+                          : result.subtitle}
                       </span>
                     )}
                   </div>
