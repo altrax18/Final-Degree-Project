@@ -185,36 +185,42 @@ export default function AlbumDetail({ album, tracks = [] }) {
     return () => window.removeEventListener("player-state", onPlayerState);
   }, []);
 
+  const enrichedTracks = tracks.map(t => ({
+    ...t,
+    album: album.title,
+    albumId: album.id
+  }));
+
   const isAlbumPlaying =
-    isPlaying && tracks.some((t) => t.id === currentTrackId);
+    isPlaying && enrichedTracks.some((t) => t.id === currentTrackId);
 
   const playAlbum = () => {
-    if (!tracks.length) return;
+    if (!enrichedTracks.length) return;
     if (isAlbumPlaying) {
       // Pausar
-      const currentTrack = tracks.find((t) => t.id === currentTrackId);
+      const currentTrack = enrichedTracks.find((t) => t.id === currentTrackId);
       if (currentTrack) {
         window.dispatchEvent(
           new CustomEvent("play-track", {
-            detail: { track: currentTrack, queue: tracks },
+            detail: { track: currentTrack, queue: enrichedTracks },
           })
         );
       }
     } else {
       // Si hay una canción del álbum pausada, reanudarla; si no, empezar desde la primera
-      const paused = tracks.find((t) => t.id === currentTrackId);
-      const startTrack = paused || tracks.find((t) => t.previewUrl);
+      const paused = enrichedTracks.find((t) => t.id === currentTrackId);
+      const startTrack = paused || enrichedTracks.find((t) => t.previewUrl);
       if (startTrack) {
         window.dispatchEvent(
           new CustomEvent("play-track", {
-            detail: { track: startTrack, queue: tracks },
+            detail: { track: startTrack, queue: enrichedTracks },
           })
         );
       }
     }
   };
 
-  const isScrollable = tracks.length > 15;
+  const isScrollable = enrichedTracks.length > 15;
 
   return (
     <div className="flex flex-col gap-0 pb-32">
@@ -335,20 +341,20 @@ export default function AlbumDetail({ album, tracks = [] }) {
           role="table"
           aria-label={`Canciones de ${album.title}`}
         >
-          {tracks.length === 0 ? (
+          {enrichedTracks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate dark:text-mist">
               <Icon icon="tabler:music-off" className="text-4xl opacity-40" />
               <p className="text-sm">No hay canciones disponibles</p>
             </div>
           ) : (
-            tracks.map((track, index) => (
+            enrichedTracks.map((track, index) => (
               <TrackRow
                 key={track.id}
                 track={track}
                 index={index}
                 currentTrackId={currentTrackId}
                 isPlaying={isPlaying}
-                allTracks={tracks}
+                allTracks={enrichedTracks}
               />
             ))
           )}

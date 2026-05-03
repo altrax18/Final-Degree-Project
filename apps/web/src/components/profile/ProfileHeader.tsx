@@ -2,17 +2,25 @@
 import type { SessionUser } from "../../types/user";
 import { DEFAULT_AVATAR } from "../../types/user";
 import ProfileAvatar from "./ProfileAvatar";
+import type { UserCollection } from "../../types/collection";
+import { Icon } from "@iconify/react";
 
 interface Props {
   user: SessionUser | null;
+  collections: UserCollection[];
   onEdit: () => void;
   onLogout: () => void;
 }
 
-export default function ProfileHeader({ user, onEdit, onLogout }: Props) {
+export default function ProfileHeader({ user, collections, onEdit, onLogout }: Props) {
   const displayName = user?.username ?? "Invitado";
   const displayEmail = user?.email ?? "";
   const displayAvatar = user?.profileImageUrl ?? DEFAULT_AVATAR;
+
+  const musicCount = collections.filter(c => c.type === "music").length;
+  const movieCount = collections.filter(c => c.type === "movie").length;
+  const gameCount = collections.filter(c => c.type === "game").length;
+  const totalCount = collections.length;
 
   return (
     <div className="flex flex-col gap-0">
@@ -76,14 +84,32 @@ export default function ProfileHeader({ user, onEdit, onLogout }: Props) {
             <p className="text-sm text-white/50 mt-1 truncate">{displayEmail}</p>
           )}
 
-          {/* Stats placeholder */}
-          <div className="mt-3 flex items-center gap-2">
-            <span
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
-                         bg-white/[0.04] border border-white/[0.06] text-xs text-white/50"
-            >
-              0 colecciones
-            </span>
+          {/* Stats */}
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[11px] font-bold uppercase tracking-wider text-white/40">
+              <span className="text-white">{totalCount}</span> Colecciones
+            </div>
+            
+            {musicCount > 0 && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amethyst/10 border border-amethyst/20 text-[10px] font-bold uppercase tracking-wider text-amethyst">
+                <Icon icon="tabler:music" className="w-3.5 h-3.5" />
+                <span className="text-white/80">{musicCount}</span> Música
+              </div>
+            )}
+
+            {movieCount > 0 && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold uppercase tracking-wider text-amber-500">
+                <Icon icon="tabler:movie" className="w-3.5 h-3.5" />
+                <span className="text-white/80">{movieCount}</span> Pelis
+              </div>
+            )}
+
+            {gameCount > 0 && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider text-emerald-500">
+                <Icon icon="tabler:device-gamepad-2" className="w-3.5 h-3.5" />
+                <span className="text-white/80">{gameCount}</span> Juegos
+              </div>
+            )}
           </div>
         </div>
 

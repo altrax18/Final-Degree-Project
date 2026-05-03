@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
-import { useCollections } from "../../hooks/useCollections";
 import { Icon } from "@iconify/react";
-import type { UserCollection } from "../../types/collection";
+import type { UserCollection, CollectionItem } from "../../types/collection";
+
+interface Props {
+  collections: UserCollection[];
+  loading: boolean;
+  error: string | null;
+  createCollection: (name: string, type: "movie" | "music" | "game") => Promise<any>;
+  deleteCollection: (id: number) => Promise<void>;
+  removeItem: (colId: number, itemId: number) => Promise<void>;
+}
 
 // --- Equalizer animado estilo Spotify ---
 
@@ -50,12 +58,18 @@ function NowPlayingBars({ paused = false }) {
   );
 }
 
-export default function ProfileCollections() {
-  const { collections, loading, error, createCollection, deleteCollection, removeItem } = useCollections();
+export default function ProfileCollections({ 
+  collections, 
+  loading, 
+  error, 
+  createCollection, 
+  deleteCollection, 
+  removeItem 
+}: Props) {
   const [isCreating, setIsCreating] = useState(false);
   const [newListName, setNewListName] = useState("");
   const [newListType, setNewListType] = useState<"movie" | "music" | "game">("music");
-  const [expandedCollection, setExpandedCollection] = useState<number | null>(null);
+  const [expandedCollections, setExpandedCollections] = useState<Set<number>>(new Set());
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -80,7 +94,12 @@ export default function ProfileCollections() {
   };
 
   const toggleExpand = (id: number) => {
-    setExpandedCollection(expandedCollection === id ? null : id);
+    setExpandedCollections(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   /** Devuelve la URL de detalle según el tipo de ítem */
@@ -101,7 +120,9 @@ export default function ProfileCollections() {
       artist: item.metadata?.artist,
       cover: item.metadata?.cover,
       previewUrl: item.metadata?.previewUrl,
-      genre: item.metadata?.genre
+      genre: item.metadata?.genre,
+      album: item.metadata?.album,
+      albumId: item.metadata?.albumId
     }));
 
     // Reordena la cola para que empiece en la pista seleccionada
@@ -235,12 +256,14 @@ export default function ProfileCollections() {
                   </h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
                   {list.map((col) => (
                     <div 
                       key={col.id} 
-                      className={`group relative overflow-hidden bg-white/[0.03] border border-white/10 rounded-3xl transition-all duration-300 hover:border-white/20 hover:bg-white/[0.05] ${
-                        expandedCollection === col.id ? "ring-2 ring-amethyst/30" : ""
+                      className={`group relative overflow-hidden bg-white/[0.03] border border-white/10 rounded-3xl transition-all duration-500 ${
+                        expandedCollections.has(col.id) 
+                          ? "ring-2 ring-amethyst/30 bg-white/[0.07] border-white/20 shadow-2xl shadow-amethyst/10" 
+                          : "hover:border-white/20 hover:bg-white/[0.05]"
                       }`}
                     >
                       <div className="p-5 flex flex-col gap-4">
@@ -299,7 +322,7 @@ export default function ProfileCollections() {
                           </div>
                         </div>
 
-                        {expandedCollection === col.id && (
+                        {expandedCollections.has(col.id) && (
                           <div className="space-y-1 mt-2 pt-4 border-t border-white/5 animate-in slide-in-from-top-2 duration-300">
                             {col.items?.length === 0 ? (
                               <p className="text-xs text-white/20 italic py-4 text-center">No hay elementos en esta lista</p>
@@ -380,20 +403,20 @@ export default function ProfileCollections() {
                           </div>
                         )}
                         
-                        {!expandedCollection && (
-                           <div className="flex items-center justify-between mt-auto">
-                              <span className="text-[10px] text-white/10 italic">
-                                Creada {new Date(col.createdAt).toLocaleDateString()}
-                              </span>
-                              <button 
-                                onClick={() => toggleExpand(col.id)}
-                                className="text-xs text-white/40 hover:text-white font-semibold transition-colors flex items-center gap-1"
-                              >
-                                {expandedCollection === col.id ? "Cerrar" : "Ver detalles"}
-                                <Icon icon={expandedCollection === col.id ? "tabler:chevron-up" : "tabler:chevron-down"} className="w-3 h-3" />
-                              </button>
-                           </div>
-                        )}
+                        <div className="flex items-center justify-between mt-auto">
+                           <span className="text-[10px] text-white/10 italic">
+                             {expandedCollections.has(col.id) ? "" : `Creada ${new Date(col.createdAt).toLocaleDateString()}`}
+                           </span>
+                           <button 
+                             onClick={() => toggleExpand(col.id)}
+                             className={`text-xs font-semibold transition-colors flex items-center gap-1 ${
+                               expandedCollections.has(col.id) ? "text-amethyst hover:text-orchid" : "text-white/40 hover:text-white"
+                             }`}
+                           >
+                             {expandedCollections.has(col.id) ? "Cerrar" : "Ver detalles"}
+                             <Icon icon={expandedCollections.has(col.id) ? "tabler:chevron-up" : "tabler:chevron-down"} className="w-3 h-3" />
+                           </button>
+                        </div>
                       </div>
                     </div>
                   ))}

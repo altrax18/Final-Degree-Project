@@ -59,7 +59,9 @@ export default function TrackCard({ track, queue = [] }) {
         artist: track.artist,
         cover: track.cover,
         previewUrl: track.previewUrl,
-        genre: track.genre
+        genre: track.genre,
+        album: track.album,
+        albumId: track.albumId
       }
     });
     

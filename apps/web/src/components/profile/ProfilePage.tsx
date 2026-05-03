@@ -1,6 +1,7 @@
 // Orquestador del perfil: combina el hook y los sub-componentes.
 import { useState } from "react";
 import { useProfile } from "../../hooks/useProfile";
+import { useCollections } from "../../hooks/useCollections";
 import ProfileHeader from "./ProfileHeader";
 import ProfileCollections from "./ProfileCollections";
 import EditModal from "./EditModal";
@@ -20,6 +21,9 @@ export default function ProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  const collectionHelpers = useCollections();
+  const { collections } = collectionHelpers;
 
   if (loadingUser) {
     return (
@@ -60,6 +64,7 @@ export default function ProfilePage() {
       <div className="flex flex-col gap-0">
         <ProfileHeader
           user={user}
+          collections={collections}
           onEdit={() => setIsEditing(true)}
           onLogout={handleLogout}
         />
@@ -80,7 +85,7 @@ export default function ProfilePage() {
 
         {/* Contenido principal */}
         <div className="mt-8 flex flex-col gap-10">
-          <ProfileCollections />
+          <ProfileCollections {...collectionHelpers} />
 
           {/* Zona de peligro: solo con sesion activa */}
           {user && (
