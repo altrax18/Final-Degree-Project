@@ -4,6 +4,7 @@ import {
   createUser,
   getUserById,
   getUserByEmail,
+  searchUsersByUsername,
   updateUser,
   deleteUser,
 } from "../services/users";
@@ -15,6 +16,14 @@ import {
 //                 toda la logica de acceso al recurso "usuario" en un solo lugar.
 // DOCUMENTACION: https://elysiajs.com/essential/route.html
 export const usersRoutes = new Elysia({ prefix: "/api/users" })
+
+  // GET /api/users/search?q=text&excludeId=123 – Busca usuarios por nombre
+  .get("/search", async ({ query }) => {
+    const q = (query as Record<string, string>).q ?? "";
+    const excludeId = (query as Record<string, string>).excludeId;
+    if (q.length < 2) return [];
+    return searchUsersByUsername(q, excludeId ? Number(excludeId) : undefined);
+  })
 
   // GET /api/users/:userId – Devuelve un usuario por ID (sin password)
   .get("/:userId", async ({ params }) => {

@@ -4,6 +4,7 @@ import { useProfile } from "../../hooks/useProfile";
 import { useCollections } from "../../hooks/useCollections";
 import ProfileHeader from "./ProfileHeader";
 import ProfileCollections from "./ProfileCollections";
+import RecommendedUsers from "./RecommendedUsers";
 import EditModal from "./EditModal";
 import DeleteModal from "./DeleteModal";
 
@@ -87,9 +88,15 @@ export default function ProfilePage() {
         <div className="mt-8 flex flex-col gap-10">
           <ProfileCollections {...collectionHelpers} />
 
+          {user && (
+            <section className="pt-6 border-t border-bone dark:border-night-edge">
+              <RecommendedUsers userId={user.id} />
+            </section>
+          )}
+
           {/* Zona de peligro: solo con sesion activa */}
           {user && (
-            <section className="pt-6 border-t border-white/[0.06]">
+            <section className="pt-6 border-t border-bone dark:border-night-edge">
               <button
                 id="profile-delete-btn"
                 onClick={() => setIsDeleting(true)}

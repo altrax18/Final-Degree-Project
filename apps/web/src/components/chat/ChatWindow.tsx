@@ -17,7 +17,7 @@ function getDisplayName(conv: ChatConversation, userId: number): string {
 }
 
 export default function ChatWindow({ userId, onClose }: Props) {
-  const { conversations, messages, sendMessage, subscribe, fetchMessages } = useChat(userId);
+  const { conversations, messages, sendMessage, subscribe, fetchMessages, markRead, startConversation } = useChat(userId);
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId) ?? null;
@@ -26,6 +26,12 @@ export default function ChatWindow({ userId, onClose }: Props) {
     setActiveConversationId(conversationId);
     subscribe(conversationId);
     fetchMessages(conversationId);
+    markRead(conversationId);
+  };
+
+  const handleStartConversation = async (targetUserId: number) => {
+    const convId = await startConversation(targetUserId);
+    handleSelect(convId);
   };
 
   return (
@@ -76,6 +82,7 @@ export default function ChatWindow({ userId, onClose }: Props) {
             userId={userId}
             conversations={conversations}
             onSelect={handleSelect}
+            onStartConversation={handleStartConversation}
           />
         )}
       </div>

@@ -48,7 +48,7 @@ export default function ProfileHeader({ user, collections, onEdit, onLogout }: P
             Estás viendo el perfil como invitado.{" "}
             <button
               onClick={() => document.getElementById("register-btn")?.click()}
-              className="font-semibold underline underline-offset-2 hover:text-white
+              className="font-semibold underline underline-offset-2 hover:text-ink dark:hover:text-white
                          transition-colors cursor-pointer"
             >
               Inicia sesión
@@ -61,53 +61,49 @@ export default function ProfileHeader({ user, collections, onEdit, onLogout }: P
       {/* Cabecera principal */}
       <div
         className="flex flex-col sm:flex-row sm:items-end gap-6 px-5 pt-12 pb-8 sm:px-9
-                   rounded-2xl border border-white/[0.06]"
-        style={{
-          background: "linear-gradient(180deg, #0d0d0d 0%, #090909 50%, #070707 100%)",
-          borderBottom: "1px solid rgba(255,255,255,0.12)",
-        }}
+                   rounded-2xl border border-bone dark:border-night-edge bg-linen dark:bg-coal"
       >
         <ProfileAvatar src={displayAvatar} username={displayName} />
 
         {/* Info */}
         <div className="flex flex-col flex-1 min-w-0 gap-1">
-          <span className="text-[0.7rem] font-bold uppercase tracking-[2px] text-white/40">
+          <span className="text-[0.7rem] font-bold uppercase tracking-[2px] text-slate dark:text-mist">
             Perfil
           </span>
           <h1
-            className="m-0 font-black leading-tight tracking-tight text-white"
+            className="m-0 font-black leading-tight tracking-tight text-ink dark:text-screen"
             style={{ fontSize: "clamp(2rem, 5vw, 5rem)" }}
           >
             {displayName}
           </h1>
           {displayEmail && (
-            <p className="text-sm text-white/50 mt-1 truncate">{displayEmail}</p>
+            <p className="text-sm text-slate dark:text-mist mt-1 truncate">{displayEmail}</p>
           )}
 
           {/* Stats */}
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[11px] font-bold uppercase tracking-wider text-white/40">
-              <span className="text-white">{totalCount}</span> Colecciones
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-ink/[0.04] dark:bg-screen/[0.04] border border-bone dark:border-night-edge text-[11px] font-bold uppercase tracking-wider text-slate dark:text-mist">
+              <span className="text-ink dark:text-screen">{totalCount}</span> Colecciones
             </div>
             
             {musicCount > 0 && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amethyst/10 border border-amethyst/20 text-[10px] font-bold uppercase tracking-wider text-amethyst">
                 <Icon icon="tabler:music" className="w-3.5 h-3.5" />
-                <span className="text-white/80">{musicCount}</span> Música
+                <span className="text-ink dark:text-screen">{musicCount}</span> Música
               </div>
             )}
 
             {movieCount > 0 && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold uppercase tracking-wider text-amber-500">
                 <Icon icon="tabler:movie" className="w-3.5 h-3.5" />
-                <span className="text-white/80">{movieCount}</span> Pelis
+                <span className="text-ink dark:text-screen">{movieCount}</span> Pelis
               </div>
             )}
 
             {gameCount > 0 && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider text-emerald-500">
                 <Icon icon="tabler:device-gamepad-2" className="w-3.5 h-3.5" />
-                <span className="text-white/80">{gameCount}</span> Juegos
+                <span className="text-ink dark:text-screen">{gameCount}</span> Juegos
               </div>
             )}
           </div>
@@ -119,9 +115,9 @@ export default function ProfileHeader({ user, collections, onEdit, onLogout }: P
             <button
               id="profile-edit-btn"
               onClick={onEdit}
-              className="px-5 py-2 rounded-full border border-white/15 bg-white/[0.06]
-                         text-white text-sm font-bold uppercase tracking-wide
-                         hover:bg-white/[0.12] hover:border-white/30 hover:scale-105
+              className="px-5 py-2 rounded-full border border-bone dark:border-white/15 bg-ink/[0.06] dark:bg-white/[0.06]
+                         text-ink dark:text-screen text-sm font-bold uppercase tracking-wide
+                         hover:bg-ink/[0.12] dark:hover:bg-white/[0.12] hover:border-ink/30 dark:hover:border-white/30 hover:scale-105
                          transition-all duration-200 cursor-pointer"
             >
               Editar
@@ -131,7 +127,7 @@ export default function ProfileHeader({ user, collections, onEdit, onLogout }: P
               onClick={onLogout}
               title="Cerrar sesión"
               className="flex items-center justify-center w-9 h-9 rounded-full
-                         border border-white/10 bg-white/[0.04] text-white/50
+                         border border-bone dark:border-white/10 bg-ink/[0.04] dark:bg-white/[0.04] text-slate dark:text-mist
                          hover:border-red-500/40 hover:bg-red-500/[0.12] hover:text-red-400
                          transition-all duration-200 cursor-pointer"
               aria-label="Cerrar sesión"

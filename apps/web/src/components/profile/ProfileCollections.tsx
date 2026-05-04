@@ -153,14 +153,14 @@ export default function ProfileCollections({
     <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Mis Colecciones</h2>
-          <p className="text-sm text-white/40 mt-1">
+          <h2 className="text-2xl font-bold text-ink dark:text-screen tracking-tight">Mis Colecciones</h2>
+          <p className="text-sm text-slate dark:text-mist mt-1">
             Gestiona tus listas personalizadas de contenido
           </p>
         </div>
         <button
           onClick={() => setIsCreating(!isCreating)}
-          className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white text-sm font-medium transition-all"
+          className="flex items-center gap-2 px-4 py-2 bg-ink/5 dark:bg-white/5 hover:bg-ink/10 dark:hover:bg-white/10 border border-bone dark:border-night-edge rounded-xl text-ink dark:text-screen text-sm font-medium transition-all"
         >
           <Icon icon="tabler:plus" className="w-4 h-4" />
           Nueva Lista
@@ -177,36 +177,36 @@ export default function ProfileCollections({
       {isCreating && (
         <form
           onSubmit={handleCreate}
-          className="p-6 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col md:flex-row items-end gap-4 animate-in zoom-in-95 duration-200"
+          className="p-6 bg-sand dark:bg-coal border border-bone dark:border-night-edge rounded-2xl flex flex-col md:flex-row items-end gap-4 animate-in zoom-in-95 duration-200"
         >
           <div className="flex-1 space-y-2 w-full">
-            <label className="text-xs font-semibold text-white/40 uppercase tracking-wider">Nombre de la lista</label>
+            <label className="text-xs font-semibold text-slate dark:text-mist uppercase tracking-wider">Nombre de la lista</label>
             <input
               type="text"
               value={newListName}
               onChange={(e) => setNewListName(e.target.value)}
               placeholder="Ej: Favoritos de los 90..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-amethyst/50"
+              className="w-full bg-ink/5 dark:bg-white/5 border border-bone dark:border-night-edge rounded-xl px-4 py-2.5 text-ink dark:text-screen placeholder:text-ink/30 dark:placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-amethyst/50"
               autoFocus
             />
           </div>
           <div className="space-y-2 w-full md:w-48">
-            <label className="text-xs font-semibold text-white/40 uppercase tracking-wider">Tipo</label>
+            <label className="text-xs font-semibold text-slate dark:text-mist uppercase tracking-wider">Tipo</label>
             <select
               value={newListType}
               onChange={(e) => setNewListType(e.target.value as any)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-amethyst/50"
+              className="w-full bg-ink/5 dark:bg-white/5 border border-bone dark:border-night-edge rounded-xl px-4 py-2.5 text-ink dark:text-screen appearance-none focus:outline-none focus:ring-2 focus:ring-amethyst/50"
             >
-              <option value="music" className="bg-coal text-white">Música</option>
-              <option value="movie" className="bg-coal text-white">Películas</option>
-              <option value="game" className="bg-coal text-white">Videojuegos</option>
+              <option value="music" className="bg-linen dark:bg-coal text-ink dark:text-screen">Música</option>
+              <option value="movie" className="bg-linen dark:bg-coal text-ink dark:text-screen">Películas</option>
+              <option value="game" className="bg-linen dark:bg-coal text-ink dark:text-screen">Videojuegos</option>
             </select>
           </div>
           <div className="flex gap-2 w-full md:w-auto">
             <button
               type="button"
               onClick={() => setIsCreating(false)}
-              className="px-4 py-2.5 text-white/60 hover:text-white transition-colors"
+              className="px-4 py-2.5 text-slate dark:text-mist hover:text-ink dark:hover:text-screen transition-colors"
             >
               Cancelar
             </button>
@@ -221,13 +221,13 @@ export default function ProfileCollections({
       )}
 
       {collections.length === 0 && !isCreating ? (
-        <div className="rounded-3xl border border-white/[0.06] border-dashed flex flex-col items-center justify-center py-24 gap-4 text-white/25">
-          <div className="w-16 h-16 rounded-2xl bg-white/[0.02] flex items-center justify-center border border-white/5">
+        <div className="rounded-3xl border border-bone dark:border-night-edge border-dashed flex flex-col items-center justify-center py-24 gap-4 text-ink/25 dark:text-screen/25">
+          <div className="w-16 h-16 rounded-2xl bg-ink/[0.02] dark:bg-screen/[0.02] flex items-center justify-center border border-bone/50 dark:border-night-edge/50">
              <Icon icon="tabler:folders" className="w-8 h-8 opacity-20" />
           </div>
           <div className="text-center">
-            <p className="text-lg font-medium text-white/60">Aún no tienes colecciones</p>
-            <p className="text-sm text-white/30 max-w-xs mx-auto mt-1">
+            <p className="text-lg font-medium text-ink/60 dark:text-screen/60">Aún no tienes colecciones</p>
+            <p className="text-sm text-slate dark:text-mist max-w-xs mx-auto mt-1">
               Empieza creando una lista para organizar tus películas, canciones o juegos favoritos.
             </p>
           </div>
@@ -251,7 +251,7 @@ export default function ProfileCollections({
                       className="w-5 h-5" 
                     />
                   </div>
-                  <h3 className="text-lg font-semibold text-white/80 capitalize">
+                  <h3 className="text-lg font-semibold text-ink dark:text-screen capitalize">
                     {type === "music" ? "Música" : type === "movie" ? "Películas" : "Videojuegos"}
                   </h3>
                 </div>
@@ -260,16 +260,16 @@ export default function ProfileCollections({
                   {list.map((col) => (
                     <div 
                       key={col.id} 
-                      className={`group relative overflow-hidden bg-white/[0.03] border border-white/10 rounded-3xl transition-all duration-500 ${
+                      className={`group relative overflow-hidden bg-sand dark:bg-coal border border-bone dark:border-night-edge rounded-3xl transition-all duration-500 ${
                         expandedCollections.has(col.id) 
-                          ? "ring-2 ring-amethyst/30 bg-white/[0.07] border-white/20 shadow-2xl shadow-amethyst/10" 
-                          : "hover:border-white/20 hover:bg-white/[0.05]"
+                          ? "ring-2 ring-amethyst/30 bg-linen dark:bg-white/[0.07] border-bone dark:border-white/20 shadow-2xl shadow-amethyst/10" 
+                          : "hover:border-bone dark:hover:border-white/20 hover:bg-linen dark:hover:bg-white/[0.05]"
                       }`}
                     >
                       <div className="p-5 flex flex-col gap-4">
                         <div className="flex items-center gap-4">
                           {/* Grid de Portadas */}
-                          <div className="grid grid-cols-2 gap-0.5 w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/5 shadow-xl group-hover:scale-105 transition-transform duration-500">
+                          <div className="grid grid-cols-2 gap-0.5 w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-sand dark:bg-white/5 border border-bone dark:border-white/5 shadow-xl group-hover:scale-105 transition-transform duration-500">
                             {col.items?.length > 0 ? (
                               col.items.slice(0, 4).map((item, i) => (
                                 <img 
@@ -293,8 +293,8 @@ export default function ProfileCollections({
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between">
                               <div className="cursor-pointer flex-1" onClick={() => toggleExpand(col.id)}>
-                                <h4 className="font-bold text-white group-hover:text-amethyst transition-colors line-clamp-1">{col.name}</h4>
-                                <p className="text-[10px] uppercase tracking-widest font-bold text-white/20 mt-1">
+                                <h4 className="font-bold text-ink dark:text-screen group-hover:text-amethyst transition-colors line-clamp-1">{col.name}</h4>
+                                <p className="text-[10px] uppercase tracking-widest font-bold text-slate dark:text-mist mt-1">
                                   {col.items?.length || 0} elementos
                                 </p>
                               </div>
@@ -312,7 +312,7 @@ export default function ProfileCollections({
                                   onClick={() => {
                                     if(confirm("¿Estás seguro de que quieres eliminar esta lista?")) deleteCollection(col.id);
                                   }}
-                                  className="p-2 text-white/20 hover:text-rose-500 transition-colors"
+                                  className="p-2 text-slate/50 dark:text-mist/50 hover:text-rose-500 transition-colors"
                                   title="Eliminar lista"
                                 >
                                   <Icon icon="tabler:trash" className="w-4 h-4" />
@@ -323,9 +323,9 @@ export default function ProfileCollections({
                         </div>
 
                         {expandedCollections.has(col.id) && (
-                          <div className="space-y-1 mt-2 pt-4 border-t border-white/5 animate-in slide-in-from-top-2 duration-300">
+                          <div className="space-y-1 mt-2 pt-4 border-t border-bone dark:border-night-edge animate-in slide-in-from-top-2 duration-300">
                             {col.items?.length === 0 ? (
-                              <p className="text-xs text-white/20 italic py-4 text-center">No hay elementos en esta lista</p>
+                              <p className="text-xs text-slate dark:text-mist italic py-4 text-center">No hay elementos en esta lista</p>
                             ) : (
                               col.items?.map((item, itemIdx) => {
                                 const isItemActive = currentTrackId === item.apiId;
@@ -336,7 +336,7 @@ export default function ProfileCollections({
                                       "flex items-center justify-between group/item p-2 rounded-xl transition-all duration-200",
                                       isItemActive 
                                         ? "bg-amethyst/10 border border-amethyst/20" 
-                                        : "hover:bg-white/5 border border-transparent"
+                                        : "hover:bg-sand dark:hover:bg-white/5 border border-transparent"
                                     ].join(" ")}
                                   >
                                     {/* Portada + título clicables → página de detalle */}
@@ -348,7 +348,7 @@ export default function ProfileCollections({
                                         ) : (
                                           <img 
                                             src={item.metadata?.image || item.metadata?.cover || ""} 
-                                            className="w-full h-full rounded-lg object-cover bg-white/5 group-hover/item:opacity-40 transition-all"
+                                            className="w-full h-full rounded-lg object-cover bg-sand dark:bg-white/5 group-hover/item:opacity-40 transition-all"
                                             alt=""
                                           />
                                         )}
@@ -369,11 +369,11 @@ export default function ProfileCollections({
                                       >
                                         <span className={[
                                           "text-sm line-clamp-1 transition-colors",
-                                          isItemActive ? "text-amethyst font-bold" : "text-white/70 group-hover/item:text-white"
+                                          isItemActive ? "text-amethyst font-bold" : "text-ink/70 dark:text-screen/70 group-hover/item:text-ink dark:group-hover/item:text-screen"
                                         ].join(" ")}>
                                           {item.title}
                                         </span>
-                                        {item.metadata?.artist && <span className="text-[10px] text-white/30">{item.metadata.artist}</span>}
+                                        {item.metadata?.artist && <span className="text-[10px] text-slate dark:text-mist">{item.metadata.artist}</span>}
                                       </a>
                                     </div>
 
@@ -390,7 +390,7 @@ export default function ProfileCollections({
                                       )}
                                       <button 
                                         onClick={() => removeItem(col.id, item.id)}
-                                        className="opacity-0 group-hover/item:opacity-100 p-1.5 text-white/20 hover:text-rose-500 transition-all"
+                                        className="opacity-0 group-hover/item:opacity-100 p-1.5 text-slate/50 dark:text-mist/50 hover:text-rose-500 transition-all"
                                         title="Eliminar de la lista"
                                       >
                                         <Icon icon="tabler:x" className="w-3.5 h-3.5" />
@@ -404,13 +404,13 @@ export default function ProfileCollections({
                         )}
                         
                         <div className="flex items-center justify-between mt-auto">
-                           <span className="text-[10px] text-white/10 italic">
+                           <span className="text-[10px] text-ink/20 dark:text-screen/20 italic">
                              {expandedCollections.has(col.id) ? "" : `Creada ${new Date(col.createdAt).toLocaleDateString()}`}
                            </span>
                            <button 
                              onClick={() => toggleExpand(col.id)}
                              className={`text-xs font-semibold transition-colors flex items-center gap-1 ${
-                               expandedCollections.has(col.id) ? "text-amethyst hover:text-orchid" : "text-white/40 hover:text-white"
+                               expandedCollections.has(col.id) ? "text-amethyst hover:text-orchid" : "text-slate dark:text-mist hover:text-ink dark:hover:text-screen"
                              }`}
                            >
                              {expandedCollections.has(col.id) ? "Cerrar" : "Ver detalles"}

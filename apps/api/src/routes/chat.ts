@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { db } from "../db/client";
 import { conversations, messages, chatMembers, users } from "../db/schema";
-import { eq, inArray, desc, and } from "drizzle-orm";
+import { eq, inArray, desc, and, sql } from "drizzle-orm";
 
 export const chatRoutes = new Elysia({ prefix: "/chat" })
   .get("/conversations/:userId", async ({ params }) => {
@@ -24,6 +24,16 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
         memberId: users.id,
         memberUsername: users.username,
         memberImage: users.profileImageUrl,
+        unreadCount: sql<number>`(
+          SELECT COUNT(*)::int
+          FROM messages m
+          INNER JOIN chat_members cm
+            ON cm.conversation_id = m.conversation_id AND cm.user_id = ${userId}
+          WHERE m.conversation_id = ${conversations.id}
+            AND m.sender_id != ${userId}
+            AND m.deleted_at IS NULL
+            AND (m.created_at > cm.last_read_at OR cm.last_read_at IS NULL)
+        )`,
       })
       .from(conversations)
       .innerJoin(chatMembers, eq(conversations.id, chatMembers.conversationId))
@@ -37,6 +47,7 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
         type: string;
         name: string | null;
         updatedAt: Date | null;
+        unreadCount: number;
         members: { id: number; username: string; profileImageUrl: string }[];
       }
     >();
@@ -48,6 +59,7 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
           type: row.convType,
           name: row.convName,
           updatedAt: row.convUpdatedAt,
+          unreadCount: row.unreadCount,
           members: [],
         });
       }

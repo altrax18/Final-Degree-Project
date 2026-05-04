@@ -11,6 +11,7 @@ export type ChatConversation = {
   type: "direct" | "group";
   name: string | null;
   updatedAt: string | null;
+  unreadCount: number;
   members: ChatMember[];
 };
 
@@ -57,6 +58,14 @@ export function useChat(userId: number) {
           ...prev,
           [msg.conversationId]: [...(prev[msg.conversationId] || []), msg],
         }));
+        // Increment unread count for messages sent by others
+        if (msg.senderId !== userId) {
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === msg.conversationId ? { ...c, unreadCount: c.unreadCount + 1 } : c
+            )
+          );
+        }
       }
     };
 
@@ -97,7 +106,32 @@ export function useChat(userId: number) {
 
   const markRead = useCallback((conversationId: number) => {
     wsRef.current?.send(JSON.stringify({ type: "mark_read", conversationId }));
+    // Reset unread count locally so the badge disappears immediately
+    setConversations((prev) =>
+      prev.map((c) => (c.id === conversationId ? { ...c, unreadCount: 0 } : c))
+    );
   }, []);
 
-  return { conversations, messages, sendMessage, subscribe, fetchMessages, markRead, isConnected };
+  const startConversation = useCallback(async (targetUserId: number): Promise<number> => {
+    const existing = conversations.find(
+      (c) => c.type === "direct" && c.members.some((m) => m.id === targetUserId)
+    );
+    if (existing) return existing.id;
+
+    const res = await fetch(`${API_URL}/chat/conversations`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "direct", memberIds: [userId, targetUserId] }),
+    });
+    const conv = await res.json();
+
+    // Refrescar la lista de conversaciones
+    const convsRes = await fetch(`${API_URL}/chat/conversations/${userId}`);
+    const convs = await convsRes.json();
+    setConversations(convs);
+
+    return conv.id;
+  }, [conversations, userId]);
+
+  return { conversations, messages, sendMessage, subscribe, fetchMessages, markRead, startConversation, isConnected };
 }
