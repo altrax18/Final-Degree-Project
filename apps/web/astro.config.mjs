@@ -12,7 +12,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
     resolve: {
       alias: {
-        "onnxruntime-node": "false",
+        "onnxruntime-node": "./src/mocks/onnx-mock.js",
       },
     },
   },
