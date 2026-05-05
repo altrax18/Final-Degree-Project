@@ -3,7 +3,11 @@ import { neon } from "@neondatabase/serverless";
 
 // CONFIGURACION PARA VERCEL: Forzar uso de WASM para evitar errores de binarios nativos (.node)
 env.allowLocalModels = false;
-env.backends.onnx.wasm.numThreads = 1;
+env.allowRemoteModels = true;
+
+if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
+  env.backends.onnx.wasm.numThreads = 1;
+}
 
 const sql = neon(process.env.DATABASE_URL!);
 let embeddingPipeline: FeatureExtractionPipeline | null = null;
