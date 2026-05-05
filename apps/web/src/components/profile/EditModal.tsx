@@ -1,4 +1,4 @@
-// Modal para editar los datos del perfil. La contraseña es opcional.
+// Modal para editar los datos del perfil. Contraseña opcional.
 import { useState } from "react";
 import type { EditForm } from "../../hooks/useProfile";
 
