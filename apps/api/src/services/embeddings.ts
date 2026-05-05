@@ -1,5 +1,9 @@
-import { pipeline, type FeatureExtractionPipeline } from "@huggingface/transformers";
+import { pipeline, type FeatureExtractionPipeline, env } from "@huggingface/transformers";
 import { neon } from "@neondatabase/serverless";
+
+// CONFIGURACION PARA VERCEL: Forzar uso de WASM para evitar errores de binarios nativos (.node)
+env.allowLocalModels = false;
+env.backends.onnx.wasm.numThreads = 1;
 
 const sql = neon(process.env.DATABASE_URL!);
 let embeddingPipeline: FeatureExtractionPipeline | null = null;
