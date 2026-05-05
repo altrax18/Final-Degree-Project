@@ -10,8 +10,10 @@ export default defineConfig({
   integrations: [react(), icon()],
   vite: {
     plugins: [tailwindcss()],
-    ssr: {
-      external: ["onnxruntime-node"],
+    resolve: {
+      alias: {
+        "onnxruntime-node": "false",
+      },
     },
   },
   output: "server",
