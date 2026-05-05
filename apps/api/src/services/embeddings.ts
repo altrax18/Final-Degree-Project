@@ -1,23 +1,27 @@
-import { pipeline, type FeatureExtractionPipeline, env } from "@huggingface/transformers";
 import { neon } from "@neondatabase/serverless";
 
-// CONFIGURACION PARA VERCEL: Forzar uso de WASM para evitar errores de binarios nativos (.node)
-env.allowLocalModels = false;
-env.allowRemoteModels = true;
-
-if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
-  env.backends.onnx.wasm.numThreads = 1;
-}
-
 const sql = neon(process.env.DATABASE_URL!);
-let embeddingPipeline: FeatureExtractionPipeline | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let embeddingPipeline: any | null = null;
 
-export async function getEmbeddingPipeline(): Promise<FeatureExtractionPipeline>{
-  if(!embeddingPipeline){
+// CONFIGURACION PARA VERCEL: La importacion de @huggingface/transformers es dinamica
+// para evitar que se cargue el runtime ONNX/WASM en el arranque del modulo.
+// Esto previene que cada peticion SSR inicialice la libreria ML completa aunque
+// no use embeddings, lo que causaba tiempos de carga significativamente mayores.
+export async function getEmbeddingPipeline(): Promise<any> {
+  if (!embeddingPipeline) {
+    const { pipeline, env } = await import("@huggingface/transformers");
+
+    env.allowLocalModels = false;
+    env.allowRemoteModels = true;
+    if (env.backends?.onnx?.wasm) {
+      env.backends.onnx.wasm.numThreads = 1;
+    }
+
     embeddingPipeline = await pipeline(
       "feature-extraction",
       "Xenova/ALL-MiniLM-L6-v2",
-      { device: 'cpu' }
+      { device: "cpu" },
     );
   }
   return embeddingPipeline;

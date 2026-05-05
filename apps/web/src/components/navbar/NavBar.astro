@@ -19,7 +19,7 @@ const navLinks = [
   class="sticky top-0 z-50 border-b border-bone dark:border-night-edge bg-parchment/80 dark:bg-obsidian/80 backdrop-blur-xl shadow-[0_1px_24px_rgba(0,0,0,0.2)]"
 >
   <!-- Fila de escritorio -->
-  <div class="mx-auto flex h-16 max-w-7xl items-center gap-5 px-5">
+  <div class="mx-auto flex h-16 max-w-7xl items-center px-5">
     <!-- Logotipo -->
     <a
       href="/"
@@ -30,12 +30,9 @@ const navLinks = [
       <span class="text-[1.1rem] font-bold tracking-tight text-ink dark:text-screen">Alexandria</span>
     </a>
 
-    <!-- Barra de búsqueda -->
-    <SearchBar client:load currentPath={currentPath} />
-
-    <!-- Enlaces de navegación (escritorio) -->
+    <!-- Enlaces de navegación centrados (escritorio) -->
     <nav
-      class="hidden md:flex shrink-0 items-center gap-1"
+      class="hidden md:flex flex-1 justify-center items-center gap-1"
       aria-label="Main navigation"
     >
       {
@@ -53,39 +50,45 @@ const navLinks = [
               ].join(" ")}
             >
               <Icon name={icon} class="h-[1.1rem] w-[1.1rem] shrink-0" aria-hidden="true" />
-              <span class="hidden lg:inline leading-none">{label}</span>
+              <span class="leading-none">{label}</span>
             </a>
           );
         })
       }
     </nav>
 
-    <!-- Theme toggle (escritorio) -->
-    <ThemeToggle client:load />
+    <!-- Acciones derecha: búsqueda + tema + perfil -->
+    <div class="flex shrink-0 items-center gap-3 ml-auto md:ml-0">
+      <!-- Barra de búsqueda -->
+      <SearchBar client:load currentPath={currentPath} />
 
-    <!-- Icono de perfil / registro (escritorio) -->
-    <div class="hidden md:flex">
-      <NavProfileBtn client:load />
+      <!-- Theme toggle (escritorio) -->
+      <ThemeToggle client:load />
+
+      <!-- Icono de perfil / registro (escritorio) -->
+      <div class="hidden md:flex">
+        <NavProfileBtn client:load />
+      </div>
+
+      <!-- Menú hamburguesa móvil -->
+      <button
+        id="mobile-menu-btn"
+        aria-label="Toggle menu"
+        aria-expanded="false"
+        aria-controls="mobile-drawer"
+        class="md:hidden flex shrink-0 flex-col items-center justify-center gap-[4px] w-[38px] h-[38px] rounded-lg border border-bone dark:border-night-edge bg-transparent p-[0.55rem] cursor-pointer transition-[background] duration-[180ms] hover:bg-sand dark:hover:bg-coal"
+      >
+        <span
+          class="block w-full h-[2px] rounded-sm bg-slate dark:bg-mist transition-[transform,opacity] duration-200"
+        ></span>
+        <span
+          class="block w-full h-[2px] rounded-sm bg-slate dark:bg-mist transition-[transform,opacity] duration-200"
+        ></span>
+        <span
+          class="block w-full h-[2px] rounded-sm bg-slate dark:bg-mist transition-[transform,opacity] duration-200"
+        ></span>
+      </button>
     </div>
-
-    <!-- Menú hamburguesa móvil -->
-    <button
-      id="mobile-menu-btn"
-      aria-label="Toggle menu"
-      aria-expanded="false"
-      aria-controls="mobile-drawer"
-      class="md:hidden ml-auto flex shrink-0 flex-col items-center justify-center gap-[4px] w-[38px] h-[38px] rounded-lg border border-bone dark:border-night-edge bg-transparent p-[0.55rem] cursor-pointer transition-[background] duration-[180ms] hover:bg-sand dark:hover:bg-coal"
-    >
-      <span
-        class="block w-full h-[2px] rounded-sm bg-slate dark:bg-mist transition-[transform,opacity] duration-200"
-      ></span>
-      <span
-        class="block w-full h-[2px] rounded-sm bg-slate dark:bg-mist transition-[transform,opacity] duration-200"
-      ></span>
-      <span
-        class="block w-full h-[2px] rounded-sm bg-slate dark:bg-mist transition-[transform,opacity] duration-200"
-      ></span>
-    </button>
   </div>
 
   <!-- Cajón móvil (oculto por defecto, alternado vía JS) -->
