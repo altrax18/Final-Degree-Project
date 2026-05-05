@@ -10,6 +10,9 @@ export default defineConfig({
   integrations: [react(), icon()],
   vite: {
     plugins: [tailwindcss()],
+    ssr: {
+      external: ["onnxruntime-node"],
+    },
   },
   output: "server",
   adapter: vercel({
