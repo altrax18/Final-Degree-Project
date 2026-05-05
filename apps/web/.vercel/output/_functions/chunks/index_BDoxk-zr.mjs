@@ -4,8 +4,8 @@ import fs2 from 'fs';
 import path from 'path';
 import require$$1 from 'os';
 import require$$0 from 'url';
-import { n as getDefaultExportFromCjs } from './entrypoint_BHKh6TqG.mjs';
-import { c as commonjsRequire, s as sharp } from './index_r3ERTutN.mjs';
+import { n as getDefaultExportFromCjs } from './entrypoint_DF_D8ei4.mjs';
+import { c as commonjsRequire, s as sharp } from './index_DzzYLDm-.mjs';
 import { Readable } from 'stream';
 import { pipeline as pipeline$1 } from 'stream/promises';
 

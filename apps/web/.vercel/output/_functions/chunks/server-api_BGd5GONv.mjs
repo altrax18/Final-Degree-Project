@@ -1,5 +1,5 @@
 import { treaty } from '@elysiajs/eden';
-import { a as app } from './index_DAZL6o-p.mjs';
+import { a as app } from './index_BDoxk-zr.mjs';
 
 const serverApi = treaty(app);
 

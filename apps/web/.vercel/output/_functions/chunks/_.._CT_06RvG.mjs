@@ -1,4 +1,4 @@
-import { a as app } from './index_DAZL6o-p.mjs';
+import { a as app } from './index_BDoxk-zr.mjs';
 
 const handle = ({ request }) => app.handle(request);
 const GET = handle;

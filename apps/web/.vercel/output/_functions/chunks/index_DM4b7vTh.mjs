@@ -1,11 +1,11 @@
-import { c as createComponent } from './astro-component_Ca-ehMXU.mjs';
-import { l as renderComponent, r as renderTemplate, m as maybeRenderHead } from './entrypoint_BHKh6TqG.mjs';
-import { $ as $$Layout } from './Layout_CvdiqHQU.mjs';
+import { c as createComponent } from './astro-component_CvTESmvA.mjs';
+import { l as renderComponent, r as renderTemplate, m as maybeRenderHead } from './entrypoint_DF_D8ei4.mjs';
+import { $ as $$Layout } from './Layout_Dqj83iAE.mjs';
 import { jsx } from 'react/jsx-runtime';
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { b as getMovies, C as CatalogBrowser, a as CatalogCard3D } from './CatalogCard3D_HHAoaF4E.mjs';
-import { s as serverApi } from './server-api_05J3DRLn.mjs';
+import { b as getMovies, C as CatalogBrowser, a as CatalogCard3D } from './CatalogCard3D_BIyU3smy.mjs';
+import { s as serverApi } from './server-api_BGd5GONv.mjs';
 
 function MovieCatalogClient({ initialMovies }) {
   const [queryClient] = useState(

@@ -2,7 +2,7 @@ import { treaty } from '@elysiajs/eden';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { useMemo, memo, useState, useRef, useEffect } from 'react';
 import { create } from 'zustand';
-import { u as useCollections } from './useCollections_DR3EEX-I.mjs';
+import { u as useCollections } from './useCollections_CzqFdQ5c.mjs';
 import { Icon } from '@iconify/react';
 
 function getErrorReason(errorValue) {
