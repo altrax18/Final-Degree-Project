@@ -11,6 +11,11 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+  image: {
+    service: {
+      entrypoint: "astro/assets/services/vercel",
+    },
+  },
   output: "server",
   adapter: vercel({
     webAnalytics: {
