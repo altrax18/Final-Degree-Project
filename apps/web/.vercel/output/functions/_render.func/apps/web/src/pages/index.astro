@@ -1,0 +1,58 @@
+---
+// src/pages/index.astro
+import Layout from "../layouts/Layout.astro";
+import MediaCard from "../components/shared/MediaCard.jsx";
+import RecommendedUsersWidget from "../components/shared/RecommendedUsersWidget";
+import { serverApi } from "../lib/server-api";
+
+let trending: any[] = [];
+let error = null;
+
+try {
+  const { data, error: apiError } = await serverApi.api.music.trending.songs.get();
+  if (apiError) throw new Error("API error");
+  trending = (data as any)?.results ?? [];
+} catch (err) {
+  error = err;
+  trending = [];
+}
+---
+
+<Layout title="Trending">
+  <section class="space-y-6">
+    <div class="space-y-1">
+      <h1 class="text-3xl font-bold text-ink dark:text-screen tracking-tight">Trending Now</h1>
+      <p class="text-slate dark:text-mist text-sm">
+        A curated snapshot of what's hot across all media.
+      </p>
+    </div>
+
+    {
+      error && (
+        <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
+          Could not reach the API. Make sure{" "}
+          <code class="font-mono">apps/api</code> is running on port 3000.
+        </div>
+      )
+    }
+
+    {
+      Array.isArray(trending) && trending.length > 0 && (
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {trending.map((item) => (
+            <MediaCard
+              client:visible
+              title={item.title}
+              type={item.type}
+              image={item.image}
+            />
+          ))}
+        </div>
+      )
+    }
+  </section>
+
+  <section class="mt-12 border-t border-bone dark:border-night-edge pt-10">
+    <RecommendedUsersWidget client:only="react" />
+  </section>
+</Layout>
