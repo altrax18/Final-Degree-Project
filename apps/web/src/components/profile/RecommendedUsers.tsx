@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { DEFAULT_AVATAR } from "../../types/user";
 
-const API_URL = "http://localhost:3000";
+const API_URL = (import.meta.env.PUBLIC_API_URL as string | undefined) ?? "";
 
 type RecommendedUser = {
   id: number;

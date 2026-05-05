@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { ChatConversation } from "../../hooks/useChat";
 
-const API_URL = "http://localhost:3000";
+const API_URL = (import.meta.env.PUBLIC_API_URL as string | undefined) ?? "";
 
 type UserResult = {
   id: number;

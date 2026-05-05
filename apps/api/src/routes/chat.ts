@@ -3,7 +3,7 @@ import { db } from "../db/client";
 import { conversations, messages, chatMembers, users } from "../db/schema";
 import { eq, inArray, desc, and, sql, gt, ne } from "drizzle-orm";
 
-export const chatRoutes = new Elysia({ prefix: "/chat" })
+export const chatRoutes = new Elysia({ prefix: "/api/chat" })
   .get("/conversations/:userId", async ({ params }) => {
     const userId = Number(params.userId);
 

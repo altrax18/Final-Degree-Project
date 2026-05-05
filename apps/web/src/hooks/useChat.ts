@@ -26,7 +26,7 @@ export type ChatMessage = {
 };
 
 const API_URL =
-  (import.meta.env.PUBLIC_API_URL as string | undefined) ?? "http://localhost:3000";
+  (import.meta.env.PUBLIC_API_URL as string | undefined) ?? "";
 
 export function useChat(userId: number) {
   const [isConnected, setIsConnected] = useState(false);
