@@ -8,13 +8,30 @@ import type { Movie } from "../../types/movie";
 // QUE HACE: Inicializa datos antes de invocar la API.
 // POR QUE LO USO: Permite renderizar mensaje de error sin romper la pagina.
 // DOCUMENTACION: https://docs.astro.build/en/guides/data-fetching/
-let movies: Movie[] = [];
+let movies: {
+  items: Movie[];
+  total: number;
+  page: number;
+  perPage: number;
+  totalPages: number;
+  genres: string[];
+} = {
+  items: [],
+  total: 0,
+  page: 1,
+  perPage: 20,
+  totalPages: 1,
+  genres: [],
+};
 let errorMessage = "";
 
 try {
   const { data, error } = await serverApi.api.movies.get();
-  if (error) throw new Error(typeof error.value === "string" ? error.value : "API no disponible");
-  movies = data as Movie[];
+  if (error)
+    throw new Error(
+      typeof error.value === "string" ? error.value : "API no disponible",
+    );
+  movies = data as typeof movies;
 } catch (error) {
   errorMessage =
     error instanceof Error
@@ -29,11 +46,13 @@ try {
       <h1
         class="text-4xl md:text-5xl font-extrabold text-ink dark:text-screen mb-4 tracking-tight"
       >
-        Catalogo de <span class="text-sapphire dark:text-electric-sky">Peliculas</span>
+        Catalogo de <span class="text-sapphire dark:text-electric-sky"
+          >Peliculas</span
+        >
       </h1>
       <p class="text-slate dark:text-mist text-lg max-w-2xl mx-auto mb-8">
-        Descubre peliculas populares, filtra por genero y encuentra que ver esta
-        noche.
+        Descubre peliculas populares, busca por titulo y navega por páginas sin
+        depender de un limite fijo local.
       </p>
     </div>
 

@@ -1,35 +1,37 @@
+// RESPONSABILIDAD: Componente presentacional de filtros (UI only).
+// - No ejecuta llamadas de red; notifica cambios mediante callbacks.
+// - Mantiene estado local mínimo (input de búsqueda) y delega almacenamiento global a `catalogFilterStore`.
+// DOCUMENTACION: Zustand: https://docs.pmnd.rs/zustand/introduction
+// UI guidance: accesibilidad de botones con `aria-pressed`.
+
 interface CatalogFiltersProps {
   searchTerm: string;
-  selectedGenre: string;
+  selectedGenres: string[];
   genres: string[];
   searchPlaceholder: string;
   filterTitle: string;
   onSearchTermChange: (value: string) => void;
-  onGenreChange: (value: string) => void;
+  onGenreToggle: (value: string) => void;
+  onClearFilters: () => void;
 }
 
 export default function CatalogFilters({
   searchTerm,
-  selectedGenre,
+  selectedGenres,
   genres,
   searchPlaceholder,
   filterTitle,
   onSearchTermChange,
-  onGenreChange,
+  onGenreToggle,
+  onClearFilters,
 }: CatalogFiltersProps) {
+  const hasSelectedGenres = selectedGenres.length > 0;
+
   return (
-    // CONCEPTO: Controles de Búsqueda y Filtro
-    // QUE HACE: Agrupa el buscador controlado y los botones de género en una sola pieza visual.
-    // POR QUE LO USO: Este bloque cambia según el estado del catálogo, así que conviene aislarlo como componente reutilizable.
-    // DOCUMENTACION: https://react.dev/learn/sharing-state-between-components
     <div className="mb-12 flex flex-col gap-8">
       <div className="w-full max-w-2xl mx-auto">
-        {/* CONCEPTO: Input Controlado
-            QUE HACE: El valor del buscador viene desde el estado global y notifica cambios por callback.
-            POR QUE LO USO: Zustand conserva el estado y React solo refleja la interfaz.
-            DOCUMENTACION: https://react.dev/reference/react-dom/components/input#controlling-an-input-with-a-state-variable */}
         <input
-          type="text"
+          type="search"
           placeholder={searchPlaceholder}
           value={searchTerm}
           onChange={(event) => onSearchTermChange(event.target.value)}
@@ -38,23 +40,26 @@ export default function CatalogFilters({
       </div>
 
       <div>
-        <h3 className="text-xs uppercase tracking-[0.2em] text-slate dark:text-mist mb-4 text-center font-bold">
-          {filterTitle}
-        </h3>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="text-xs uppercase tracking-[0.2em] text-slate dark:text-mist font-bold">
+            {filterTitle}
+          </h3>
 
-        {/* CONCEPTO: Renderizado de Lista de Botones
-            QUE HACE: Genera un botón por género y marca visualmente el activo.
-            POR QUE LO USO: La UI de filtros se adapta automáticamente a cualquier catálogo.
-            DOCUMENTACION: https://react.dev/learn/rendering-lists */}
+          <div className="text-xs uppercase tracking-[0.16em] text-slate dark:text-mist">
+            {hasSelectedGenres ? `${selectedGenres.length} activos` : "Sin filtros activos"}
+          </div>
+        </div>
+
         <div className="flex flex-wrap justify-center gap-3">
           {genres.map((genre) => {
-            const isSelected = selectedGenre === genre;
+            const isSelected = selectedGenres.includes(genre);
 
             return (
               <button
                 key={genre}
                 type="button"
-                onClick={() => onGenreChange(genre)}
+                onClick={() => onGenreToggle(genre)}
+                aria-pressed={isSelected}
                 className={`px-4 py-2 text-xs font-bold tracking-wider uppercase transition-all duration-200 border ${
                   isSelected
                     ? "border-ink dark:border-screen text-ink dark:text-screen bg-ink/5 dark:bg-screen/5 shadow-[0_0_15px_rgba(0,0,0,0.1)] dark:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
@@ -65,6 +70,16 @@ export default function CatalogFilters({
               </button>
             );
           })}
+        </div>
+
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={onClearFilters}
+            className="inline-flex items-center justify-center rounded-full border border-bone dark:border-night-edge px-5 py-3 text-sm font-semibold text-ink dark:text-screen bg-sand dark:bg-coal hover:bg-linen dark:hover:bg-coal transition-colors"
+          >
+            Limpiar filtros
+          </button>
         </div>
       </div>
     </div>

@@ -7,6 +7,8 @@ import { config as loadEnv } from "dotenv";
 loadEnv();
 loadEnv({ path: "../../.env" });
 
+import { parsePositiveInteger, getCacheKey } from "../utils";
+
 // CONCEPTO: Constante de Configuracion de Resiliencia
 // QUE HACE: Limita el tiempo maximo de espera en peticiones HTTP externas.
 // POR QUE LO USO: Evita rutas colgadas cuando Twitch o IGDB responden lento.
@@ -20,8 +22,27 @@ const EXTERNAL_REQUEST_TIMEOUT_MS = 8000;
 const GAMES_LIST_CACHE_TTL = 5 * 60 * 1000;
 const GAME_DETAIL_CACHE_TTL = 10 * 60 * 1000;
 
-let gamesListCache: { data: any[]; ts: number } | null = null;
+type PaginatedCatalogResponse<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  perPage: number;
+  totalPages: number;
+  genres: string[];
+};
+
+type CatalogCacheEntry = {
+  data: PaginatedCatalogResponse<any>;
+  ts: number;
+};
+
+const gamesListCache = new Map<string, CatalogCacheEntry>();
 const gameDetailCache = new Map<number, { data: any; ts: number }>();
+let gameGenresCache: {
+  data: { id: number; name: string }[];
+  ts: number;
+} | null = null;
+const GAME_GENRES_CACHE_TTL = 24 * 60 * 60 * 1000;
 
 // CONCEPTO: Cache de Token OAuth
 // QUE HACE: Guarda el token de Twitch hasta cerca de su expiracion.
@@ -78,6 +99,83 @@ function parsePositiveGameId(rawId: string): number {
   return parsedId;
 }
 
+function escapeApicalypseString(value: string): string {
+  return value.replace(/"/g, "");
+}
+
+function parseCountPayload(payload: unknown): number {
+  if (Array.isArray(payload) && payload.length > 0) {
+    const firstItem = payload[0] as { count?: unknown };
+    if (typeof firstItem.count === "number") return firstItem.count;
+    if (typeof firstItem.count === "string") return Number(firstItem.count);
+  }
+
+  if (payload && typeof payload === "object" && "count" in payload) {
+    const countValue = (payload as { count?: unknown }).count;
+    if (typeof countValue === "number") return countValue;
+    if (typeof countValue === "string") return Number(countValue);
+  }
+
+  return 0;
+}
+
+async function getAllGameGenres(token: string) {
+  if (
+    gameGenresCache &&
+    Date.now() - gameGenresCache.ts < GAME_GENRES_CACHE_TTL
+  ) {
+    return gameGenresCache.data;
+  }
+
+  const { response, payload } = await fetchJsonWithTimeout(
+    "https://api.igdb.com/v4/genres",
+    {
+      method: "POST",
+      headers: {
+        "Client-ID": process.env.TWITCH_CLIENT_ID!,
+        Authorization: `Bearer ${token}`,
+      },
+      body: "fields id,name; limit 500;",
+    },
+  );
+
+  if (!response.ok || !Array.isArray(payload)) {
+    throw new Error(`IGDB genero fallo (${response.status})`);
+  }
+
+  gameGenresCache = {
+    data: payload
+      .map((genre: any) => ({
+        id: Number(genre.id),
+        name: String(genre.name ?? ""),
+      }))
+      .filter(
+        (genre: { id: number; name: string }) =>
+          Number.isInteger(genre.id) && genre.name.length > 0,
+      ),
+    ts: Date.now(),
+  };
+
+  return gameGenresCache.data;
+}
+
+async function getGameGenreIdsByName(token: string, genreNames: string[]) {
+  if (genreNames.length === 0) return [];
+
+  const genres = await getAllGameGenres(token);
+  const genreIds = genreNames
+    .map((genreName) => {
+      const normalizedGenreName = genreName.trim().toLowerCase();
+      const genre = genres.find(
+        (item) => item.name.trim().toLowerCase() === normalizedGenreName,
+      );
+      return genre?.id ?? null;
+    })
+    .filter((genreId): genreId is number => genreId !== null);
+
+  return Array.from(new Set(genreIds));
+}
+
 async function getTwitchToken() {
   if (!process.env.TWITCH_CLIENT_ID || !process.env.TWITCH_CLIENT_SECRET) {
     throw new Error(
@@ -114,64 +212,114 @@ async function getTwitchToken() {
   return String(payload.access_token);
 }
 
-export async function browseGames(query?: string): Promise<unknown[]> {
+export async function browseGames(query: {
+  q?: string;
+  page?: string;
+  limit?: string;
+  genre?: string;
+  genres?: string;
+}): Promise<PaginatedCatalogResponse<unknown>> {
+  return browseGamesPage(query);
+}
+
+export async function browseGamesPage(query: {
+  q?: string;
+  page?: string;
+  limit?: string;
+  genre?: string;
+  genres?: string;
+}): Promise<PaginatedCatalogResponse<unknown>> {
   const token = await getTwitchToken();
+  const page = parsePositiveInteger(query.page, 1, 1, 100000);
+  const perPage = parsePositiveInteger(query.limit, 20, 1, 50);
+  const offset = (page - 1) * perPage;
+  const searchTerm = query.q?.trim() ?? "";
+  const genreNames = (query.genres ?? query.genre ?? "")
+    .split(",")
+    .map((genre) => genre.trim())
+    .filter(Boolean);
+  const genreIds = await getGameGenreIdsByName(token, genreNames);
+  const cacheKey = getCacheKey(searchTerm, page, perPage, genreNames.join(","));
 
-  if (query) {
-    const safeQuery = query.replace(/"/g, "");
-    const { response, payload: rawGames } = await fetchJsonWithTimeout(
-      "https://api.igdb.com/v4/games",
-      {
-        method: "POST",
-        headers: {
-          "Client-ID": process.env.TWITCH_CLIENT_ID!,
-          Authorization: `Bearer ${token}`,
-        },
-        body: `search "${safeQuery}"; fields name, cover.url, summary, total_rating, first_release_date, genres.name, platforms.name; where cover != null; limit 20;`,
-      },
-    );
-
-    if (!response.ok || !Array.isArray(rawGames)) {
-      throw new Error(`IGDB search rechazo la solicitud (${response.status})`);
-    }
-
-    return rawGames.map((game: any) => mapIgdbBaseGameFields(game));
+  const cachedResult = gamesListCache.get(cacheKey);
+  if (cachedResult && Date.now() - cachedResult.ts < GAMES_LIST_CACHE_TTL) {
+    return cachedResult.data;
   }
 
-  if (gamesListCache && Date.now() - gamesListCache.ts < GAMES_LIST_CACHE_TTL) {
-    return gamesListCache.data;
+  const filters: string[] = ["cover != null"];
+
+  if (genreNames.length > 0 && genreIds.length === 0) {
+    const genres = (await getAllGameGenres(token)).map((genre) => genre.name);
+    return {
+      items: [],
+      total: 0,
+      page,
+      perPage,
+      totalPages: 1,
+      genres,
+    };
   }
 
-  const { response, payload: rawGames } = await fetchJsonWithTimeout(
-    "https://api.igdb.com/v4/games",
-    {
+  if (genreIds.length > 0) {
+    filters.push(`genres = (${genreIds.join(",")})`);
+  }
+
+  const searchPrefix =
+    searchTerm.length > 0
+      ? `search \"${escapeApicalypseString(searchTerm)}\"; `
+      : "";
+  const whereClause =
+    filters.length > 0 ? ` where ${filters.join(" & ")};` : "";
+  const baseQuery = `${searchPrefix}fields name, cover.url, summary, total_rating, first_release_date, genres.name, platforms.name;${whereClause}`;
+  const pagedQuery = `${baseQuery} limit ${perPage}; offset ${offset};`;
+  const countQuery = `${searchPrefix}${whereClause}`;
+
+  const [countResult, listResult] = await Promise.all([
+    fetchJsonWithTimeout("https://api.igdb.com/v4/games/count", {
       method: "POST",
       headers: {
         "Client-ID": process.env.TWITCH_CLIENT_ID!,
         Authorization: `Bearer ${token}`,
       },
-      // CONCEPTO: IGDB Query Language
-      // QUE HACE: Define campos, filtros y orden en una sola consulta textual.
-      // POR QUE LO USO: Minimiza payload y mantiene resultados consistentes para el catalogo.
-      // DOCUMENTACION: https://api-docs.igdb.com/#filters
-      body: "fields name, cover.url, summary, total_rating, first_release_date, genres.name, platforms.name; where cover != null & total_rating != null; sort total_rating desc; limit 70;",
-    },
-  );
+      body: countQuery,
+    }),
+    fetchJsonWithTimeout("https://api.igdb.com/v4/games", {
+      method: "POST",
+      headers: {
+        "Client-ID": process.env.TWITCH_CLIENT_ID!,
+        Authorization: `Bearer ${token}`,
+      },
+      body: pagedQuery,
+    }),
+  ]);
 
-  if (!response.ok || !Array.isArray(rawGames)) {
-    throw new Error(`IGDB rechazo la solicitud (${response.status})`);
+  if (!listResult.response.ok || !Array.isArray(listResult.payload)) {
+    throw new Error(
+      `IGDB rechazo la solicitud (${listResult.response.status})`,
+    );
   }
 
-  const normalizedGames = rawGames.map((game: any) =>
+  const normalizedGames = listResult.payload.map((game: any) =>
     mapIgdbBaseGameFields(game),
   );
+  const total = countResult.response.ok
+    ? parseCountPayload(countResult.payload)
+    : normalizedGames.length;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const genres = (await getAllGameGenres(token)).map((genre) => genre.name);
 
-  gamesListCache = {
-    data: normalizedGames,
-    ts: Date.now(),
+  const response: PaginatedCatalogResponse<unknown> = {
+    items: normalizedGames,
+    total,
+    page,
+    perPage,
+    totalPages,
+    genres,
   };
 
-  return normalizedGames;
+  gamesListCache.set(cacheKey, { data: response, ts: Date.now() });
+
+  return response;
 }
 
 export async function getGameByApiId(apiId: string): Promise<unknown> {

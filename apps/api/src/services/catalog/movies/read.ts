@@ -7,6 +7,8 @@ import { config as loadEnv } from "dotenv";
 loadEnv();
 loadEnv({ path: "../../.env" });
 
+import { parsePositiveInteger, getCacheKey } from "../utils";
+
 // CONCEPTO: Timeouts de Red Controlados
 // QUE HACE: Corta peticiones a servicios externos que exceden el tiempo maximo permitido.
 // POR QUE LO USO: Mejora resiliencia del endpoint de peliculas cuando TMDB esta lento.
@@ -20,7 +22,21 @@ const EXTERNAL_REQUEST_TIMEOUT_MS = 8000;
 const MOVIES_LIST_CACHE_TTL = 5 * 60 * 1000;
 const MOVIE_DETAIL_CACHE_TTL = 10 * 60 * 1000;
 
-let moviesListCache: { data: any[]; ts: number } | null = null;
+type PaginatedCatalogResponse<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  perPage: number;
+  totalPages: number;
+  genres: string[];
+};
+
+type CatalogCacheEntry = {
+  data: PaginatedCatalogResponse<any>;
+  ts: number;
+};
+
+const moviesListCache = new Map<string, CatalogCacheEntry>();
 const movieDetailCache = new Map<number, { data: any; ts: number }>();
 
 async function fetchJsonWithTimeout(url: string, init?: RequestInit) {
@@ -82,6 +98,22 @@ let genreCache: Map<number, string> | null = null;
 let genreCacheTs = 0;
 const GENRE_CACHE_TTL = 24 * 60 * 60 * 1000;
 
+function parseCountPayload(payload: unknown): number {
+  if (Array.isArray(payload) && payload.length > 0) {
+    const firstItem = payload[0] as { count?: unknown };
+    if (typeof firstItem.count === "number") return firstItem.count;
+    if (typeof firstItem.count === "string") return Number(firstItem.count);
+  }
+
+  if (payload && typeof payload === "object" && "count" in payload) {
+    const countValue = (payload as { count?: unknown }).count;
+    if (typeof countValue === "number") return countValue;
+    if (typeof countValue === "string") return Number(countValue);
+  }
+
+  return 0;
+}
+
 async function getGenreMap(headers: Headers, authQuery: string) {
   if (genreCache && Date.now() - genreCacheTs < GENRE_CACHE_TTL) {
     return genreCache;
@@ -131,63 +163,210 @@ function normalizeMovies(movies: any[], genreById: Map<number, string>) {
   });
 }
 
-export async function browseMovies(query?: string): Promise<unknown[]> {
-  const { headers, authQuery } = resolveTmdbAuth();
-
-  if (query) {
-    const [genreById, searchResult] = await Promise.all([
-      getGenreMap(headers, authQuery),
-      fetchJsonWithTimeout(
-        `https://api.themoviedb.org/3/search/movie?${authQuery}language=es-ES&query=${encodeURIComponent(query)}&include_adult=false`,
-        { headers }
-      )
-    ]);
-    
-    const searchPayload: any = searchResult.payload;
-    if (!searchResult.response.ok || !Array.isArray(searchPayload?.results)) {
-      throw new Error(`TMDB search fallo (${searchResult.response.status})`);
-    }
-    
-    return normalizeMovies(searchPayload.results, genreById);
-  }
-
-  if (
-    moviesListCache &&
-    Date.now() - moviesListCache.ts < MOVIES_LIST_CACHE_TTL
-  ) {
-    return moviesListCache.data;
-  }
-
-  const tmdbPagesToFetch = 4;
-  const pages = Array.from(
-    { length: tmdbPagesToFetch },
-    (_, index) => index + 1,
-  );
-
-  const [genreById, ...discoverResults] = await Promise.all([
-    getGenreMap(headers, authQuery),
-    ...pages.map((page) =>
-      fetchJsonWithTimeout(
-        `https://api.themoviedb.org/3/discover/movie?${authQuery}include_adult=false&include_video=false&language=es-ES&page=${page}&sort_by=popularity.desc&vote_count.gte=150`,
-        { headers },
-      ),
+function getGenreIdsByName(
+  genreById: Map<number, string>,
+  genreNames: string[],
+) {
+  const genreIdByName = new Map(
+    Array.from(genreById.entries()).map(
+      ([id, name]) => [name.trim().toLowerCase(), id] as const,
     ),
-  ]);
-
-  const discoverResponses = discoverResults.map((result) => result.response);
-  const discoverPayloads: any[] = discoverResults.map(
-    (result) => result.payload,
   );
 
-  const mergedMovies = discoverPayloads.flatMap((payload) => payload.results);
-  const normalizedMovies = normalizeMovies(mergedMovies, genreById);
+  return Array.from(
+    new Set(
+      genreNames
+        .map((genreName) => genreIdByName.get(genreName.trim().toLowerCase()))
+        .filter((genreId): genreId is number => typeof genreId === "number"),
+    ),
+  );
+}
 
-  moviesListCache = {
-    data: normalizedMovies,
-    ts: Date.now(),
+export async function browseMovies(query: {
+  q?: string;
+  page?: string;
+  limit?: string;
+  genres?: string;
+}): Promise<PaginatedCatalogResponse<unknown>> {
+  return browseMoviesPage(query);
+}
+
+export async function browseMoviesPage(query: {
+  q?: string;
+  page?: string;
+  limit?: string;
+  genres?: string;
+}): Promise<PaginatedCatalogResponse<unknown>> {
+  const { headers, authQuery } = resolveTmdbAuth();
+  const page = parsePositiveInteger(query.page, 1, 1, 1000);
+  const perPage = parsePositiveInteger(query.limit, 20, 1, 100);
+  const searchTerm = query.q?.trim() ?? "";
+  const genreNames = (query.genres ?? "")
+    .split(",")
+    .map((genre) => genre.trim())
+    .filter(Boolean);
+  const cacheKey = getCacheKey(searchTerm, page, perPage, genreNames.join(","));
+
+  const cachedResult = moviesListCache.get(cacheKey);
+  if (cachedResult && Date.now() - cachedResult.ts < MOVIES_LIST_CACHE_TTL) {
+    return cachedResult.data;
+  }
+
+  const genreById = await getGenreMap(headers, authQuery);
+  const selectedGenreIds = getGenreIdsByName(genreById, genreNames);
+  if (genreNames.length > 0 && selectedGenreIds.length === 0) {
+    const responsePayload: PaginatedCatalogResponse<unknown> = {
+      items: [],
+      total: 0,
+      page,
+      perPage,
+      totalPages: 1,
+      genres: Array.from(genreById.values()),
+    };
+
+    moviesListCache.set(cacheKey, { data: responsePayload, ts: Date.now() });
+    return responsePayload;
+  }
+
+  const baseUrl =
+    searchTerm.length > 0
+      ? "https://api.themoviedb.org/3/search/movie"
+      : "https://api.themoviedb.org/3/discover/movie";
+  const apiKey = new URLSearchParams(authQuery).get("api_key");
+  const fetchTmdbPage = async (tmdbPage: number) => {
+    const url = new URL(baseUrl);
+    url.searchParams.set("language", "es-ES");
+    url.searchParams.set("include_adult", "false");
+
+    if (searchTerm.length > 0) {
+      url.searchParams.set("query", searchTerm);
+    } else {
+      url.searchParams.set("include_video", "false");
+      url.searchParams.set("sort_by", "popularity.desc");
+      url.searchParams.set("vote_count.gte", "150");
+      if (selectedGenreIds.length > 0) {
+        url.searchParams.set("with_genres", selectedGenreIds.join("|"));
+      }
+    }
+
+    url.searchParams.set("page", String(tmdbPage));
+
+    if (apiKey) {
+      url.searchParams.set("api_key", apiKey);
+    }
+
+    return fetchJsonWithTimeout(url.toString(), { headers });
   };
 
-  return normalizedMovies;
+  const pageResults: Array<{ response: Response; payload: unknown }> = [];
+
+  if (searchTerm.length > 0 && selectedGenreIds.length > 0) {
+    const firstResult = await fetchTmdbPage(1);
+    if (
+      !firstResult.response.ok ||
+      !Array.isArray((firstResult.payload as any)?.results)
+    ) {
+      throw new Error(`TMDB solicitud fallo (${firstResult.response.status})`);
+    }
+
+    pageResults.push(firstResult);
+    const firstPayload: any = firstResult.payload;
+    const totalTmdbPages = Number.isFinite(firstPayload?.total_pages)
+      ? Number(firstPayload.total_pages)
+      : 1;
+
+    for (let tmdbPage = 2; tmdbPage <= totalTmdbPages; tmdbPage += 1) {
+      const result = await fetchTmdbPage(tmdbPage);
+      if (
+        !result.response.ok ||
+        !Array.isArray((result.payload as any)?.results)
+      ) {
+        throw new Error(`TMDB solicitud fallo (${result.response.status})`);
+      }
+      pageResults.push(result);
+    }
+  } else {
+    const startIndex = (page - 1) * perPage;
+    const startTmdbPage = Math.floor(startIndex / 20) + 1;
+    const endTmdbPage = Math.floor((startIndex + perPage - 1) / 20) + 1;
+    const tmdbPages = Array.from(
+      { length: endTmdbPage - startTmdbPage + 1 },
+      (_, index) => startTmdbPage + index,
+    );
+
+    const fetchedPages = await Promise.all(
+      tmdbPages.map((tmdbPage) => fetchTmdbPage(tmdbPage)),
+    );
+    for (const result of fetchedPages) {
+      if (
+        !result.response.ok ||
+        !Array.isArray((result.payload as any)?.results)
+      ) {
+        throw new Error(`TMDB solicitud fallo (${result.response.status})`);
+      }
+      pageResults.push(result);
+    }
+  }
+
+  const combinedResults = pageResults.flatMap((result) =>
+    Array.isArray((result.payload as any)?.results)
+      ? (result.payload as any).results
+      : [],
+  );
+
+  const filteredResults =
+    searchTerm.length > 0 && selectedGenreIds.length > 0
+      ? combinedResults.filter(
+          (movie: any) =>
+            Array.isArray(movie.genre_ids) &&
+            movie.genre_ids.some((genreId: number) =>
+              selectedGenreIds.includes(genreId),
+            ),
+        )
+      : combinedResults;
+
+  if (filteredResults.length === 0) {
+    const responsePayload: PaginatedCatalogResponse<unknown> = {
+      items: [],
+      total: 0,
+      page,
+      perPage,
+      totalPages: 1,
+      genres: Array.from(genreById.values()),
+    };
+
+    moviesListCache.set(cacheKey, { data: responsePayload, ts: Date.now() });
+    return responsePayload;
+  }
+
+  const normalizedCombinedMovies = normalizeMovies(filteredResults, genreById);
+  const firstPayload: any = pageResults[0]?.payload;
+  const total =
+    searchTerm.length > 0 && selectedGenreIds.length > 0
+      ? normalizedCombinedMovies.length
+      : Number.isFinite(firstPayload?.total_results)
+        ? Number(firstPayload.total_results)
+        : normalizedCombinedMovies.length;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const offsetWithinCombined = (page - 1) * perPage;
+  const normalizedMovies = normalizedCombinedMovies.slice(
+    offsetWithinCombined,
+    offsetWithinCombined + perPage,
+  );
+  const genres = Array.from(genreById.values());
+
+  const responsePayload: PaginatedCatalogResponse<unknown> = {
+    items: normalizedMovies,
+    total,
+    page,
+    perPage,
+    totalPages,
+    genres,
+  };
+
+  moviesListCache.set(cacheKey, { data: responsePayload, ts: Date.now() });
+
+  return responsePayload;
 }
 
 export async function getMovieByApiId(apiId: string): Promise<unknown> {

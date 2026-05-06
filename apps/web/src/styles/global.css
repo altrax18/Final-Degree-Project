@@ -19,6 +19,36 @@ body {
   font-family: "Inter", sans-serif;
 }
 
+/* Animaciones globales reutilizables */
+@keyframes pulse-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pulse-active {
+  animation: pulse-pop 0.45s ease-in-out;
+}
+
+@keyframes home-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.home-marquee {
+  animation: home-marquee var(--marquee-duration, 30s) linear infinite;
+}
+
 /* Dark — Abyss */
 @theme {
   --color-abyss: #000000;

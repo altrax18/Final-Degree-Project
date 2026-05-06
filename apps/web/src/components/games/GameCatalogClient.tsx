@@ -1,73 +1,127 @@
 // apps/web/src/components/games/GameCatalogClient.tsx
-import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+/*
+  RESPONSABILIDAD: Cliente React hidratado que consume el endpoint de /api/games
+  - Construye la query (q, page, limit, genres) y maneja la paginación en el cliente.
+  - NO realiza transformaciones complejas de negocio; delega eso al servicio del backend.
+  MOTIVO: Mantener separación UI <-> servicio para facilitar testing y mantenimiento.
+  DOCUMENTACION: React Query (TanStack): https://tanstack.com/query/latest
+*/
 import type { Game } from "../../types/game";
-import { getGames } from "../../lib/api";
-import CatalogBrowser from "../shared/catalog/CatalogBrowser";
+import CatalogFilters from "../shared/catalog/CatalogFilters";
 import CatalogCard3D from "../shared/catalog/CatalogCard3D";
+import CatalogPagination from "../shared/catalog/CatalogPagination";
+import CatalogControls from "../shared/catalog/CatalogControls";
+import { useCatalogFilters } from "../shared/catalog/catalogFilterStore";
+import { useCatalogQuery } from "../../hooks/useCatalogQuery";
+import type { CatalogPage } from "../../hooks/useCatalogQuery";
+import CatalogQueryProvider from "../shared/catalog/CatalogQueryProvider";
+import { DEFAULT_ITEMS_PER_PAGE } from "../shared/catalog/constants";
 
-interface Props {
-  initialGames: Game[];
-}
+type Props = {
+  initialGames: CatalogPage<Game>;
+};
+
+// Nota: la lógica de fetch/paginación se ha extraído a `useCatalogQuery`.
 
 export default function GameCatalogClient({ initialGames }: Props) {
-  // CONCEPTO: Inicialización de QueryClient en SSR (Astro)
-  // QUÉ HACE: Crea la instancia de caché de React Query usando un lazy initializer (función dentro de useState).
-  // POR QUÉ LO USO: En arquitecturas de "Islas" como Astro, si declaramos `new QueryClient()` fuera del componente, la caché se compartiría globalmente en el servidor, filtrando datos entre usuarios. Si lo declaramos dentro sin `useState`, la caché se destruiría en cada re-render.
-  // DOCUMENTACIÓN: https://tanstack.com/query/latest/docs/framework/react/guides/ssr#an-in-depth-look-at-server-rendering-strategies
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 1000 * 60 * 5, // 5 minutos de caché en el navegador
-            refetchOnWindowFocus: false, // No volver a peticionar al cambiar de pestaña
-          },
-        },
-      }),
-  );
-
   return (
-    <QueryClientProvider client={queryClient}>
+    <CatalogQueryProvider>
       <GameCatalogContent initialGames={initialGames} />
-    </QueryClientProvider>
+    </CatalogQueryProvider>
   );
 }
 
 function GameCatalogContent({ initialGames }: Props) {
-  // CONCEPTO: Hidratación de Caché (Initial Data)
-  // QUÉ HACE: Inyecta los datos de `initialGames` (descargados por Astro en el servidor) directamente en la caché de React Query antes de que haga ninguna petición.
-  // POR QUÉ LO USO: Permite que el usuario vea los juegos inmediatamente sin pantallas de carga blancas (SEO amigable), mientras React Query asume el control en segundo plano para futuras actualizaciones.
-  // DOCUMENTACIÓN: https://tanstack.com/query/latest/docs/framework/react/guides/initial-data
-  const { data: games = initialGames } = useQuery({
-    queryKey: ["catalog", "games"],
-    queryFn: getGames,
-    initialData: initialGames,
-  });
+  const {
+    searchTerm,
+    selectedGenres,
+    setSearchTerm,
+    toggleSelectedGenre,
+    resetCatalogFilters,
+  } = useCatalogFilters("games");
+
+  const {
+    data,
+    isFetching,
+    isError,
+    pageSize,
+    setPageSize,
+    items,
+    totalPages,
+    safeCurrentPage,
+    genres,
+    setCurrentPage,
+  } = useCatalogQuery<Game>("games", "/api/games", initialGames, DEFAULT_ITEMS_PER_PAGE);
+
+  const hasResults = items.length > 0;
 
   return (
-    // CONCEPTO: Composición de Contenedores
-    // QUE HACE: Reutiliza el browser genérico para mantener el dominio de juegos delgado.
-    // POR QUE LO USO: Separa recuperación de datos, estado de filtros y presentación de tarjetas.
-    // DOCUMENTACIÓN: https://react.dev/learn/passing-props-to-a-component
-    <CatalogBrowser
-      catalogKey="games"
-      items={games}
-      getTitle={(game) => game.title}
-      getGenres={(game) => game.genres}
-      searchPlaceholder="Buscar un juego por título..."
-      filterTitle="Filtrar por Categoría"
-      emptyMessage="No se encontraron juegos que coincidan con tu búsqueda"
-      itemsPerPage={20}
-      renderCard={(game) => (
-        // CONCEPTO: Navegacion Declarativa con Enlaces
-        // QUE HACE: Convierte cada tarjeta de juego en un enlace hacia su pagina de detalle.
-        // POR QUE LO USO: Mantiene una UX predecible y permite abrir detalle en nueva pestana con click derecho.
-        // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a
-        <a key={game.id} href={`/games/${game.id}`} aria-label={`Ver detalle de ${game.title}`}>
-          <CatalogCard3D item={game} />
-        </a>
+    <section className="w-full max-w-7xl mx-auto px-4 py-8">
+      {/* UI compartida: selector de pagina y boton para limpiar filtros. */}
+      <CatalogControls
+        pageSize={pageSize}
+        onPageSizeChange={setPageSize}
+        onReset={resetCatalogFilters}
+      />
+
+      <CatalogFilters
+        searchTerm={searchTerm}
+        selectedGenres={selectedGenres}
+        genres={genres}
+        searchPlaceholder="Buscar un juego por título..."
+        filterTitle="Tecnologías / géneros"
+        onSearchTermChange={setSearchTerm}
+        onGenreToggle={toggleSelectedGenre}
+        onClearFilters={resetCatalogFilters}
+      />
+
+      {isError ? (
+        <div className="py-20 text-center">
+          <p className="text-xl text-slate dark:text-mist">
+            No se pudieron cargar los juegos
+          </p>
+        </div>
+      ) : hasResults ? (
+        <>
+          <div className="mb-4 flex items-center justify-between text-sm text-slate dark:text-mist">
+            <span>{isFetching ? "Buscando..." : `${data?.total ?? items.length} resultados`}</span>
+            <span>
+              Página {safeCurrentPage} de {totalPages}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {items.map((game) => (
+              <a
+                key={game.id}
+                href={`/games/${game.id}`}
+                aria-label={`Ver detalle de ${game.title}`}
+              >
+                <CatalogCard3D item={game} />
+              </a>
+            ))}
+          </div>
+
+          <CatalogPagination
+            currentPage={safeCurrentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </>
+      ) : (
+        <div className="py-20 text-center">
+          <p className="text-xl text-slate dark:text-mist">
+            No se encontraron juegos que coincidan con tu búsqueda
+          </p>
+          <button
+            type="button"
+            onClick={resetCatalogFilters}
+            className="mt-4 text-sapphire dark:text-electric-sky hover:text-sapphire/80 dark:hover:text-electric-sky/80 underline"
+          >
+            Limpiar filtros
+          </button>
+        </div>
       )}
-    />
+    </section>
   );
 }

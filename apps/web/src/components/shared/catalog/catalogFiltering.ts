@@ -13,7 +13,6 @@ export function getUniqueCatalogGenres<T>(
   });
 
   return [
-    "All",
     ...Array.from(genres).sort((left, right) => left.localeCompare(right)),
   ];
 }
@@ -21,7 +20,7 @@ export function getUniqueCatalogGenres<T>(
 export function filterCatalogItems<T>(
   items: T[],
   searchTerm: string,
-  selectedGenre: string,
+  selectedGenres: string[],
   getTitle: (item: T) => string,
   getGenres: (item: T) => string[],
 ): T[] {
@@ -41,7 +40,8 @@ export function filterCatalogItems<T>(
     const matchesSearch =
       normalizedSearch.length === 0 || title.includes(normalizedSearch);
     const matchesGenre =
-      selectedGenre === "All" || genres.includes(selectedGenre);
+      selectedGenres.length === 0 ||
+      selectedGenres.some((genre) => genres.includes(genre));
 
     return matchesSearch && matchesGenre;
   });
