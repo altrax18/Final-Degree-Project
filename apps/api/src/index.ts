@@ -27,4 +27,5 @@ if (import.meta.main) {
 }
 
 export { app };
+export default app;
 export type App = typeof app;

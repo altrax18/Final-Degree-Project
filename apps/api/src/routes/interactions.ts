@@ -3,7 +3,7 @@ import { db } from "../db/client";
 import { interactions } from "../db/schema";
 import { eq, and } from "drizzle-orm";
 
-export const interactionsRoutes = new Elysia({ prefix: "/interactions" })
+export const interactionsRoutes = new Elysia({ prefix: "/api/interactions" })
   .get("/:userId", async ({ params }) => {
     return await db.select().from(interactions).where(eq(interactions.userId, Number(params.userId)));
   })

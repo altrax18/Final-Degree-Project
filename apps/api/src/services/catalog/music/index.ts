@@ -6,4 +6,6 @@ export {
   getTrackById,
   getTrendingSongs,
   searchMusic,
+  searchAlbums,
+  getAlbumWithTracks,
 } from "./read";

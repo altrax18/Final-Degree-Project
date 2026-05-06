@@ -1,27 +1,29 @@
 ---
-// src/pages/music/[trackId].astro
-import Layout from "../../layouts/Layout.astro";
-import TrackDetail from "../../components/music/TrackDetail.jsx";
-import { serverApi } from "../../lib/server-api";
+// src/pages/music/album/[albumId].astro
+import Layout from "../../../layouts/Layout.astro";
+import AlbumDetail from "../../../components/music/AlbumDetail.jsx";
+import { serverApi } from "../../../lib/server-api";
 import { Icon } from "@iconify/react";
 
-const { trackId } = Astro.params;
+const { albumId } = Astro.params;
 
-let track: any = null;
+let album: any = null;
+let tracks: any[] = [];
 let fetchError: string | null = null;
 
-if (trackId) {
-  const { data, error } = await serverApi.api.music.track({ id: trackId }).get();
+if (albumId) {
+  const { data, error } = await (serverApi as any).api.music.album({ id: albumId }).get();
   if (error || !data) {
     fetchError =
-      "No se pudo cargar la canción. Comprueba que la API esté activa.";
+      "No se pudo cargar el álbum. Comprueba que la API esté activa.";
   } else {
-    track = data;
+    album = (data as any).album ?? null;
+    tracks = (data as any).tracks ?? [];
   }
 }
 ---
 
-<Layout title={track ? track.title : "Track"}>
+<Layout title={album ? `${album.title} — Álbum` : "Álbum"}>
   <!-- Enlace de regreso -->
   <div class="mb-6">
     <a
@@ -46,15 +48,15 @@ if (trackId) {
     )
   }
 
-  <!-- Detalle de la pista (isla de React) -->
-  {track && <TrackDetail client:only="react" track={track} />}
+  <!-- Detalle del álbum (isla de React) -->
+  {album && <AlbumDetail client:only="react" album={album} tracks={tracks} />}
 
   <!-- No encontrado -->
   {
-    !fetchError && !track && (
+    !fetchError && !album && (
       <div class="flex flex-col items-center justify-center py-32 gap-4 text-slate dark:text-mist">
-        <span class="text-6xl">🎵</span>
-        <p class="text-lg font-medium">Canción no encontrada</p>
+        <span class="text-6xl">💿</span>
+        <p class="text-lg font-medium">Álbum no encontrado</p>
         <a
           href="/music"
           class="text-amethyst dark:text-orchid hover:text-amethyst/80 dark:hover:text-orchid/80 text-sm underline"

@@ -47,7 +47,9 @@ export default function TrackDetail({ track }) {
         artist: track.artist,
         cover: track.cover,
         previewUrl: track.previewUrl,
-        genre: track.genre
+        genre: track.genre,
+        album: track.album,
+        albumId: track.albumId
       }
     });
     setShowCollections(false);
@@ -153,7 +155,16 @@ export default function TrackDetail({ track }) {
             {track.album && (
               <>
                 <span className="text-ink/30 dark:text-screen/30 text-xs">•</span>
-                <span className="text-ink/65 dark:text-screen/65">{track.album}</span>
+                {track.albumId ? (
+                  <a
+                    href={`/music/album/${track.albumId}`}
+                    className="text-ink/65 dark:text-screen/65 hover:text-amethyst dark:hover:text-orchid hover:underline transition-colors"
+                  >
+                    {track.album}
+                  </a>
+                ) : (
+                  <span className="text-ink/65 dark:text-screen/65">{track.album}</span>
+                )}
               </>
             )}
             {track.genre && (

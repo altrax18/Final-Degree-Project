@@ -2,6 +2,8 @@
 // src/pages/index.astro
 import Layout from "../layouts/Layout.astro";
 import HomePage from "../components/home/HomePage.tsx";
+import MediaCard from "../components/shared/MediaCard.jsx";
+import RecommendedUsersWidget from "../components/shared/RecommendedUsersWidget";
 import { serverApi } from "../lib/server-api";
 import { getRecentPosts } from "../lib/homeData";
 import type { RecentPost, TrendingItem } from "../types/home";

@@ -3,6 +3,7 @@
 import "../styles/global.css";
 import NavBar from "../components/navbar/NavBar.astro";
 import FooterPlayer from "../components/music/FooterPlayer.jsx";
+import ChatButton from "../components/chat/ChatButton.tsx";
 import { ClientRouter } from "astro:transitions";
 
 interface Props {
@@ -53,5 +54,6 @@ const { title = "Alexandria" } = Astro.props;
     </main>
 
     <FooterPlayer client:only="react" transition:persist />
+    <ChatButton client:only="react" transition:persist />
   </body>
 </html>

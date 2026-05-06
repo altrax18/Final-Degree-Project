@@ -1,18 +1,20 @@
 import { useState } from "react";
 import ChatWindow from "./ChatWindow";
+import { readSession } from "../../types/user";
 
-type Props = {
-  userId?: number;
-};
-
-export default function ChatButton({ userId = 1 }: Props) {
+export default function ChatButton() {
+  // client:only="react" garantiza que esto sólo corre en el navegador,
+  // por lo que localStorage está disponible en el inicializador del estado.
+  const [userId] = useState<number | null>(() => readSession()?.id ?? null);
   const [isOpen, setIsOpen] = useState(false);
+
+  if (!userId) return null;
 
   return (
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-amethyst text-screen shadow-lg hover:bg-orchid dark:bg-sapphire dark:hover:bg-depth transition-colors cursor-pointer"
+        className="fixed bottom-6 right-6 z-[110] flex h-14 w-14 items-center justify-center rounded-full bg-amethyst text-screen shadow-lg hover:bg-orchid dark:bg-sapphire dark:hover:bg-depth transition-colors cursor-pointer"
         aria-label={isOpen ? "Close chat" : "Open chat"}
       >
         {isOpen ? (

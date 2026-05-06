@@ -1,5 +1,6 @@
 // src/components/music/MusicGrid.jsx
 import { useState, useRef } from "react";
+import { Icon } from "@iconify/react";
 import TrackCard from "./TrackCard.jsx";
 
 const API_BASE = "";
@@ -110,9 +111,10 @@ export default function MusicGrid({ initialTracks = [], pageSize = 24 }) {
               </>
             ) : (
               <>
-                <span className="material-symbols-rounded text-[18px]">
-                  expand_more
-                </span>
+                <Icon
+                  icon="tabler:chevron-down"
+                  className="w-[18px] h-[18px]"
+                />
                 More songs
               </>
             )}

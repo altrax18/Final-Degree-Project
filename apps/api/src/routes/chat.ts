@@ -1,9 +1,9 @@
 import { Elysia, t } from "elysia";
 import { db } from "../db/client";
 import { conversations, messages, chatMembers, users } from "../db/schema";
-import { eq, inArray, desc, and } from "drizzle-orm";
+import { eq, inArray, desc, and, sql, gt, ne } from "drizzle-orm";
 
-export const chatRoutes = new Elysia({ prefix: "/chat" })
+export const chatRoutes = new Elysia({ prefix: "/api/chat" })
   .get("/conversations/:userId", async ({ params }) => {
     const userId = Number(params.userId);
 
@@ -24,6 +24,16 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
         memberId: users.id,
         memberUsername: users.username,
         memberImage: users.profileImageUrl,
+        unreadCount: sql<number>`(
+          SELECT COUNT(*)::int
+          FROM messages m
+          INNER JOIN chat_members cm
+            ON cm.conversation_id = m.conversation_id AND cm.user_id = ${userId}
+          WHERE m.conversation_id = ${conversations.id}
+            AND m.sender_id != ${userId}
+            AND m.deleted_at IS NULL
+            AND (m.created_at > cm.last_read_at OR cm.last_read_at IS NULL)
+        )`,
       })
       .from(conversations)
       .innerJoin(chatMembers, eq(conversations.id, chatMembers.conversationId))
@@ -37,6 +47,7 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
         type: string;
         name: string | null;
         updatedAt: Date | null;
+        unreadCount: number;
         members: { id: number; username: string; profileImageUrl: string }[];
       }
     >();
@@ -48,6 +59,7 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
           type: row.convType,
           name: row.convName,
           updatedAt: row.convUpdatedAt,
+          unreadCount: row.unreadCount,
           members: [],
         });
       }
@@ -102,73 +114,133 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
     return msgs.reverse();
   })
 
-  .ws("/ws", {
-    query: t.Object({
-      userId: t.String(),
-    }),
-    open(ws) {
-      console.log(`User ${ws.data.query.userId} connected to chat`);
-    },
-    async message(ws, raw) {
-      const userId = Number(ws.data.query.userId);
-      const data = typeof raw === "string" ? JSON.parse(raw) : raw;
+  .post("/messages", async ({ body }) => {
+    const { conversationId, senderId, content } = body as {
+      conversationId: number;
+      senderId: number;
+      content: string;
+    };
 
-      if (data.type === "subscribe") {
-        ws.subscribe(`conversation:${data.conversationId}`);
-        ws.send(JSON.stringify({ type: "subscribed", conversationId: data.conversationId }));
-      }
+    const [saved] = await db
+      .insert(messages)
+      .values({ conversationId, senderId, content, type: "text" })
+      .returning();
 
-      if (data.type === "send_message") {
-        const [saved] = await db
-          .insert(messages)
-          .values({
-            conversationId: data.conversationId,
-            senderId: userId,
-            content: data.content,
-            type: "text",
-          })
-          .returning();
+    await db
+      .update(conversations)
+      .set({ updatedAt: new Date() })
+      .where(eq(conversations.id, conversationId));
 
-        await db
-          .update(conversations)
-          .set({ updatedAt: new Date() })
-          .where(eq(conversations.id, data.conversationId));
+    const [sender] = await db
+      .select({ username: users.username })
+      .from(users)
+      .where(eq(users.id, senderId));
 
-        const [sender] = await db
-          .select({ username: users.username })
-          .from(users)
-          .where(eq(users.id, userId));
+    return {
+      id: saved.id,
+      conversationId: saved.conversationId,
+      senderId: saved.senderId,
+      senderUsername: sender?.username ?? "Unknown",
+      content: saved.content,
+      type: saved.type,
+      createdAt: saved.createdAt,
+    };
+  })
 
-        const payload = JSON.stringify({
-          type: "new_message",
-          message: {
-            id: saved.id,
-            conversationId: saved.conversationId,
-            senderId: saved.senderId,
-            senderUsername: sender?.username ?? "Unknown",
-            content: saved.content,
-            type: saved.type,
-            createdAt: saved.createdAt,
-          },
-        });
+  .post("/mark-read", async ({ body }) => {
+    const { conversationId, userId } = body as {
+      conversationId: number;
+      userId: number;
+    };
 
-        ws.publish(`conversation:${data.conversationId}`, payload);
-        ws.send(payload);
-      }
+    await db
+      .update(chatMembers)
+      .set({ lastReadAt: new Date() })
+      .where(
+        and(
+          eq(chatMembers.conversationId, conversationId),
+          eq(chatMembers.userId, userId),
+        )
+      );
 
-      if (data.type === "mark_read") {
-        await db
-          .update(chatMembers)
-          .set({ lastReadAt: new Date() })
-          .where(
-            and(
-              eq(chatMembers.conversationId, data.conversationId),
-              eq(chatMembers.userId, userId),
-            )
-          );
-      }
-    },
-    close(ws) {
-      console.log(`User ${ws.data.query.userId} disconnected`);
-    },
+    return { ok: true };
+  })
+
+  .get("/sse", ({ query }) => {
+    const userId = Number(query.userId);
+    const encoder = new TextEncoder();
+    let cancelled = false;
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        const send = (data: object) => {
+          try {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+          } catch {
+            cancelled = true;
+          }
+        };
+
+        send({ type: "connected" });
+        let lastSeenId = 0;
+
+        while (!cancelled) {
+          await new Promise<void>((r) => setTimeout(r, 2000));
+          if (cancelled) break;
+
+          try {
+            const userConvs = await db
+              .select({ conversationId: chatMembers.conversationId })
+              .from(chatMembers)
+              .where(eq(chatMembers.userId, userId));
+
+            const convIds = userConvs.map((c) => c.conversationId);
+            if (convIds.length === 0) continue;
+
+            const newMsgs = await db
+              .select({
+                id: messages.id,
+                conversationId: messages.conversationId,
+                senderId: messages.senderId,
+                content: messages.content,
+                type: messages.type,
+                createdAt: messages.createdAt,
+                senderUsername: users.username,
+              })
+              .from(messages)
+              .innerJoin(users, eq(messages.senderId, users.id))
+              .where(
+                and(
+                  inArray(messages.conversationId, convIds),
+                  gt(messages.id, lastSeenId),
+                  ne(messages.senderId, userId),
+                )
+              );
+
+            for (const msg of newMsgs) {
+              if (msg.id > lastSeenId) lastSeenId = msg.id;
+              send({ type: "new_message", message: msg });
+            }
+          } catch {
+            // Transient DB error – continue on next tick
+          }
+        }
+
+        try { controller.close(); } catch { /* already closed */ }
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no",
+      },
+    });
+  }, {
+    query: t.Object({ userId: t.String() }),
   });

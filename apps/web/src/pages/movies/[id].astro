@@ -2,6 +2,7 @@
 import Layout from "../../layouts/Layout.astro";
 import MovieDetailsClient from "../../components/movies/MovieDetailsClient";
 import { serverApi } from "../../lib/server-api";
+import { Icon } from "@iconify/react";
 import type { Movie } from "../../types/movie";
 
 // CONCEPTO: Rutas Dinamicas con Astro.params
@@ -42,6 +43,18 @@ try {
     ? `${movie.title} - Detalles | Alexandria`
     : "Error | Alexandria"}
 >
+  <div class="max-w-7xl mx-auto px-4 pt-6">
+    <a
+      href="/movies"
+      class="inline-flex items-center gap-2 text-sm text-slate dark:text-mist hover:text-ink dark:hover:text-screen transition-colors group"
+    >
+      <Icon
+        icon="tabler:arrow-left"
+        className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform"
+      />
+      Volver a Películas
+    </a>
+  </div>
   {
     errorMessage || !movie ? (
       <div class="min-h-screen flex flex-col items-center justify-center bg-parchment dark:bg-obsidian text-ink dark:text-screen">

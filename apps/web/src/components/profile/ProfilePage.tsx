@@ -1,8 +1,10 @@
 // Orquestador del perfil: combina el hook y los sub-componentes.
 import { useState } from "react";
 import { useProfile } from "../../hooks/useProfile";
+import { useCollections } from "../../hooks/useCollections";
 import ProfileHeader from "./ProfileHeader";
 import ProfileCollections from "./ProfileCollections";
+import RecommendedUsers from "./RecommendedUsers";
 import EditModal from "./EditModal";
 import DeleteModal from "./DeleteModal";
 
@@ -20,6 +22,9 @@ export default function ProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  const collectionHelpers = useCollections();
+  const { collections } = collectionHelpers;
 
   if (loadingUser) {
     return (
@@ -60,6 +65,7 @@ export default function ProfilePage() {
       <div className="flex flex-col gap-0">
         <ProfileHeader
           user={user}
+          collections={collections}
           onEdit={() => setIsEditing(true)}
           onLogout={handleLogout}
         />
@@ -80,11 +86,17 @@ export default function ProfilePage() {
 
         {/* Contenido principal */}
         <div className="mt-8 flex flex-col gap-10">
-          <ProfileCollections />
+          <ProfileCollections {...collectionHelpers} />
+
+          {user && (
+            <section className="pt-6 border-t border-bone dark:border-night-edge">
+              <RecommendedUsers userId={user.id} />
+            </section>
+          )}
 
           {/* Zona de peligro: solo con sesion activa */}
           {user && (
-            <section className="pt-6 border-t border-white/[0.06]">
+            <section className="pt-6 border-t border-bone dark:border-night-edge">
               <button
                 id="profile-delete-btn"
                 onClick={() => setIsDeleting(true)}

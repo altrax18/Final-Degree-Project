@@ -32,6 +32,17 @@ interface Track {
   genre?: string;
 }
 
+interface Album {
+  id: string;
+  title: string;
+  artist: string;
+  artistId?: string;
+  cover: string | null;
+  releaseDate?: string;
+  trackCount?: number;
+  genre?: string;
+}
+
 let trendingSongsCache: { data: Track[]; ts: number } | null = null;
 
 function getBestArtwork(item: any): string | null {
@@ -52,6 +63,19 @@ function toTrack(item: any): Track {
     previewUrl: item.previewUrl ?? null,
     releaseDate: item.releaseDate,
     duration: item.trackTimeMillis,
+    genre: item.primaryGenreName,
+  };
+}
+
+function toAlbum(item: any): Album {
+  return {
+    id: String(item.collectionId ?? ""),
+    title: item.collectionName ?? "Unknown",
+    artist: item.artistName ?? "Unknown",
+    artistId: item.artistId ? String(item.artistId) : undefined,
+    cover: getBestArtwork(item),
+    releaseDate: item.releaseDate,
+    trackCount: item.trackCount,
     genre: item.primaryGenreName,
   };
 }
@@ -235,4 +259,66 @@ export async function browseMusic(query?: string): Promise<unknown[]> {
   }
 
   return result.results;
+}
+
+export async function searchAlbums(term?: string, limit = "12") {
+  if (!term) {
+    return new Response(
+      JSON.stringify({ error: 'El parámetro "term" es requerido' }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
+  try {
+    const url = new URL(ITUNES_SEARCH);
+    url.searchParams.set("term", term);
+    url.searchParams.set("media", "music");
+    url.searchParams.set("entity", "album");
+    url.searchParams.set("limit", limit);
+    url.searchParams.set("country", "US");
+
+    const response = await fetch(url.toString());
+    const json = (await response.json()) as any;
+    const results: Album[] = json.results.map(toAlbum);
+
+    return { resultCount: json.resultCount, results };
+  } catch (err: any) {
+    return new Response(
+      JSON.stringify({
+        error: "Error searching iTunes albums",
+        detail: err.message,
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
+  }
+}
+
+export async function getAlbumWithTracks(albumId: string) {
+  try {
+    // iTunes Lookup con entity=song devuelve: [collectionItem, ...songItems]
+    const response = await fetch(
+      `${ITUNES_LOOKUP}?id=${albumId}&entity=song`,
+    );
+    const json = (await response.json()) as any;
+
+    if (!json.resultCount || json.resultCount === 0) {
+      return new Response(JSON.stringify({ error: "Album not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const [albumItem, ...trackItems] = json.results;
+    const album = toAlbum(albumItem);
+    const tracks = trackItems
+      .filter((item: any) => item.wrapperType === "track")
+      .map(toTrack);
+
+    return { album, tracks };
+  } catch (err: any) {
+    return new Response(
+      JSON.stringify({ error: "Error fetching album", detail: err.message }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
+  }
 }

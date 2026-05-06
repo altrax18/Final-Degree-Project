@@ -222,9 +222,17 @@ export default function FooterPlayer() {
               —
             </p>
           )}
-          <p className="m-0 text-[11px] text-slate dark:text-mist truncate">
+          <p className="m-0 text-[11px] text-slate dark:text-mist truncate leading-tight">
             {currentTrack?.artist ?? ""}
           </p>
+          {currentTrack?.album && (
+            <a
+              href={`/music/album/${currentTrack.albumId}`}
+              className="block m-0 text-[10px] text-amethyst dark:text-orchid truncate hover:underline transition-colors leading-tight mt-0.5"
+            >
+              {currentTrack.album}
+            </a>
+          )}
         </div>
       </div>
 
