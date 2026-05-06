@@ -23,13 +23,17 @@ const { title = "Alexandria" } = Astro.props;
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title} · Alexandria</title>
+    <!-- Slot nombrado para metadatos por pagina (concepto: slots en Astro). -->
+    <slot name="head" />
     <script is:inline>
       // Blocking theme init — runs before paint to avoid FOUC
       (function () {
-        var stored = localStorage.getItem('theme');
-        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (stored === 'dark' || (!stored && prefersDark)) {
-          document.documentElement.classList.add('dark');
+        var stored = localStorage.getItem("theme");
+        var prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        if (stored === "dark" || (!stored && prefersDark)) {
+          document.documentElement.classList.add("dark");
         }
       })();
     </script>
@@ -38,7 +42,8 @@ const { title = "Alexandria" } = Astro.props;
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet" />
+      rel="stylesheet"
+    />
   </head>
   <body class="min-h-screen font-sans">
     <NavBar />
@@ -50,5 +55,3 @@ const { title = "Alexandria" } = Astro.props;
     <FooterPlayer client:only="react" transition:persist />
   </body>
 </html>
-
-
