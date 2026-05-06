@@ -38,10 +38,11 @@ export default function CatalogBrowser<T>({
   // DOCUMENTACION: https://docs.pmnd.rs/zustand/getting-started/introduction
   const {
     searchTerm,
-    selectedGenre,
+    selectedGenres,
     currentPage,
     setSearchTerm,
-    setSelectedGenre,
+    toggleSelectedGenre,
+    clearSelectedGenres,
     setCurrentPage,
     resetCatalogFilters,
   } = useCatalogFilters(catalogKey);
@@ -60,8 +61,8 @@ export default function CatalogBrowser<T>({
   // POR QUE LO USO: Mantiene la colección original intacta y hace el resultado fácil de razonar.
   // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter
   const filteredItems = useMemo(
-    () => filterCatalogItems(items, searchTerm, selectedGenre, getTitle, getGenres),
-    [items, searchTerm, selectedGenre, getTitle, getGenres],
+    () => filterCatalogItems(items, searchTerm, selectedGenres, getTitle, getGenres),
+    [items, searchTerm, selectedGenres, getTitle, getGenres],
   );
 
   // CONCEPTO: Normalización de Página Activa
@@ -90,12 +91,16 @@ export default function CatalogBrowser<T>({
           DOCUMENTACION: https://react.dev/learn/passing-props-to-a-component */}
       <CatalogFilters
         searchTerm={searchTerm}
-        selectedGenre={selectedGenre}
+        selectedGenres={selectedGenres}
         genres={genres}
         searchPlaceholder={searchPlaceholder}
         filterTitle={filterTitle}
         onSearchTermChange={setSearchTerm}
-        onGenreChange={setSelectedGenre}
+        onGenreToggle={toggleSelectedGenre}
+        onClearFilters={() => {
+          clearSelectedGenres();
+          resetCatalogFilters();
+        }}
       />
 
       {hasResults ? (

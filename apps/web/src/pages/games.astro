@@ -9,13 +9,30 @@ import type { Game } from "../types/game";
 // QUE HACE: Inicializa variables antes de llamar a la API.
 // POR QUE LO USO: Permite renderizar pagina incluso si la API falla, mostrando mensaje util.
 // DOCUMENTACION: https://docs.astro.build/en/guides/data-fetching/
-let games: Game[] = [];
+let games: {
+  items: Game[];
+  total: number;
+  page: number;
+  perPage: number;
+  totalPages: number;
+  genres: string[];
+} = {
+  items: [],
+  total: 0,
+  page: 1,
+  perPage: 20,
+  totalPages: 1,
+  genres: [],
+};
 let errorMessage = "";
 
 try {
   const { data, error } = await serverApi.api.games.get();
-  if (error) throw new Error(typeof error.value === "string" ? error.value : "API no disponible");
-  games = data as Game[];
+  if (error)
+    throw new Error(
+      typeof error.value === "string" ? error.value : "API no disponible",
+    );
+  games = data as typeof games;
 } catch (error) {
   errorMessage =
     error instanceof Error ? error.message : "No se pudieron cargar los juegos";
@@ -28,11 +45,13 @@ try {
       <h1
         class="text-4xl md:text-5xl font-extrabold text-ink dark:text-screen mb-4 tracking-tight"
       >
-        Catálogo de <span class="text-sapphire dark:text-electric-sky">Juegos</span>
+        Catálogo de <span class="text-sapphire dark:text-electric-sky"
+          >Juegos</span
+        >
       </h1>
       <p class="text-slate dark:text-mist text-lg max-w-2xl mx-auto mb-8">
-        Explora la base de datos, filtra por tus géneros favoritos y descubre tu
-        próxima aventura.
+        Explora la base de datos, busca por título y navega por páginas para
+        encontrar tu próxima aventura.
       </p>
     </div>
 

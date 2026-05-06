@@ -19,7 +19,12 @@ export const catalogRoutes = new Elysia()
   // POR QUE LO USO: Mantiene compatibilidad con el cliente Eden actual sin logica extra en UI.
   // DOCUMENTACION: https://elysiajs.com/essential/handler.html
   .get("/api/movies", async ({ query }) =>
-    browseMovies(query.q as string | undefined),
+    browseMovies({
+      q: query.q as string | undefined,
+      page: query.page as string | undefined,
+      limit: query.limit as string | undefined,
+      genres: query.genres as string | undefined,
+    }),
   )
   .get("/api/movies/:apiId", async ({ params }) => {
     const movie = await getMovieByApiId(params.apiId);
@@ -31,7 +36,13 @@ export const catalogRoutes = new Elysia()
   // POR QUE LO USO: Separa capa HTTP de la capa de servicios y facilita mantenimiento.
   // DOCUMENTACION: https://elysiajs.com/essential/handler.html
   .get("/api/games", async ({ query }) =>
-    browseGames(query.q as string | undefined),
+    browseGames({
+      q: query.q as string | undefined,
+      page: query.page as string | undefined,
+      limit: query.limit as string | undefined,
+      genres: query.genres as string | undefined,
+      genre: query.genre as string | undefined,
+    }),
   )
   .get("/api/games/:apiId", async ({ params }) => {
     const game = await getGameByApiId(params.apiId);
