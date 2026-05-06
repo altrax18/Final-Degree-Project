@@ -1,6 +1,8 @@
 import type { RecentPost } from "../types/home";
 
-// Mock centralizado para la home (concepto: capa de datos aislada).
+// Mock centralizado para la home.
+// QUE ES: feed inicial, circulos y pulso social del Home.
+// QUE FALTA: sustituir por endpoint real de posts/actividad cuando exista backend persistente.
 // Los enlaces apuntan a rutas reales del catalogo para navegar desde la home.
 const recentPostsMock: RecentPost[] = [
   {
@@ -63,9 +65,21 @@ const recentPostsMock: RecentPost[] = [
     cover:
       "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=640&q=80",
   },
+  {
+    id: "post-5",
+    author: "Kara T.",
+    handle: "@karat",
+    time: "3 h",
+    headline: "Curando una playlist synthwave",
+    summary: "Si te gustan los skyline nocturnos, estas pistas son clave.",
+    tags: ["playlist", "synth", "noche"],
+    href: "/music",
+    cover:
+      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=640&q=80",
+  },
 ];
 
 export function getRecentPosts(): RecentPost[] {
-  // TODO: Reemplazar con el endpoint real cuando exista (concepto: punto de extension).
+  // TODO: Reemplazar con el endpoint real cuando exista.
   return recentPostsMock;
 }

@@ -57,7 +57,11 @@ try {
     throw new Error(
       typeof error.value === "string" ? error.value : "API no disponible",
     );
-  featuredGames = (data as Game[]).slice(0, 6);
+  // Normalizo respuesta paginada o lista plana (concepto: compatibilidad de payloads).
+  const gamesPayload = Array.isArray(data)
+    ? (data as Game[])
+    : ((data as { items?: Game[] } | null)?.items ?? []);
+  featuredGames = gamesPayload.slice(0, 6);
 } catch (err) {
   gamesError =
     err instanceof Error ? err.message : "No se pudieron cargar los juegos";
@@ -71,14 +75,20 @@ try {
     throw new Error(
       typeof error.value === "string" ? error.value : "API no disponible",
     );
-  featuredMovies = (data as Movie[]).slice(0, 6);
+  // Normalizo respuesta paginada o lista plana (concepto: compatibilidad de payloads).
+  const moviesPayload = Array.isArray(data)
+    ? (data as Movie[])
+    : ((data as { items?: Movie[] } | null)?.items ?? []);
+  featuredMovies = moviesPayload.slice(0, 6);
 } catch (err) {
   moviesError =
     err instanceof Error ? err.message : "No se pudieron cargar las peliculas";
   featuredMovies = [];
 }
 
-// Datos del feed desde capa dedicada (concepto: separacion de responsabilidades).
+// Datos del feed desde capa dedicada.
+// ESTADO: mock por ahora; alimenta Circles, SocialPulse, LiveRooms y Feed.
+// FALTA: endpoint real de actividad social o posts persistentes.
 const recentPosts: RecentPost[] = getRecentPosts();
 ---
 
