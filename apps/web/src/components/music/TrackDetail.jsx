@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useCollections } from "../../hooks/useCollections";
 import { Icon } from "@iconify/react";
+import ReviewSection from "../shared/ReviewSection";
 
 const API_BASE = "";
 
@@ -302,6 +303,9 @@ export default function TrackDetail({ track }) {
             </p>
           </div>
         )}
+      </div>
+      <div className="px-5 sm:px-9 mt-4 w-full">
+        <ReviewSection itemType="music" itemApiId={track.id} accentColor="purple" />
       </div>
     </div>
   );

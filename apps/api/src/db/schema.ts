@@ -111,3 +111,24 @@ export const collectionItemsRelations = relations(collectionItems, ({ one }) => 
     references: [userCollections.id],
   }),
 }));
+
+export const reviews = pgTable("reviews", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  itemType: text("item_type").notNull(), // 'movie' | 'music' | 'game'
+  itemApiId: text("item_api_id").notNull(),
+  rating: integer("rating").notNull(), // 1-5
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  user: one(users, {
+    fields: [reviews.userId],
+    references: [users.id],
+  }),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
+  reviews: many(reviews),
+}));

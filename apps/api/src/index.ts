@@ -6,6 +6,7 @@ import { collectionsRoutes } from "./routes/collections";
 import { interactionsRoutes } from "./routes/interactions";
 import { recommendationsRoutes } from "./routes/recommendations";
 import { chatRoutes } from "./routes/chat";
+import { reviewsRoutes } from "./routes/reviews";
 
 // CONCEPTO: Composicion de Middlewares y Rutas
 // QUE HACE: Construye una unica instancia de Elysia y encadena todos los modulos del backend.
@@ -18,7 +19,8 @@ const app = new Elysia()
   .use(collectionsRoutes)
   .use(interactionsRoutes)
   .use(recommendationsRoutes)
-  .use(chatRoutes);
+  .use(chatRoutes)
+  .use(reviewsRoutes);
 
 if (import.meta.main) {
   app.listen(3000, () => {

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Movie } from "../../types/movie";
 import { useCollections } from "../../hooks/useCollections";
 import { Icon } from "@iconify/react";
+import ReviewSection from "../shared/ReviewSection";
 
 interface Props {
   movie: Movie;
@@ -186,51 +187,7 @@ export default function MovieDetailsClient({ movie }: Props) {
             )}
 
             {/* 3. SECCIÓN DE COMUNIDAD (AÑADIDA) */}
-            {/* CONCEPTO: Componente Placeholder (Skeleton de Integración)
-                QUÉ HACE: Estructura visual de los comentarios antes de tener la BBDD real.
-                POR QUÉ LO USO: Permite maquetar y probar la UX social mientras el backend desarrolla los endpoints de comentarios.
-                DOCUMENTACIÓN: https://uxdesign.cc/everything-you-need-to-know-about-skeleton-screens-69f201083e95 */}
-            <section className="mt-16 pt-10 border-t border-bone dark:border-night-edge">
-              <h2 className="text-3xl font-black mb-2">Reseñas de la Comunidad</h2>
-              <p className="text-slate dark:text-mist mb-8">Comparte tu crítica sobre {movie.title}</p>
-              
-              <div className="bg-sand dark:bg-coal p-6 rounded-2xl border border-bone dark:border-night-edge shadow-2xl">
-                {/* Input para comentar */}
-                <div className="flex gap-4 mb-8">
-                  <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
-                    TÚ
-                  </div>
-                  <div className="flex-1">
-                    <textarea 
-                      className="w-full bg-linen dark:bg-coal text-ink dark:text-screen p-4 rounded-xl border border-bone dark:border-night-edge focus:border-amethyst dark:focus:border-electric-sky focus:outline-none resize-none"
-                      rows={3}
-                      placeholder="¿Qué te pareció la película? Deja tu reseña sin spoilers..."
-                    ></textarea>
-                    <div className="flex justify-between items-center mt-3">
-                      <div className="text-sm text-slate dark:text-mist flex items-center gap-2">
-                        Valoración: ⭐⭐⭐⭐⭐
-                      </div>
-                      <button className="px-6 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-500 transition">Publicar Reseña</button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mock de Comentario de un usuario */}
-                <div className="space-y-6">
-                    <div className="flex gap-4 border-t border-bone dark:border-night-edge pt-6">
-                    <img src="https://placehold.co/50x50/222/fff?text=CR" alt="Avatar" className="w-12 h-12 rounded-full" />
-                    <div>
-                        <div className="flex items-center gap-3 mb-1">
-                          <span className="font-bold text-red-400">@cinefilo_pro</span>
-                          <span className="text-xs bg-linen dark:bg-night-edge px-2 py-0.5 rounded text-ink dark:text-screen border border-bone dark:border-night-edge">⭐ 90/100</span>
-                          <span className="text-xs text-slate dark:text-mist">Hace 5 horas</span>
-                        </div>
-                        <p className="text-slate dark:text-mist">La cinematografía y la banda sonora están a otro nivel. El director supo exactamente cómo mantener la tensión de principio a fin. Directo a mi top del año.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
+            <ReviewSection itemType="movie" itemApiId={movie.id} accentColor="red" />
           </div>
 
           {/* COLUMNA LATERAL: METADATOS */}

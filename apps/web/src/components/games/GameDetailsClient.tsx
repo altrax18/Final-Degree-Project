@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Game } from "../../types/game";
 import { useCollections } from "../../hooks/useCollections";
 import { Icon } from "@iconify/react";
+import ReviewSection from "../shared/ReviewSection";
 
 interface Props {
   game: Game;
@@ -194,48 +195,7 @@ export default function GameDetailsClient({ game }: Props) {
         </div>
 
         {/* 3. SECCIÓN DE COMUNIDAD / COMENTARIOS */}
-        <div className="mt-20 pt-10 border-t border-bone dark:border-night-edge">
-          <h2 className="text-3xl font-black mb-2">Comunidad</h2>
-          <p className="text-slate dark:text-mist mb-8">¿Qué opina la red de Alexandria sobre {game.title}?</p>
-          
-          {/* CONCEPTO: Componente Placeholder (Skeleton de Integración)
-              QUÉ HACE: Crea la estructura visual de un área de comentarios lista para que el equipo backend la conecte a la base de datos real.
-              POR QUÉ LO USO: Permite avanzar con el frontend y demostrar el flujo de la UX sin bloquearse esperando a que la capa de persistencia esté terminada.
-              DOCUMENTACIÓN: https://uxdesign.cc/everything-you-need-to-know-about-skeleton-screens-69f201083e95 */}
-          <div className="bg-sand dark:bg-coal p-6 rounded-2xl border border-bone dark:border-night-edge">
-            {/* Input para comentar */}
-            <div className="flex gap-4 mb-8">
-              <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
-                TÚ
-              </div>
-              <div className="flex-1">
-                <textarea 
-                  className="w-full bg-linen dark:bg-coal text-ink dark:text-screen p-4 rounded-xl border border-bone dark:border-night-edge focus:border-amethyst dark:focus:border-electric-sky focus:outline-none resize-none"
-                  rows={3}
-                  placeholder="Escribe un post debatiendo sobre este juego..."
-                ></textarea>
-                <div className="flex justify-end mt-2">
-                  <button className="px-6 py-2 bg-sapphire text-screen font-bold rounded-lg hover:bg-sapphire/80 transition">Publicar</button>
-                </div>
-              </div>
-            </div>
-
-            {/* Mock de Comentario de un usuario */}
-            <div className="space-y-6">
-              <div className="flex gap-4">
-                 <img src="https://placehold.co/50x50/333/fff?text=UX" alt="Avatar" className="w-12 h-12 rounded-full" />
-                 <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-blue-400">@alexandria_user</span>
-                      <span className="text-xs text-slate dark:text-mist">Hace 2 horas</span>
-                    </div>
-                    <p className="text-slate dark:text-mist">¡La dirección de arte de este juego es increíble! Alguien más atascado en el nivel 4? Necesito consejos urgentes.</p>
-                 </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
+        <ReviewSection itemType="game" itemApiId={game.id} accentColor="blue" />
       </div>
     </article>
   );
