@@ -45,7 +45,7 @@ export default function MessageArea({ userId, conversationName, messages, onSend
             className={`flex ${msg.senderId === userId ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
+              className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm break-words min-w-0 ${
                 msg.senderId === userId
                   ? "bg-amethyst text-screen dark:bg-sapphire"
                   : "bg-sand text-ink dark:bg-coal dark:text-screen"

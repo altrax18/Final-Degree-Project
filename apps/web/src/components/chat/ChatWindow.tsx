@@ -16,6 +16,13 @@ function getDisplayName(conv: ChatConversation, userId: number): string {
   return conv.name ?? "Group";
 }
 
+function getInterlocutorImage(conv: ChatConversation, userId: number): string | null {
+  if (conv.type === "direct") {
+    return conv.members.find((m) => m.id !== userId)?.profileImageUrl ?? null;
+  }
+  return null;
+}
+
 export default function ChatWindow({ userId, onClose }: Props) {
   const { conversations, messages, sendMessage, subscribe, fetchMessages, markRead, startConversation } = useChat(userId);
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
@@ -50,6 +57,16 @@ export default function ChatWindow({ userId, onClose }: Props) {
               </svg>
             </button>
           )}
+          {activeConversation && (() => {
+              const img = getInterlocutorImage(activeConversation, userId);
+              return img ? (
+                <img
+                  src={img}
+                  alt={getDisplayName(activeConversation, userId)}
+                  className="h-7 w-7 rounded-full object-cover shrink-0"
+                />
+              ) : null;
+            })()}
           <h2 className="text-sm font-semibold">
             {activeConversation ? getDisplayName(activeConversation, userId) : "Messages"}
           </h2>
