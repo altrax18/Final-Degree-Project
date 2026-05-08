@@ -15,9 +15,13 @@ export default function ProfilePage() {
     saving,
     deleting,
     feedback,
+    uploadingAvatar,
+    deletingAvatar,
     handleSave,
     handleDelete,
     handleLogout,
+    handleAvatarUpload,
+    handleAvatarDelete,
   } = useProfile();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -66,8 +70,12 @@ export default function ProfilePage() {
         <ProfileHeader
           user={user}
           collections={collections}
+          uploadingAvatar={uploadingAvatar}
+          deletingAvatar={deletingAvatar}
           onEdit={() => setIsEditing(true)}
           onLogout={handleLogout}
+          onAvatarUpload={handleAvatarUpload}
+          onAvatarDelete={handleAvatarDelete}
         />
 
         {/* Feedback */}

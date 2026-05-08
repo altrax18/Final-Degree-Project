@@ -9,6 +9,7 @@ import icon from "astro-icon";
 export default defineConfig({
   integrations: [react(), icon()],
   vite: {
+    envDir: "../../",
     plugins: [tailwindcss()],
     resolve: {
       alias: {

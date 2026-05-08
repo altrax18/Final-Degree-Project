@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
+import dotenv from "dotenv";
 import { usersRoutes } from "./routes/users";
 import { catalogRoutes } from "./routes/catalog";
 import { collectionsRoutes } from "./routes/collections";
@@ -8,6 +9,10 @@ import { recommendationsRoutes } from "./routes/recommendations";
 import { chatRoutes } from "./routes/chat";
 import { reviewsRoutes } from "./routes/reviews";
 import { adminRoutes } from "./routes/admin";
+
+// Cargar variables de entorno en process.env explícitamente para Vercel Blob y otros SDKs
+dotenv.config({ path: "../../.env.local" });
+dotenv.config({ path: "../../.env" });
 
 // CONCEPTO: Composicion de Middlewares y Rutas
 // QUE HACE: Construye una unica instancia de Elysia y encadena todos los modulos del backend.

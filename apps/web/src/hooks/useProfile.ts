@@ -22,6 +22,8 @@ export function useProfile() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [deletingAvatar, setDeletingAvatar] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
   // Carga el usuario desde localStorage y lo refresca desde la API.
@@ -125,14 +127,78 @@ export function useProfile() {
     window.location.href = "/";
   }, []);
 
+  // Envía POST /api/users/:id/avatar con FormData para subir imagen a Vercel Blob
+  const handleAvatarUpload = useCallback(async (file: File) => {
+    if (!user) return;
+    setUploadingAvatar(true);
+    setFeedback(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch(`/api/users/${user.id}/avatar`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Error al subir el avatar");
+
+      const updated = await res.json();
+      const newSession: SessionUser = {
+        ...user,
+        profileImageUrl: updated.profileImageUrl ?? DEFAULT_AVATAR,
+      };
+      setUser(newSession);
+      writeSession(newSession);
+      setFeedback({ type: "ok", msg: "Avatar actualizado correctamente" });
+    } catch {
+      setFeedback({ type: "err", msg: "No se pudo subir el avatar" });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }, [user]);
+
+  // Envía DELETE /api/users/:id/avatar para borrar imagen del Blob
+  const handleAvatarDelete = useCallback(async () => {
+    if (!user) return;
+    setDeletingAvatar(true);
+    setFeedback(null);
+
+    try {
+      const res = await fetch(`/api/users/${user.id}/avatar`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Error al borrar el avatar");
+
+      const updated = await res.json();
+      const newSession: SessionUser = {
+        ...user,
+        profileImageUrl: updated.profileImageUrl ?? DEFAULT_AVATAR,
+      };
+      setUser(newSession);
+      writeSession(newSession);
+      setFeedback({ type: "ok", msg: "Avatar eliminado correctamente" });
+    } catch {
+      setFeedback({ type: "err", msg: "No se pudo eliminar el avatar" });
+    } finally {
+      setDeletingAvatar(false);
+    }
+  }, [user]);
+
   return {
     user,
     loadingUser,
     saving,
     deleting,
     feedback,
+    uploadingAvatar,
+    deletingAvatar,
     handleSave,
     handleDelete,
     handleLogout,
+    handleAvatarUpload,
+    handleAvatarDelete,
   };
 }
