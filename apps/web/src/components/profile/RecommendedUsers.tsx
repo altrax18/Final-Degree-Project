@@ -41,7 +41,7 @@ export default function RecommendedUsers({ userId }: Props) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_URL}/recommendations/${userId}/friends`)
+    fetch(`${API_URL}/api/recommendations/${userId}/friends`)
       .then((r) => r.json())
       .then((data) => setUsers(Array.isArray(data) ? data : []))
       .catch(() => setUsers([]))

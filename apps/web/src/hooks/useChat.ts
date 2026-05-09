@@ -34,13 +34,13 @@ export function useChat(userId: number) {
   const [messages, setMessages] = useState<Record<number, ChatMessage[]>>({});
 
   useEffect(() => {
-    fetch(`${API_URL}/chat/conversations/${userId}`)
+    fetch(`${API_URL}/api/chat/conversations/${userId}`)
       .then((res) => res.json())
       .then((data) => setConversations(data));
   }, [userId]);
 
   useEffect(() => {
-    const es = new EventSource(`${API_URL}/chat/sse?userId=${userId}`);
+    const es = new EventSource(`${API_URL}/api/chat/sse?userId=${userId}`);
 
     es.onopen = () => setIsConnected(true);
 
@@ -85,7 +85,7 @@ export function useChat(userId: number) {
       [conversationId]: [...(prev[conversationId] || []), optimistic],
     }));
 
-    await fetch(`${API_URL}/chat/messages`, {
+    await fetch(`${API_URL}/api/chat/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ conversationId, senderId: userId, content }),
@@ -93,13 +93,13 @@ export function useChat(userId: number) {
   }, [userId]);
 
   const fetchMessages = useCallback(async (conversationId: number) => {
-    const res = await fetch(`${API_URL}/chat/messages/${conversationId}`);
+    const res = await fetch(`${API_URL}/api/chat/messages/${conversationId}`);
     const msgs = await res.json();
     setMessages((prev) => ({ ...prev, [conversationId]: msgs }));
   }, []);
 
   const markRead = useCallback((conversationId: number) => {
-    fetch(`${API_URL}/chat/mark-read`, {
+    fetch(`${API_URL}/api/chat/mark-read`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ conversationId, userId }),
@@ -115,14 +115,14 @@ export function useChat(userId: number) {
     );
     if (existing) return existing.id;
 
-    const res = await fetch(`${API_URL}/chat/conversations`, {
+    const res = await fetch(`${API_URL}/api/chat/conversations`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "direct", memberIds: [userId, targetUserId] }),
     });
     const conv = await res.json();
 
-    const convsRes = await fetch(`${API_URL}/chat/conversations/${userId}`);
+    const convsRes = await fetch(`${API_URL}/api/chat/conversations/${userId}`);
     const convs = await convsRes.json();
     setConversations(convs);
 
