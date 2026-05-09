@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "bunVersion": "1.x",
+  "functions": {
+    "apps/web/src/pages/api/[...elysia].ts": {
+      "maxDuration": 60
+    }
+  }
+}

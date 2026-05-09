@@ -1,7 +1,40 @@
 import { Elysia } from "elysia";
+import { cors } from "@elysiajs/cors";
+import dotenv from "dotenv";
+import { usersRoutes } from "./routes/users";
+import { catalogRoutes } from "./routes/catalog";
+import { collectionsRoutes } from "./routes/collections";
+import { interactionsRoutes } from "./routes/interactions";
+import { recommendationsRoutes } from "./routes/recommendations";
+import { chatRoutes } from "./routes/chat";
+import { reviewsRoutes } from "./routes/reviews";
+import { adminRoutes } from "./routes/admin";
 
-const app = new Elysia().get("/", () => "Hello Elysia").listen(3000);
+// Cargar variables de entorno en process.env explícitamente para Vercel Blob y otros SDKs
+dotenv.config({ path: "../../.env.local" });
+dotenv.config({ path: "../../.env" });
 
-console.log(
-  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
-);
+// CONCEPTO: Composicion de Middlewares y Rutas
+// QUE HACE: Construye una unica instancia de Elysia y encadena todos los modulos del backend.
+// POR QUE LO USO: Evita duplicidad de servidores y mantiene la arquitectura por modulos.
+// DOCUMENTACION: https://elysiajs.com/essential/handler.html
+const app = new Elysia()
+  .use(cors())
+  .use(usersRoutes)
+  .use(catalogRoutes)
+  .use(collectionsRoutes)
+  .use(interactionsRoutes)
+  .use(recommendationsRoutes)
+  .use(chatRoutes)
+  .use(reviewsRoutes)
+  .use(adminRoutes);
+
+if (import.meta.main) {
+  app.listen(3000, () => {
+    console.log(` Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
+  });
+}
+
+export { app };
+export default app;
+export type App = typeof app;

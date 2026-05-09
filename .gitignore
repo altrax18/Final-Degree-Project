@@ -1,5 +1,8 @@
 # build output
 dist/
+.vercel/
+.output/
+.vercel/output/
 
 # generated types
 .astro/
@@ -14,13 +17,20 @@ yarn-error.log*
 pnpm-debug.log*
 **/*.log
 
-# lock files (usar bun.lock)
+# lock files (sólo excluir el formato binario antiguo; bun.lock de texto SÍ se sube)
 package-lock.json
+yarn.lock
+pnpm-lock.yaml
 *.lockb
+
+# debug artifacts
+output.html
+test-*.ts
 
 # environment variables
 .env
 .env.local
+.env.development
 .env.production
 .env.development.local
 .env.test.local
@@ -42,3 +52,5 @@ coverage/
 **/*.tar.gz
 **/*.tgz
 **/*.bun
+.vercel
+.env*.local

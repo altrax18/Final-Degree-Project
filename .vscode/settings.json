@@ -1,0 +1,7 @@
+{
+    "workbench.browser.enableChatTools": true,
+    "commentTranslate.targetLanguage": "es",
+  "css.customData": [],
+  "css.lint.unknownAtRules": "ignore",
+  "typescript.tsdk": "apps/api/node_modules/typescript/lib"
+}

@@ -3,6 +3,6 @@
   "private": true,
   "workspaces": ["apps/*"],
   "scripts": {
-    "dev": "bun run --filter '*' dev"
+    "dev": "bun run --filter '*' --parallel dev"
   }
 }

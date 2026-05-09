@@ -1,23 +1,86 @@
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
-</html>
+---
+// src/layouts/Layout.astro
+import "../styles/global.css";
+import NavBar from "../components/navbar/NavBar.astro";
+import FooterPlayer from "../components/music/FooterPlayer.jsx";
+import ChatButton from "../components/chat/ChatButton.tsx";
+import { ClientRouter } from "astro:transitions";
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
+interface Props {
+  title?: string;
+}
+
+const { title = "Alexandria" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Alexandria — Tu catálogo social multiplataforma para cine, música y videojuegos."
+    />
+    <meta name="robots" content="index, follow" />
+    <link
+      rel="canonical"
+      href={new URL(Astro.url.pathname, "https://tu-dominio-final.com")}
+    />
+    <meta name="theme-color" content="#09090b" />
+    <meta property="og:title" content={`${title} · Alexandria`} />
+    <meta
+      property="og:description"
+      content="Tu universo cultural empieza aquí. Catálogo social de cine, juegos y música."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title} · Alexandria</title>
+    <!-- Slot nombrado para metadatos por pagina (concepto: slots en Astro). -->
+    <slot name="head" />
+    <script is:inline>
+      // CONCEPTO: Función de Aplicación de Tema Reutilizable (DRY)
+      // QUE HACE: Centraliza la lógica que lee localStorage y aplica la clase 'dark'.
+      // POR QUE LO USO: Para no repetir el mismo código en el script de carga inicial y en el de View Transitions.
+      function applyTheme() {
+        var stored = localStorage.getItem("theme");
+        var prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        if (stored === "dark" || (!stored && prefersDark)) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      }
+
+      // Ejecuta el tema antes del primer pintado para evitar FOUC en la carga inicial.
+      applyTheme();
+
+      // CONCEPTO: Persistencia de Tema en View Transitions
+      // QUE HACE: Vuelve a aplicar el tema inmediatamente después de que Astro cambie el DOM.
+      // POR QUE LO USO: Evita el "parpadeo blanco" (FOUC) en modo oscuro durante la navegación.
+      document.addEventListener("astro:after-swap", applyTheme);
+    </script>
+    <ClientRouter />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen font-sans">
+    <NavBar />
+
+    <main
+      class="mx-auto w-full max-w-[1440px] px-4 py-8 pb-28 sm:px-6 lg:px-8 lg:py-10"
+    >
+      <slot />
+    </main>
+
+    <FooterPlayer client:only="react" transition:persist />
+    <ChatButton client:only="react" transition:persist />
+  </body>
+</html>

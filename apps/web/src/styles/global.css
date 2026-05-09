@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+/* Enable class-based dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Smooth theme transition — only active while the toggle is animating */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition-property: color, background-color, border-color, fill, stroke !important;
+  transition-timing-function: ease !important;
+  transition-duration: 250ms !important;
+}
+
+/* Base body styles — switch automatically with .dark on <html> */
+body {
+  @apply bg-parchment dark:bg-obsidian text-ink dark:text-screen;
+  font-family: "Inter", sans-serif;
+}
+
+/* Dark — Abyss */
+@theme {
+  --color-abyss: #000000;
+  --color-obsidian: #0A0A0A;
+  --color-coal: #141414;
+  --color-night-edge: #262626;
+  --color-screen: #FFFFFF;
+  --color-mist: #A0A0A0;
+  --color-electric-sky: #5BB5F5;
+  --color-sapphire: #2E7CC9;
+  --color-depth: #163D69;
+}
+
+/* Light — Silver Screen */
+@theme {
+  --color-parchment: #FAFAF8;
+  --color-linen: #F3F0EB;
+  --color-sand: #EBE8E0;
+  --color-bone: #DDD9D0;
+  --color-ink: #18181C;
+  --color-slate: #6B6777;
+  --color-orchid: #C4A7E0;
+  --color-amethyst: #8B6FBD;
+  --color-lilac-mist: #EDE5F8;
+  --color-amber: #D97032;
+}
+
+@keyframes chat-enter {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-chat-enter {
+  animation: chat-enter 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
