@@ -2,13 +2,20 @@
 // src/pages/index.astro
 import Layout from "../layouts/Layout.astro";
 import HomePage from "../components/home/HomePage.tsx";
-import MediaCard from "../components/shared/MediaCard.jsx";
-import RecommendedUsersWidget from "../components/shared/RecommendedUsersWidget";
 import { serverApi } from "../lib/server-api";
-import { getRecentPosts } from "../lib/homeData";
-import type { RecentPost, TrendingItem } from "../types/home";
+import type { TrendingItem } from "../types/home";
 import type { Game } from "../types/game";
 import type { Movie } from "../types/movie";
+import { neon } from "@neondatabase/serverless";
+
+// CONCEPTO: Caché HTTP SSR (Stale-While-Revalidate)
+// QUE HACE: Guarda el HTML generado en memoria por 180 segundos (3 min). Devuelve la página al instante.
+// POR QUE LO USO: Es el patrón oficial para SSR pesado. Evita hacer las peticiones lentas (BD e IGDB) en cada recarga.
+// DOCUMENTACION: https://docs.astro.build/en/guides/routing/#http-response-headers
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=300, stale-while-revalidate=600",
+);
 
 // Tipo local para normalizar canciones en tendencia (concepto: adaptador de datos).
 type TrendingTrack = {
@@ -24,12 +31,23 @@ let trending: TrendingItem[] = [];
 let errorMessage: string | null = null;
 let featuredGames: Game[] = [];
 let featuredMovies: Movie[] = [];
+let trendingGames: Game[] = [];
+let trendingMovies: Movie[] = [];
 let gamesError: string | null = null;
 let moviesError: string | null = null;
 
+// CONCEPTO: Peticiones concurrentes (Promise.all-like)
+// QUE HACE: Inicia todas las llamadas al backend al mismo tiempo en lugar de una por una.
+// POR QUE LO USO: Elimina el "cuello de botella" (waterfall) que causaba que la Home tardara 1-2 segundos en cargar al volver de otra sección.
+const musicPromise = serverApi.api.music.trending.songs.get();
+const gamesPromise = serverApi.api.games.get();
+const moviesPromise = serverApi.api.movies.get();
+const gamesTrendPromise = serverApi.api.games.trending.get();
+const moviesTrendPromise = serverApi.api.movies.trending.get();
+
 // Consulta SSR para poblar tendencias (concepto: data fetching en Astro).
 try {
-  const response = await serverApi.api.music.trending.songs.get();
+  const response = await musicPromise;
   if (response.error) throw new Error("API error");
   const payload = response.data as { results?: TrendingTrack[] } | null;
   const results = Array.isArray(payload?.results) ? payload.results : [];
@@ -52,7 +70,7 @@ try {
 
 // Consulta SSR para juegos destacados (concepto: carga inicial en servidor).
 try {
-  const { data, error } = await serverApi.api.games.get();
+  const { data, error } = await gamesPromise;
   if (error)
     throw new Error(
       typeof error.value === "string" ? error.value : "API no disponible",
@@ -70,7 +88,7 @@ try {
 
 // Consulta SSR para peliculas destacadas (concepto: carga inicial en servidor).
 try {
-  const { data, error } = await serverApi.api.movies.get();
+  const { data, error } = await moviesPromise;
   if (error)
     throw new Error(
       typeof error.value === "string" ? error.value : "API no disponible",
@@ -86,10 +104,31 @@ try {
   featuredMovies = [];
 }
 
-// Datos del feed desde capa dedicada.
-// ESTADO: mock por ahora; alimenta Circles, SocialPulse, LiveRooms y Feed.
-// FALTA: endpoint real de actividad social o posts persistentes.
-const recentPosts: RecentPost[] = getRecentPosts();
+// CONCEPTO: Inyección SSR de Tendencias de Juegos
+// QUE HACE: Solicita las tendencias al backend interno antes de renderizar el HTML.
+// POR QUE LO USO: Evita tiempos de carga (spinners/skeletons) en el cliente y mejora el First Contentful Paint.
+// DOCUMENTACION: https://docs.astro.build/en/guides/data-fetching/#fetch-in-astro
+try {
+  const { data, error } = await gamesTrendPromise;
+  if (!error && Array.isArray(data)) {
+    trendingGames = data as Game[];
+  }
+} catch (err) {
+  console.error("Error al cargar tendencias de juegos", err);
+}
+
+// CONCEPTO: Inyección SSR de Tendencias de Cine
+// QUE HACE: Solicita las peliculas populares al backend interno en el servidor.
+// POR QUE LO USO: Permite que el SEO lea el contenido y llegue instantaneamente a la pantalla del usuario.
+// DOCUMENTACION: https://docs.astro.build/en/guides/data-fetching/#fetch-in-astro
+try {
+  const { data, error } = await moviesTrendPromise;
+  if (!error && Array.isArray(data)) {
+    trendingMovies = data as Movie[];
+  }
+} catch (err) {
+  console.error("Error al cargar tendencias de películas", err);
+}
 ---
 
 <Layout title="Inicio">
@@ -97,17 +136,18 @@ const recentPosts: RecentPost[] = getRecentPosts();
   <meta
     slot="head"
     name="description"
-    content="Alexandria inicio con feed social y tendencias activas."
+    content="Alexandria inicio con acceso rapido al catalogo, tendencias y destacados reales."
   />
 
-  <!-- Home React hidratada para animaciones (concepto: islands con client:load). -->
+  <!-- Home React diferida para priorizar el pintado inicial rápido (concepto: islands con client:idle). -->
   <HomePage
-    client:load
+    client:idle
     trending={trending}
-    recentPosts={recentPosts}
     errorMessage={errorMessage}
     games={featuredGames}
     movies={featuredMovies}
+    trendingGames={trendingGames}
+    trendingMovies={trendingMovies}
     gamesError={gamesError}
     moviesError={moviesError}
   />

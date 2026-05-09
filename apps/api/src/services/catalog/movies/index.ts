@@ -1,1 +1,1 @@
-export { browseMovies, getMovieByApiId } from "./read";
+export { browseMovies, getMovieByApiId, getTrendingMovies } from "./read";

@@ -4,6 +4,15 @@ import MovieCatalogClient from "../../components/movies/MovieCatalogClient";
 import { serverApi } from "../../lib/server-api";
 import type { Movie } from "../../types/movie";
 
+// CONCEPTO: Caché HTTP SSR (Stale-While-Revalidate)
+// QUE HACE: Guarda el HTML generado en memoria temporalmente. Devuelve la página al instante.
+// POR QUE LO USO: Es el patrón oficial para SSR pesado. Evita hacer llamadas lentas en cada recarga.
+// DOCUMENTACION: https://docs.astro.build/en/guides/routing/#http-response-headers
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=60, stale-while-revalidate=120",
+);
+
 // CONCEPTO: Estado Inicial Seguro en SSR
 // QUE HACE: Inicializa datos antes de invocar la API.
 // POR QUE LO USO: Permite renderizar mensaje de error sin romper la pagina.

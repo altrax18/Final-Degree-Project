@@ -1,333 +1,262 @@
-// Importo useState para manejar estado local (concepto: estado de UI en React).
-import { useState } from "react";
-import type { RecentPost, TrendingItem } from "../../types/home";
-// Importo tipos de dominio para catalogo (concepto: contratos de datos).
+import type { TrendingItem } from "../../types/home";
 import type { Game } from "../../types/game";
 import type { Movie } from "../../types/movie";
-import CirclesSection from "./sections/CirclesSection";
-import FeedSection from "./sections/FeedSection";
-import HeroSection, { type HeroSpotlight, type HeroStat } from "./sections/HeroSection";
-import HighlightsSection from "./sections/HighlightsSection";
-import LiveRoomsSection, { type LiveRoom } from "./sections/LiveRoomsSection";
-import RecommendationsSection, {
-  type RecommendationItem,
-} from "./sections/RecommendationsSection";
-import SocialPulseSection, { type TagStat } from "./sections/SocialPulseSection";
-import TrendingSection from "./sections/TrendingSection";
-
-type CatalogPayload<T> = T[] | { items?: T[] } | null | undefined;
+import HeroSection, {
+  type HeroSpotlight,
+  type HeroStat,
+} from "./sections/HeroSection";
+import HomeRailsSection from "./sections/HomeRailsSection";
+import HomeShowcaseSection from "./sections/HomeShowcaseSection";
+import HomeMarqueeSection, { type MarqueeItem } from "./sections/HomeMarqueeSection";
+import HomeCommunitySection from "./sections/HomeCommunitySection";
+import PersonalSidebar from "./PersonalSidebar";
+import {
+  createTrackPlayback,
+  fallbackBackdrop,
+  fallbackCover,
+  formatRating,
+  getReleaseYear,
+  normalizeCatalog,
+  type CatalogPayload,
+  type HomeFeatureItem,
+  type HomeRail,
+} from "./sections/home-utils";
 
 type Props = {
   trending: TrendingItem[];
   games: CatalogPayload<Game>;
   movies: CatalogPayload<Movie>;
-  recentPosts: RecentPost[];
+  trendingMovies?: Movie[];
+  trendingGames?: Game[];
   errorMessage?: string | null;
   gamesError?: string | null;
   moviesError?: string | null;
 };
 
-// Duracion para el carrusel (concepto: configuracion reutilizable).
-const MARQUEE_DURATION = 30;
-
-// Fallback local para tarjetas sin imagen (concepto: fallback de recursos).
-const fallbackCover = "https://placehold.co/480x640/0A0A0A/FFFFFF?text=Alexandria";
-
-// Formateo puntuaciones para el catalogo (concepto: helper puro).
-const formatRating = (value: number) =>
-  Number.isFinite(value) ? value.toFixed(1) : "0.0";
-
-// Entrada flexible para el player (concepto: tipado estructural).
-type PlayerTrackInput = {
-  id: string;
-  title: string;
-  artist?: string;
-  cover?: string | null;
-  image?: string | null;
-  previewUrl?: string | null;
-  genre?: string;
-};
-
-// Normalizo la pista para el reproductor global (concepto: adaptador de eventos).
-const toPlayerTrack = (track: PlayerTrackInput) => ({
-  id: track.id,
-  title: track.title,
-  artist: track.artist,
-  cover: track.cover ?? track.image ?? null,
-  previewUrl: track.previewUrl ?? null,
-  genre: track.genre,
-});
-
 export default function HomePage({
   trending,
   games,
   movies,
-  recentPosts,
   errorMessage,
   gamesError,
   moviesError,
+  trendingMovies,
+  trendingGames,
 }: Props) {
-  // Estado para filtros y acciones (concepto: estado local con useState).
-  const [activeTag, setActiveTag] = useState<string>("Todas");
-  const [likedPosts, setLikedPosts] = useState<string[]>([]);
-  const [savedPosts, setSavedPosts] = useState<string[]>([]);
-  const [followedAuthors, setFollowedAuthors] = useState<string[]>([]);
-  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
-  const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
-  const [commentDraft, setCommentDraft] = useState("");
-
-  // Normalizo payloads de catalogo paginado (concepto: compatibilidad de respuesta).
-  const normalizeCatalog = <T,>(payload: CatalogPayload<T>): T[] => {
-    if (Array.isArray(payload)) return payload;
-    if (payload && Array.isArray(payload.items)) return payload.items;
-    return [];
-  };
-
-  // Duplico la lista para simular un carrusel continuo (concepto: repeticion de items).
-  const loopPosts = recentPosts.length > 0 ? [...recentPosts, ...recentPosts] : [];
-  // Derivo etiquetas desde los posts (concepto: transformacion de arrays con Set).
-  const topTags = Array.from(new Set(recentPosts.flatMap((post) => post.tags))).slice(
-    0,
-    6,
-  );
-  // Conteo por etiqueta para el panel social (concepto: agregacion por clave).
-  const tagStats: TagStat[] = topTags.map((tag) => ({
-    tag,
-    count: recentPosts.filter((post) => post.tags.includes(tag)).length,
-  }));
-  // Limito datos del catalogo para la home (concepto: slicing para performance).
   const safeMovies = normalizeCatalog(movies);
   const safeGames = normalizeCatalog(games);
-  const featuredTracks = trending.slice(0, 8);
-  const featuredMovies = safeMovies.slice(0, 6);
-  const featuredGames = safeGames.slice(0, 6);
-  // Datos de tendencias semanales (concepto: recorte de lista).
-  const weeklyTracks = featuredTracks;
-  // Cola reproducible para el player (concepto: datos derivados).
-  const playableTracks = weeklyTracks.filter((track) => track.previewUrl);
-  // Destacados por categoria (concepto: seleccion de muestras).
-  const movieHighlights = featuredMovies.slice(0, 3);
-  const gameHighlights = featuredGames.slice(0, 3);
-  // Conteo total para metricas (concepto: agregacion simple).
-  const catalogTotalCount =
-    weeklyTracks.length + featuredMovies.length + featuredGames.length;
-  // Aplico filtro de etiquetas (concepto: filtrado condicional).
-  const filteredPosts =
-    activeTag === "Todas"
-      ? recentPosts
-      : recentPosts.filter((post) => post.tags.includes(activeTag));
-  // Estadisticas derivadas de datos reales (concepto: datos derivados).
-  const heroStats: HeroStat[] = [
-    { label: "Elementos del catalogo", value: `${catalogTotalCount}`, icon: "tabler:stack-2" },
-    { label: "Publicaciones recientes", value: `${recentPosts.length}`, icon: "tabler:messages" },
-    { label: "Etiquetas activas", value: `${topTags.length}`, icon: "tabler:hash" },
-  ];
+  
+  const featuredTracks = (trending || []).slice(0, 8);
+  
+  // CONCEPTO: Fallback Defensivo de Datos
+  // QUE HACE: Si la API de tendencias falla, inyecta los destacados del catalogo general.
+  // POR QUE LO USO: Asegura que la portada nunca colapse o se vea vacia si un servicio externo cae.
+  // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
+  const featuredMovies = (trendingMovies?.length ? trendingMovies : safeMovies).slice(0, 8);
+  const featuredGames = (trendingGames?.length ? trendingGames : safeGames).slice(0, 8);
+  
+  const featuredTrack = featuredTracks[0];
+  const featuredMovie = featuredMovies[0];
+  const featuredGame = featuredGames[0];
 
-  // Destacados del hero para dar contexto inmediato (concepto: resumen visual del contenido real).
-  const heroSpotlights: HeroSpotlight[] = [
-    {
-      id: "hero-music",
-      eyebrow: "Musica en tendencia",
-      icon: "tabler:vinyl",
-      title: featuredTracks[0]?.title ?? "Descubre nuevas pistas",
-      subtitle: featuredTracks[0]?.artist ?? "Recomendaciones curadas",
-      image: featuredTracks[0]?.cover ?? fallbackCover,
-      ctaLabel: featuredTracks[0]?.previewUrl ? "Reproducir" : "Explorar",
-      onClick: featuredTracks[0]?.previewUrl
-        ? () => handlePlayTrack(featuredTracks[0])
-        : undefined,
-      href: featuredTracks[0]?.previewUrl ? undefined : "/music",
-    },
-    {
-      id: "hero-movie",
-      eyebrow: "Cine destacado",
-      icon: "tabler:movie",
-      title: featuredMovies[0]?.title ?? "Peliculas para tu noche",
-      subtitle: `Puntuacion ${formatRating(featuredMovies[0]?.rating ?? 0)}`,
-      image: featuredMovies[0]?.image ?? fallbackCover,
-      ctaLabel: featuredMovies[0]?.id ? "Ver pelicula" : "Ver peliculas",
-      href: featuredMovies[0]?.id ? `/movies/${featuredMovies[0].id}` : "/movies",
-    },
-    {
-      id: "hero-game",
-      eyebrow: "Juego recomendado",
-      icon: "tabler:device-gamepad-2",
-      title: featuredGames[0]?.title ?? "Explora nuevos mundos",
-      subtitle: `Puntuacion ${formatRating(featuredGames[0]?.rating ?? 0)}`,
-      image: featuredGames[0]?.image ?? fallbackCover,
-      ctaLabel: featuredGames[0]?.id ? "Ver juego" : "Ver juegos",
-      href: featuredGames[0]?.id ? `/games/${featuredGames[0].id}` : "/games",
-    },
-  ];
-
-  const hasPosts = loopPosts.length > 0;
-  const hasFeedPosts = filteredPosts.length > 0;
-
-  // Alterno el estado de me gusta (concepto: actualizacion inmutable).
-  const toggleLike = (postId: string) => {
-    setLikedPosts((prev) =>
-      prev.includes(postId) ? prev.filter((id) => id !== postId) : [...prev, postId],
-    );
-  };
-  // Alterno el estado de guardado (concepto: actualizacion inmutable).
-  const toggleSave = (postId: string) => {
-    setSavedPosts((prev) =>
-      prev.includes(postId) ? prev.filter((id) => id !== postId) : [...prev, postId],
-    );
-  };
-  // Alterno el estado de seguimiento (concepto: estado por entidad).
-  const toggleFollow = (author: string) => {
-    setFollowedAuthors((prev) =>
-      prev.includes(author)
-        ? prev.filter((name) => name !== author)
-        : [...prev, author],
-    );
-  };
-
-  // Alterno el editor de comentarios (concepto: UI controlada por estado).
-  const toggleComment = (postId: string) => {
-    setActiveCommentId((prev) => (prev === postId ? null : postId));
-    setCommentDraft("");
-  };
-
-  // Simulo envio de comentario local (concepto: placeholder de integracion).
-  const handleCommentSubmit = (_postId: string) => {
-    if (!commentDraft.trim()) return;
-    // TODO: Enviar comentario al backend cuando exista el endpoint.
-    setCommentDraft("");
-    setActiveCommentId(null);
-  };
-
-  // Genero recomendaciones con datos reales del catalogo (concepto: recomendaciones derivadas).
-  const recommendations: RecommendationItem[] = [
-    ...featuredTracks.slice(0, 2).map<RecommendationItem>((track) => ({
-      id: `rec-music-${track.id}`,
-      eyebrow: "Musica recomendada",
-      icon: "tabler:vinyl",
-      title: track.title,
-      subtitle: track.artist ?? "Descubre nuevos sonidos",
-      href: `/music/${track.id}`,
-    })),
-    ...featuredMovies.slice(0, 2).map<RecommendationItem>((movie) => ({
-      id: `rec-movie-${movie.id}`,
-      eyebrow: "Cine recomendado",
-      icon: "tabler:movie",
-      title: movie.title,
-      subtitle: `Puntuacion ${formatRating(movie.rating)}`,
-      href: `/movies/${movie.id}`,
-    })),
-    ...featuredGames.slice(0, 2).map<RecommendationItem>((game) => ({
-      id: `rec-game-${game.id}`,
-      eyebrow: "Juego recomendado",
-      icon: "tabler:device-gamepad-2",
-      title: game.title,
-      subtitle: `Puntuacion ${formatRating(game.rating)}`,
-      href: `/games/${game.id}`,
-    })),
-  ].slice(0, 6);
-
-  // Simulo salas activas usando datos del feed (concepto: estado social reutilizado).
-  const liveRooms: LiveRoom[] = recentPosts.slice(0, 4).map((post, index) => ({
-    id: `room-${post.id}`,
-    topic: post.headline,
-    subtitle: `${post.author} · ${post.time}`,
-    href: post.href,
-    members: 24 + index * 13,
-    tags: post.tags.slice(0, 3),
-  }));
-
-  // Disparo reproduccion individual en el player global (concepto: eventos personalizados).
   const handlePlayTrack = (track: TrendingItem) => {
-    if (!track.previewUrl || playableTracks.length === 0) return;
-    const queue = playableTracks.map(toPlayerTrack);
+    const playback = createTrackPlayback(track);
+    if (!playback) return;
+
     window.dispatchEvent(
       new CustomEvent("play-track", {
-        detail: { track: toPlayerTrack(track), queue },
+        detail: playback,
       }),
     );
   };
-  // Disparo reproduccion de toda la cola (concepto: reproduccion por lote).
-  const handlePlayAll = () => {
-    if (playableTracks.length === 0) return;
-    const queue = playableTracks.map(toPlayerTrack);
-    window.dispatchEvent(
-      new CustomEvent("play-track", {
-        detail: { track: queue[0], queue },
-      }),
-    );
-  };
+
+  const heroStats: HeroStat[] = [
+    { label: "Musica", value: `${featuredTracks.length}`, icon: "tabler:vinyl" },
+    { label: "Peliculas", value: `${featuredMovies.length}`, icon: "tabler:movie" },
+    { label: "Juegos", value: `${featuredGames.length}`, icon: "tabler:device-gamepad-2" },
+  ];
+
+  const spotlights: HeroSpotlight[] = [
+    {
+      label: "Ahora sonando",
+      title: featuredTrack?.title ?? "Alexandria Mix",
+      subtitle:
+        featuredTrack?.artist ?? "Tendencias musicales listas para descubrir.",
+      image:
+        featuredTrack?.cover ??
+        featuredMovie?.backdrop ??
+        featuredMovie?.image ??
+        fallbackBackdrop,
+      href: featuredTrack?.previewUrl ? `/music/${featuredTrack.id}` : "/music",
+      accent: "music",
+    },
+    {
+      label: "Cine destacado",
+      title: featuredMovie?.title ?? "Sala principal",
+      subtitle: featuredMovie
+        ? `${formatRating(featuredMovie.rating)} de puntuacion${featuredMovie.genres[0] ? ` · ${featuredMovie.genres[0]}` : ""}`
+        : "Tu catalogo de peliculas aparecera aqui.",
+      image: featuredMovie?.image ?? fallbackCover,
+      href: featuredMovie?.id ? `/movies/${featuredMovie.id}` : "/movies",
+      accent: "movie",
+    },
+    {
+      label: "Juego recomendado",
+      title: featuredGame?.title ?? "Partida pendiente",
+      subtitle: featuredGame
+        ? `${formatRating(featuredGame.rating)} de puntuacion${featuredGame.platforms[0] ? ` · ${featuredGame.platforms[0]}` : ""}`
+        : "Los juegos destacados se mostraran en esta zona.",
+      image: featuredGame?.image ?? fallbackCover,
+      href: featuredGame?.id ? `/games/${featuredGame.id}` : "/games",
+      accent: "game",
+    },
+  ];
+
+  const featureItems: HomeFeatureItem[] = [
+    ...featuredTracks.slice(0, 4).map((track, index) => ({
+      id: `track-${track.id}`,
+      label: index === 0 ? "Tendencia principal" : "En rotacion",
+      title: track.title,
+      subtitle: track.artist ?? "Artista desconocido",
+      image: track.cover ?? fallbackCover,
+      href: track.previewUrl ? `/music/${track.id}` : "/music",
+      meta: track.genre ?? "Musica",
+      onClick: track.previewUrl ? () => handlePlayTrack(track) : undefined,
+    })),
+    ...featuredMovies.slice(0, 3).map((movie) => ({
+      id: `movie-${movie.id}`,
+      label: "Cine",
+      title: movie.title,
+      subtitle: movie.summary || movie.tagline || "Ficha de pelicula disponible.",
+      image: movie.image ?? fallbackCover,
+      href: `/movies/${movie.id}`,
+      meta: `${formatRating(movie.rating)}${getReleaseYear(movie.firstReleaseDate) ? ` · ${getReleaseYear(movie.firstReleaseDate)}` : ""}`,
+    })),
+    ...featuredGames.slice(0, 3).map((game) => ({
+      id: `game-${game.id}`,
+      label: "Juego",
+      title: game.title,
+      subtitle: game.summary || game.developer || "Ficha de juego disponible.",
+      image: game.image ?? fallbackCover,
+      href: `/games/${game.id}`,
+      meta: `${formatRating(game.rating)}${game.genres[0] ? ` · ${game.genres[0]}` : ""}`,
+    })),
+  ].slice(0, 9);
+
+  const rails: HomeRail[] = [
+    {
+      title: "Musica que marca el ritmo",
+      href: "/music",
+      items: featuredTracks.slice(4, 8).map((track) => ({
+        id: track.id,
+        title: track.title,
+        image: track.cover ?? fallbackCover,
+        meta: track.artist ?? "Artista desconocido",
+        href: track.previewUrl ? `/music/${track.id}` : "/music",
+      })),
+    },
+    {
+      title: "Cine para abrir sala",
+      href: "/movies",
+      items: featuredMovies.slice(3, 7).map((movie) => ({
+        id: movie.id,
+        title: movie.title,
+        image: movie.image ?? fallbackCover,
+        meta: `${formatRating(movie.rating)} / 10`,
+        href: `/movies/${movie.id}`,
+      })),
+    },
+    {
+      title: "Juegos en portada",
+      href: "/games",
+      items: featuredGames.slice(3, 7).map((game) => ({
+        id: game.id,
+        title: game.title,
+        image: game.image ?? fallbackCover,
+        meta: `${formatRating(game.rating)} / 10`,
+        href: `/games/${game.id}`,
+      })),
+    },
+  ];
+
+  const errors = [errorMessage, moviesError, gamesError].filter(
+    (error): error is string => Boolean(error),
+  );
+
+  // CONCEPTO: Entrelazado de Contenido (Interleaving)
+  // QUE HACE: Mezcla elementos de musica, cine y juegos en un solo array iterando secuencialmente.
+  // POR QUE LO USO: Logra un carrusel muy variado sin requerir que el backend haga una consulta combinada.
+  // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
+  const marqueeItems: MarqueeItem[] = [];
+  for (let i = 0; i < 5; i++) {
+    if (featuredTracks[i]) {
+      marqueeItems.push({
+        id: `marquee-track-${featuredTracks[i].id}`,
+        title: featuredTracks[i].title,
+        image: featuredTracks[i].cover ?? fallbackCover,
+        label: "Música",
+        href: featuredTracks[i].previewUrl ? `/music/${featuredTracks[i].id}` : "/music",
+      });
+    }
+    if (featuredMovies[i]) {
+      marqueeItems.push({
+        id: `marquee-movie-${featuredMovies[i].id}`,
+        title: featuredMovies[i].title,
+        image: featuredMovies[i].image ?? fallbackCover,
+        label: "Cine",
+        href: `/movies/${featuredMovies[i].id}`,
+      });
+    }
+    if (featuredGames[i]) {
+      marqueeItems.push({
+        id: `marquee-game-${featuredGames[i].id}`,
+        title: featuredGames[i].title,
+        image: featuredGames[i].image ?? fallbackCover,
+        label: "Juegos",
+        href: `/games/${featuredGames[i].id}`,
+      });
+    }
+  }
 
   return (
-    <div className="space-y-12">
-      {/* Funcional: resume catalogo real cargado por SSR desde /api para mostrar contexto inmediato. */}
+    <div className="space-y-10">
       <HeroSection
         heroStats={heroStats}
-        heroSpotlights={heroSpotlights}
-        kicker="Centro social Alexandria"
-        title="Tu hogar multimedia para juegos, musica y cine."
-        subtitle="Crea colecciones, sigue creadores y guarda cada descubrimiento en un solo lugar."
-        primaryCta={{ href: "/movies", label: "Explorar catalogo" }}
-        secondaryCta={{ href: "#feed", label: "Ver feed" }}
-        tertiaryCta={{ href: "#tendencias", label: "Ir a tendencias" }}
+        kicker="Alexandria"
+        title="Tu universo cultural empieza aqui."
+        subtitle="Una portada viva para saltar entre musica, peliculas y videojuegos con destacados reales, ritmo visual y caminos claros hacia cada catalogo."
+        primaryCta={{ href: "/movies", label: "Explorar cine" }}
+        secondaryCta={{ href: "/music", label: "Escuchar tendencias" }}
+        tertiaryCta={{ href: "/games", label: "Ver juegos" }}
+        spotlights={spotlights}
       />
 
-      {/* Mock de momento: usa `recentPosts` centralizados en `homeData.ts`. Falta conectar feed real y persistente. */}
-      <CirclesSection
-        loopPosts={loopPosts}
-        hasPosts={hasPosts}
-        isPaused={isCarouselPaused}
-        onPauseChange={setIsCarouselPaused}
-        marqueeDuration={MARQUEE_DURATION}
-      />
+      {marqueeItems.length > 0 ? <HomeMarqueeSection items={marqueeItems} /> : null}
 
-      {/* Funcional: tendencias reales del backend, con play individual y play all. */}
-      <TrendingSection
-        weeklyTracks={weeklyTracks}
-        canPlayAll={playableTracks.length > 0}
-        errorMessage={errorMessage}
-        onPlayAll={handlePlayAll}
-        onPlayTrack={handlePlayTrack}
-        fallbackCover={fallbackCover}
-      />
+      {errors.length > 0 ? (
+        <section className="rounded-lg border border-bone bg-lilac-mist p-4 text-sm text-slate dark:border-night-edge dark:bg-depth/35 dark:text-mist">
+          {errors.map((error) => (
+            <p key={error}>{error}</p>
+          ))}
+        </section>
+      ) : null}
 
-      {/* Parcialmente funcional: recomendaciones derivadas de lo que ya cargamos en esta sesion, no de perfil real aun. */}
-      <RecommendationsSection items={recommendations} />
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] xl:gap-10 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0 space-y-12">
+          <HomeShowcaseSection
+            eyebrow="Portada editorial"
+            title="Lo mejor del catalogo sin hacerte buscar."
+            description="La home resume lo importante: que escuchar, que ver y que jugar. Cada bloque lleva a contenido real y conserva una lectura rapida en movil."
+            featureItems={featureItems}
+          />
 
-      {/* Mock utilitario: genera salas a partir del feed; falta chat/salas persistentes. */}
-      <LiveRoomsSection rooms={liveRooms} />
+          <HomeCommunitySection />
 
-      {/* Mock derivado: solo resume etiquetas del feed actual; faltan señales reales de actividad. */}
-      <SocialPulseSection tagStats={tagStats} onTagClick={setActiveTag} />
+          <HomeRailsSection rails={rails} />
+        </div>
 
-      {/* Funcional: consume juegos y peliculas reales del API, con fallback visual si falta imagen. */}
-      <HighlightsSection
-        movieHighlights={movieHighlights}
-        gameHighlights={gameHighlights}
-        moviesError={moviesError}
-        gamesError={gamesError}
-        fallbackCover={fallbackCover}
-        formatRating={formatRating}
-      />
-
-      {/* Mock principal del Home: feed social, likes, guardados y comentarios estan solo en estado local por ahora. */}
-      <FeedSection
-        filteredPosts={filteredPosts}
-        hasFeedPosts={hasFeedPosts}
-        topTags={topTags}
-        activeTag={activeTag}
-        onTagChange={setActiveTag}
-        likedPosts={likedPosts}
-        savedPosts={savedPosts}
-        followedAuthors={followedAuthors}
-        activeCommentId={activeCommentId}
-        commentDraft={commentDraft}
-        onLikeToggle={toggleLike}
-        onSaveToggle={toggleSave}
-        onFollowToggle={toggleFollow}
-        onCommentToggle={toggleComment}
-        onCommentDraftChange={setCommentDraft}
-        onCommentSubmit={handleCommentSubmit}
-      />
+        <PersonalSidebar />
+      </div>
     </div>
   );
 }

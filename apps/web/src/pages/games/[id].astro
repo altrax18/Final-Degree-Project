@@ -5,6 +5,15 @@ import { serverApi } from "../../lib/server-api";
 import { Icon } from "@iconify/react";
 import type { Game } from "../../types/game";
 
+// CONCEPTO: Caché HTTP SSR en Rutas Dinámicas
+// QUE HACE: Guarda el HTML generado del detalle del juego en memoria temporalmente.
+// POR QUE LO USO: Hace que la View Transition al entrar al juego sea totalmente instantánea.
+// DOCUMENTACION: https://docs.astro.build/en/guides/routing/#http-response-headers
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=60, stale-while-revalidate=120",
+);
+
 // CONCEPTO: Rutas Dinamicas con Astro.params
 // QUE HACE: Lee el parametro [id] de la URL para resolver el juego solicitado.
 // POR QUE LO USO: Permite generar una sola plantilla reutilizable para todos los detalles de juegos.
@@ -44,30 +53,40 @@ try {
 <Layout
   title={game ? `${game.title} - Detalles | Alexandria` : "Error | Alexandria"}
 >
-  <div class="max-w-7xl mx-auto px-4 pt-6">
+  <div class="max-w-7xl mx-auto px-4 pt-6 pb-2">
     <a
       href="/games"
-      class="inline-flex items-center gap-2 text-sm text-slate dark:text-mist hover:text-ink dark:hover:text-screen transition-colors group"
+      class="inline-flex w-fit items-center gap-2 rounded-full border border-bone bg-linen/50 px-4 py-2 text-sm font-semibold text-slate transition-all duration-300 hover:-translate-x-1 hover:border-amethyst hover:bg-linen hover:text-ink hover:shadow-md active:scale-95 dark:border-night-edge dark:bg-obsidian/50 dark:text-mist dark:hover:border-electric-sky dark:hover:bg-obsidian dark:hover:text-screen group"
     >
       <Icon
         icon="tabler:arrow-left"
-        className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform"
+        className="w-4 h-4 transition-transform group-hover:-translate-x-1 text-amethyst dark:text-electric-sky"
       />
       Volver a Videojuegos
     </a>
   </div>
   {
     errorMessage || !game ? (
-      <div class="min-h-screen flex flex-col items-center justify-center bg-parchment dark:bg-obsidian text-ink dark:text-screen">
-        <h1 class="text-4xl font-bold text-red-500 mb-4">Ups...</h1>
-        {/* CONCEPTO: Mensaje de Fallback
-            QUE HACE: Muestra error explicito cuando no hay datos validos para hidratar la vista de detalle.
-            POR QUE LO USO: Evita pasar `null` al componente React tipado como `Game`.
-            DOCUMENTACION: https://www.typescriptlang.org/docs/handbook/2/narrowing.html */}
-        <p class="text-slate dark:text-mist">{errorMessage || "Juego no encontrado"}</p>
-        <a href="/games" class="mt-8 text-sapphire dark:text-electric-sky hover:underline">
-          Volver al catalogo
-        </a>
+      <div class="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
+        <div class="rounded-2xl border border-bone dark:border-night-edge bg-linen dark:bg-coal p-8 max-w-md w-full shadow-lg">
+          <Icon
+            icon="tabler:device-gamepad-2"
+            className="mx-auto mb-4 h-16 w-16 text-slate opacity-50 dark:text-mist"
+          />
+          <h1 class="mb-2 text-2xl font-bold text-ink dark:text-screen">
+            Juego no encontrado
+          </h1>
+          <p class="mb-6 text-sm text-slate dark:text-mist">
+            {errorMessage ||
+              "No hemos podido encontrar los detalles de este juego. Puede que el enlace sea incorrecto o el servicio no esté disponible."}
+          </p>
+          <a
+            href="/games"
+            class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-screen transition-all hover:scale-105 active:scale-95 dark:bg-screen dark:text-ink"
+          >
+            Volver al catálogo
+          </a>
+        </div>
       </div>
     ) : (
       // CONCEPTO: Hidratacion de Isla React

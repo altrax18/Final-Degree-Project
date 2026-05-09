@@ -8,17 +8,3 @@ export type TrendingItem = {
   previewUrl?: string | null;
   genre?: string;
 };
-
-// Modelo de publicacion para el feed social (concepto: tipado estructural).
-export type RecentPost = {
-  id: string;
-  author: string;
-  handle: string;
-  time: string;
-  headline: string;
-  summary: string;
-  tags: string[];
-  // Ruta del detalle para navegar desde la home (concepto: enlace de entidad).
-  href: string;
-  cover?: string | null;
-};

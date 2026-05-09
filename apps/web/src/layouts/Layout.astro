@@ -14,14 +14,22 @@ const { title = "Alexandria" } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Alexandria — Your cross-media social catalog"
+      content="Alexandria — Tu catálogo social multiplataforma para cine, música y videojuegos."
     />
+    <meta name="theme-color" content="#09090b" />
+    <meta property="og:title" content={`${title} · Alexandria`} />
+    <meta
+      property="og:description"
+      content="Tu universo cultural empieza aquí. Catálogo social de cine, juegos y música."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title} · Alexandria</title>
     <!-- Slot nombrado para metadatos por pagina (concepto: slots en Astro). -->
@@ -49,7 +57,9 @@ const { title = "Alexandria" } = Astro.props;
   <body class="min-h-screen font-sans">
     <NavBar />
 
-    <main class="max-w-6xl mx-auto px-4 py-10 pb-28">
+    <main
+      class="mx-auto w-full max-w-[1440px] px-4 py-8 pb-28 sm:px-6 lg:px-8 lg:py-10"
+    >
       <slot />
     </main>
 

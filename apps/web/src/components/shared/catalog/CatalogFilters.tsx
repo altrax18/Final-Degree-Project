@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 // RESPONSABILIDAD: Componente presentacional de filtros (UI only).
 // - No ejecuta llamadas de red; notifica cambios mediante callbacks.
 // - Mantiene estado local mínimo (input de búsqueda) y delega almacenamiento global a `catalogFilterStore`.
@@ -25,6 +26,27 @@ export default function CatalogFilters({
   onGenreToggle,
   onClearFilters,
 }: CatalogFiltersProps) {
+  // CONCEPTO: Estado Local para Debounce
+  // QUE HACE: Mantiene el valor del input al instante para no bloquear la escritura del usuario.
+  const [localSearch, setLocalSearch] = useState(searchTerm);
+
+  // Sincroniza el estado local cuando el término de búsqueda se limpia desde fuera (ej: botón "Limpiar filtros")
+  useEffect(() => {
+    setLocalSearch(searchTerm);
+  }, [searchTerm]);
+
+  // CONCEPTO: Patrón Debounce (Amortiguador)
+  // QUE HACE: Espera 500ms después de que el usuario deje de escribir para lanzar la petición oficial.
+  // POR QUE LO USO: Evita hacer una llamada a la API por cada letra presionada (ahorro masivo de recursos).
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (localSearch !== searchTerm) {
+        onSearchTermChange(localSearch);
+      }
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [localSearch, searchTerm, onSearchTermChange]);
+
   const hasSelectedGenres = selectedGenres.length > 0;
 
   return (
@@ -33,8 +55,8 @@ export default function CatalogFilters({
         <input
           type="search"
           placeholder={searchPlaceholder}
-          value={searchTerm}
-          onChange={(event) => onSearchTermChange(event.target.value)}
+          value={localSearch}
+          onChange={(event) => setLocalSearch(event.target.value)}
           className="w-full bg-transparent border-b-2 border-bone dark:border-night-edge px-4 py-3 text-xl text-ink dark:text-screen placeholder:text-slate dark:placeholder:text-mist transition-all focus:border-amethyst dark:focus:border-electric-sky focus:outline-none text-center"
         />
       </div>
