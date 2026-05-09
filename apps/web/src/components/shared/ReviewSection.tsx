@@ -142,19 +142,19 @@ export default function ReviewSection({ itemType, itemApiId, accentColor }: Prop
         ¿Qué opinas sobre esto? Comparte tu reseña.
       </p>
 
-      <div className={`bg-sand dark:bg-coal p-6 rounded-2xl border border-bone dark:border-night-edge ${colors.shadow}`}>
+      <div className={`bg-sand dark:bg-coal p-4 sm:p-6 rounded-2xl border border-bone dark:border-night-edge ${colors.shadow}`}>
         {/* Input para comentar */}
-        <div className="flex gap-4 mb-8">
+        <div className="flex gap-3 sm:gap-4 mb-8">
           <div className="flex-shrink-0">
             {user ? (
-              <img src={user.profileImageUrl} alt="Avatar" className="w-12 h-12 rounded-full object-cover" />
+              <img src={user.profileImageUrl} alt="Avatar" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover" />
             ) : (
-              <div className={`w-12 h-12 rounded-full ${colors.bg} flex items-center justify-center font-bold text-lg text-white`}>
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${colors.bg} flex items-center justify-center font-bold text-lg text-white`}>
                 ?
               </div>
             )}
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <textarea
               className="w-full bg-linen dark:bg-coal text-ink dark:text-screen p-4 rounded-xl border border-bone dark:border-night-edge focus:outline-none resize-none transition-colors duration-200"
               style={{ outlineColor: "var(--accent-color)" }}
@@ -164,7 +164,7 @@ export default function ReviewSection({ itemType, itemApiId, accentColor }: Prop
               onChange={(e) => setContent(e.target.value)}
               disabled={!user || submitting}
             ></textarea>
-            <div className="flex justify-between items-center mt-3">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-3">
               <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
@@ -186,7 +186,7 @@ export default function ReviewSection({ itemType, itemApiId, accentColor }: Prop
               <button
                 onClick={handleSubmit}
                 disabled={!user || !content.trim() || submitting}
-                className={`px-6 py-2 ${colors.bg} text-white font-bold rounded-lg ${colors.bgHover} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`w-full sm:w-auto px-6 py-2.5 ${colors.bg} text-white font-bold rounded-xl ${colors.bgHover} transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base`}
               >
                 {submitting ? "Publicando..." : "Publicar Reseña"}
               </button>
@@ -204,35 +204,35 @@ export default function ReviewSection({ itemType, itemApiId, accentColor }: Prop
             </div>
           ) : (
             reviews.map((review) => (
-              <div key={review.id} className="flex gap-4 border-t border-bone dark:border-night-edge pt-6 group">
+              <div key={review.id} className="flex gap-3 sm:gap-4 border-t border-bone dark:border-night-edge pt-6 group">
                 <a href={`/u/${review.user.id}`} className="shrink-0">
-                  <img src={review.user.profileImageUrl} alt={review.user.username} className="w-12 h-12 rounded-full object-cover hover:opacity-80 transition-opacity" />
+                  <img src={review.user.profileImageUrl} alt={review.user.username} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover hover:opacity-80 transition-opacity" />
                 </a>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-3">
-                      <a href={`/u/${review.user.id}`} className={`font-bold ${colors.textActive} hover:underline`}>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between mb-1 gap-2">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                      <a href={`/u/${review.user.id}`} className={`font-bold text-sm sm:text-base ${colors.textActive} hover:underline truncate max-w-[120px] sm:max-w-none`}>
                         @{review.user.username}
                       </a>
-                      <span className="text-xs bg-linen dark:bg-night-edge px-2 py-0.5 rounded text-ink dark:text-screen border border-bone dark:border-night-edge flex items-center gap-1">
+                      <span className="text-[10px] sm:text-xs bg-linen dark:bg-night-edge px-1.5 sm:px-2 py-0.5 rounded text-ink dark:text-screen border border-bone dark:border-night-edge flex items-center gap-1 shrink-0">
                         <Icon icon="tabler:star-filled" className={`w-3 h-3 ${colors.text}`} />
                         {review.rating}/5
                       </span>
-                      <span className="text-xs text-slate dark:text-mist">
+                      <span className="text-[10px] sm:text-xs text-slate dark:text-mist shrink-0">
                         {getRelativeTime(review.createdAt)}
                       </span>
                     </div>
                     {user && user.id === review.user.id && (
                       <button 
                         onClick={() => handleDelete(review.id)}
-                        className="text-red-500 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                        className="text-red-500 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1 shrink-0"
                         title="Borrar reseña"
                       >
                         <Icon icon="tabler:trash" className="w-4 h-4" />
                       </button>
                     )}
                   </div>
-                  <p className="text-slate dark:text-mist whitespace-pre-wrap">{review.content}</p>
+                  <p className="text-slate dark:text-mist text-sm sm:text-base whitespace-pre-wrap break-words">{review.content}</p>
                 </div>
               </div>
             ))
