@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ChatWindow from "./ChatWindow";
 import { readSession } from "../../types/user";
 
@@ -7,6 +7,17 @@ export default function ChatButton() {
   // por lo que localStorage está disponible en el inicializador del estado.
   const [userId] = useState<number | null>(() => readSession()?.id ?? null);
   const [isOpen, setIsOpen] = useState(false);
+  const [targetUserId, setTargetUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const handleOpenChat = (e: Event) => {
+      const customEvent = e as CustomEvent<{ targetUserId: number }>;
+      setTargetUserId(customEvent.detail.targetUserId);
+      setIsOpen(true);
+    };
+    window.addEventListener("open-chat", handleOpenChat);
+    return () => window.removeEventListener("open-chat", handleOpenChat);
+  }, []);
 
   if (!userId) return null;
 
@@ -28,7 +39,16 @@ export default function ChatButton() {
         )}
       </button>
 
-      {isOpen && <ChatWindow userId={userId} onClose={() => setIsOpen(false)} />}
+      {isOpen && (
+        <ChatWindow
+          userId={userId}
+          initialTargetUserId={targetUserId}
+          onClose={() => {
+            setIsOpen(false);
+            setTargetUserId(null);
+          }}
+        />
+      )}
     </>
   );
 }

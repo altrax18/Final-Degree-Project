@@ -52,9 +52,9 @@ export default function MessageArea({ userId, conversationName, messages, onSend
               }`}
             >
               {msg.senderId !== userId && (
-                <p className="text-xs font-medium text-amethyst dark:text-electric-sky mb-1">
+                <a href={`/u/${msg.senderId}`} className="block text-xs font-medium text-amethyst dark:text-electric-sky mb-1 hover:underline cursor-pointer">
                   {msg.senderUsername}
-                </p>
+                </a>
               )}
               {msg.content}
             </div>

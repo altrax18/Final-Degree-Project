@@ -6,9 +6,10 @@ interface Props {
   collections: UserCollection[];
   loading: boolean;
   error: string | null;
-  createCollection: (name: string, type: "movie" | "music" | "game") => Promise<any>;
-  deleteCollection: (id: number) => Promise<void>;
-  removeItem: (colId: number, itemId: number) => Promise<void>;
+  createCollection?: (name: string, type: "movie" | "music" | "game") => Promise<any>;
+  deleteCollection?: (id: number) => Promise<void>;
+  removeItem?: (colId: number, itemId: number) => Promise<void>;
+  isReadOnly?: boolean;
 }
 
 // --- Equalizer animado estilo Spotify ---
@@ -64,7 +65,8 @@ export default function ProfileCollections({
   error, 
   createCollection, 
   deleteCollection, 
-  removeItem 
+  removeItem,
+  isReadOnly = false
 }: Props) {
   const [isCreating, setIsCreating] = useState(false);
   const [newListName, setNewListName] = useState("");
@@ -85,7 +87,7 @@ export default function ProfileCollections({
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newListName.trim()) return;
+    if (!newListName.trim() || !createCollection) return;
     const result = await createCollection(newListName, newListType);
     if (result) {
       setNewListName("");
@@ -155,16 +157,18 @@ export default function ProfileCollections({
         <div>
           <h2 className="text-2xl font-bold text-ink dark:text-screen tracking-tight">Mis Colecciones</h2>
           <p className="text-sm text-slate dark:text-mist mt-1">
-            Gestiona tus listas personalizadas de contenido
+            {isReadOnly ? "Colecciones públicas de este usuario" : "Gestiona tus listas personalizadas de contenido"}
           </p>
         </div>
-        <button
-          onClick={() => setIsCreating(!isCreating)}
-          className="flex items-center gap-2 px-4 py-2 bg-ink/5 dark:bg-white/5 hover:bg-ink/10 dark:hover:bg-white/10 border border-bone dark:border-night-edge rounded-xl text-ink dark:text-screen text-sm font-medium transition-all"
-        >
-          <Icon icon="tabler:plus" className="w-4 h-4" />
-          Nueva Lista
-        </button>
+        {!isReadOnly && (
+          <button
+            onClick={() => setIsCreating(!isCreating)}
+            className="flex items-center gap-2 px-4 py-2 bg-ink/5 dark:bg-white/5 hover:bg-ink/10 dark:hover:bg-white/10 border border-bone dark:border-night-edge rounded-xl text-ink dark:text-screen text-sm font-medium transition-all"
+          >
+            <Icon icon="tabler:plus" className="w-4 h-4" />
+            Nueva Lista
+          </button>
+        )}
       </div>
 
       {error && (
@@ -226,10 +230,14 @@ export default function ProfileCollections({
              <Icon icon="tabler:folders" className="w-8 h-8 opacity-20" />
           </div>
           <div className="text-center">
-            <p className="text-lg font-medium text-ink/60 dark:text-screen/60">Aún no tienes colecciones</p>
-            <p className="text-sm text-slate dark:text-mist max-w-xs mx-auto mt-1">
-              Empieza creando una lista para organizar tus películas, canciones o juegos favoritos.
+            <p className="text-lg font-medium text-ink/60 dark:text-screen/60">
+              {isReadOnly ? "No hay colecciones públicas" : "Aún no tienes colecciones"}
             </p>
+            {!isReadOnly && (
+              <p className="text-sm text-slate dark:text-mist max-w-xs mx-auto mt-1">
+                Empieza creando una lista para organizar tus películas, canciones o juegos favoritos.
+              </p>
+            )}
           </div>
         </div>
       ) : (
@@ -308,15 +316,17 @@ export default function ProfileCollections({
                                     <Icon icon="tabler:player-play-filled" className="w-5 h-5" />
                                   </button>
                                 )}
-                                <button 
-                                  onClick={() => {
-                                    if(confirm("¿Estás seguro de que quieres eliminar esta lista?")) deleteCollection(col.id);
-                                  }}
-                                  className="p-2 text-slate/50 dark:text-mist/50 hover:text-rose-500 transition-colors"
-                                  title="Eliminar lista"
-                                >
-                                  <Icon icon="tabler:trash" className="w-4 h-4" />
-                                </button>
+                                {!isReadOnly && deleteCollection && (
+                                  <button 
+                                    onClick={() => {
+                                      if(confirm("¿Estás seguro de que quieres eliminar esta lista?")) deleteCollection(col.id);
+                                    }}
+                                    className="p-2 text-slate/50 dark:text-mist/50 hover:text-rose-500 transition-colors"
+                                    title="Eliminar lista"
+                                  >
+                                    <Icon icon="tabler:trash" className="w-4 h-4" />
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -388,13 +398,15 @@ export default function ProfileCollections({
                                           <Icon icon={isPlaying ? "tabler:player-pause-filled" : "tabler:player-play-filled"} className="w-3.5 h-3.5" />
                                         </button>
                                       )}
-                                      <button 
-                                        onClick={() => removeItem(col.id, item.id)}
-                                        className="opacity-0 group-hover/item:opacity-100 p-1.5 text-slate/50 dark:text-mist/50 hover:text-rose-500 transition-all"
-                                        title="Eliminar de la lista"
-                                      >
-                                        <Icon icon="tabler:x" className="w-3.5 h-3.5" />
-                                      </button>
+                                      {!isReadOnly && removeItem && (
+                                        <button 
+                                          onClick={() => removeItem(col.id, item.id)}
+                                          className="opacity-0 group-hover/item:opacity-100 p-1.5 text-slate/50 dark:text-mist/50 hover:text-rose-500 transition-all"
+                                          title="Eliminar de la lista"
+                                        >
+                                          <Icon icon="tabler:x" className="w-3.5 h-3.5" />
+                                        </button>
+                                      )}
                                     </div>
                                   </div>
                                 );
