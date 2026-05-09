@@ -12,6 +12,8 @@ export default function MovieDetailsClient({ movie }: Props) {
   const [showCollections, setShowCollections] = useState(false);
   const { collections, addItem } = useCollections();
   const menuRef = useRef<HTMLDivElement>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Cerrar menú al hacer click fuera
   useEffect(() => {
@@ -37,7 +39,18 @@ export default function MovieDetailsClient({ movie }: Props) {
       }
     });
     setShowCollections(false);
-    alert("¡Película añadida a la colección!");
+
+    setToastMessage("¡Película añadida a tu lista!");
+
+    // CONCEPTO: Feedback Auditivo
+    const popSound = new Audio('/popList.mp3');
+    popSound.volume = 0.3;
+    popSound.play().catch(() => {});
+
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
   };
 
   const relevantCollections = collections.filter(c => c.type === "movie");
@@ -281,10 +294,10 @@ export default function MovieDetailsClient({ movie }: Props) {
                             key={col.id}
                             onClick={() => !isAdded && handleAddToCollection(col.id)}
                             disabled={isAdded}
-                            className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between transition-colors ${
+                            className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between transition-all ${
                               isAdded 
                                 ? "text-red-500 bg-red-500/5 cursor-default" 
-                                : "text-ink dark:text-white/70 hover:bg-red-600/10 hover:text-red-500"
+                                : "cursor-pointer text-ink dark:text-white/70 hover:bg-red-600/10 hover:text-red-500 active:scale-[0.98]"
                             }`}
                           >
                             <div className="flex items-center gap-3 truncate">
@@ -299,7 +312,7 @@ export default function MovieDetailsClient({ movie }: Props) {
                   </div>
                   <a 
                     href="/profile" 
-                    className="block text-center p-3 text-[10px] font-bold text-red-500 hover:text-red-400 border-t border-bone dark:border-white/5 uppercase tracking-wider"
+                    className="block cursor-pointer text-center p-3 text-[10px] font-bold text-red-500 hover:bg-red-500/10 hover:text-red-400 border-t border-bone dark:border-white/5 uppercase tracking-wider transition-colors"
                   >
                     + Nueva Lista
                   </a>
@@ -310,6 +323,14 @@ export default function MovieDetailsClient({ movie }: Props) {
           </aside>
         </div>
       </div>
+
+      {/* CONCEPTO: Toast Notification (Notificación Flotante) */}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2.5 rounded-full border border-bone/20 bg-ink px-5 py-3 text-sm font-semibold text-screen shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-300 dark:border-night-edge/20 dark:bg-screen dark:text-ink">
+          <Icon icon="tabler:circle-check-filled" className="h-6 w-6 text-emerald-400 dark:text-emerald-500 animate-in zoom-in duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </article>
   );
 }

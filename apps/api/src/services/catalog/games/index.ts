@@ -1,1 +1,1 @@
-export { browseGames, getGameByApiId } from "./read";
+export { browseGames, getGameByApiId, getTrendingGames } from "./read";

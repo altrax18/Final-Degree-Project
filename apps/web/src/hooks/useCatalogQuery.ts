@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCatalogFilters } from "../components/shared/catalog/catalogFilterStore";
 
 // HOOK COMPARTIDO: useCatalogQuery
@@ -39,6 +39,8 @@ export function useCatalogQuery<T>(
   const { searchTerm, selectedGenres, currentPage, setCurrentPage } =
     useCatalogFilters(catalogKey);
 
+  const queryClient = useQueryClient();
+
   const [pageSize, setPageSize] = useState<number>(defaultPageSize);
 
   const queryKey = [
@@ -50,33 +52,42 @@ export function useCatalogQuery<T>(
     pageSize,
   ];
 
+  const queryFn = async (pageToFetch: number) => {
+    const url = new URL(`${getApiBaseUrl()}${apiPath}`);
+    if (searchTerm.trim().length > 0) {
+      url.searchParams.set("q", searchTerm.trim());
+    }
+    url.searchParams.set("page", String(pageToFetch));
+    url.searchParams.set("limit", String(pageSize));
+    if (selectedGenres.length > 0) {
+      url.searchParams.set("genres", selectedGenres.join(","));
+    }
+
+    const res = await fetch(url.toString());
+    if (!res.ok) throw new Error("No se pudo cargar el catálogo");
+    return (await res.json()) as CatalogPage<T>;
+  };
+
   const query = useQuery<CatalogPage<T>>({
     queryKey,
-    queryFn: async () => {
-      const url = new URL(`${getApiBaseUrl()}${apiPath}`);
-      if (searchTerm.trim().length > 0) {
-        url.searchParams.set("q", searchTerm.trim());
-      }
-      url.searchParams.set("page", String(currentPage));
-      url.searchParams.set("limit", String(pageSize));
-      if (selectedGenres.length > 0) {
-        url.searchParams.set("genres", selectedGenres.join(","));
-      }
-
-      const res = await fetch(url.toString());
-      if (!res.ok) throw new Error("No se pudo cargar el catálogo");
-      return (await res.json()) as CatalogPage<T>;
-    },
+    queryFn: () => queryFn(currentPage),
     // Solo usamos initialData cuando no hay filtros activos y estamos en la primera página.
     initialData:
       initialData &&
       searchTerm.trim().length === 0 &&
       selectedGenres.length === 0 &&
-      currentPage === 1
+      currentPage === 1 &&
+      pageSize === initialData.perPage
         ? initialData
         : undefined,
-    placeholderData: undefined,
-    refetchOnMount: "always",
+    // CONCEPTO: Patrón de Paginación Fluida (Keep Previous Data)
+    // QUE HACE: Mantiene en pantalla los datos de la página actual mientras se descarga la siguiente.
+    // POR QUE LO USO: Evita el parpadeo a "No hay resultados" durante la carga de nuevas páginas.
+    placeholderData: (prev) => prev,
+    // CONCEPTO: Caché de Cliente Avanzada (Stale Time)
+    // QUE HACE: Considera los datos frescos durante 1 minuto. No hace fetch al volver atrás.
+    // POR QUE LO USO: Elimina tiempos de carga innecesarios y reduce peticiones al servidor.
+    staleTime: 1000 * 60,
   });
 
   // Garantiza que la página actual siempre esté dentro del rango devuelto por el servidor.
@@ -87,6 +98,41 @@ export function useCatalogQuery<T>(
       setCurrentPage(totalPages);
     }
   }, [query.data, currentPage, setCurrentPage]);
+
+  // CONCEPTO: Prefetching Proactivo
+  // QUE HACE: Carga los datos de la página siguiente en segundo plano.
+  // POR QUE LO USO: Hace que la navegación a la siguiente página sea instantánea.
+  useEffect(() => {
+    if (
+      !query.isPlaceholderData &&
+      query.data &&
+      query.data.totalPages > currentPage
+    ) {
+      const nextPage = currentPage + 1;
+      const nextQueryKey = [
+        "catalog",
+        apiPath.replace("/api/", ""),
+        searchTerm,
+        selectedGenres.join("|"),
+        nextPage,
+        pageSize,
+      ];
+      queryClient.prefetchQuery({
+        queryKey: nextQueryKey,
+        queryFn: () => queryFn(nextPage),
+      });
+    }
+  }, [
+    currentPage,
+    query.isPlaceholderData,
+    query.data,
+    queryClient,
+    apiPath,
+    searchTerm,
+    selectedGenres,
+    pageSize,
+    queryFn,
+  ]);
 
   const items = query.data?.items ?? [];
   const totalPages = query.data?.totalPages ?? 1;
