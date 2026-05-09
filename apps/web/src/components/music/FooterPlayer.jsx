@@ -109,6 +109,26 @@ export default function FooterPlayer() {
   }, [currentTrack]);
 
   useEffect(() => {
+    if (isVisible) {
+      document.body.classList.add("has-active-player");
+    } else {
+      document.body.classList.remove("has-active-player");
+    }
+
+    const handleSwap = () => {
+      if (isVisible) {
+        document.body.classList.add("has-active-player");
+      }
+    };
+    document.addEventListener("astro:after-swap", handleSwap);
+
+    return () => {
+      document.body.classList.remove("has-active-player");
+      document.removeEventListener("astro:after-swap", handleSwap);
+    };
+  }, [isVisible]);
+
+  useEffect(() => {
     window.dispatchEvent(
       new CustomEvent("player-state", {
         detail: { id: currentTrack?.id, playing: isPlaying },

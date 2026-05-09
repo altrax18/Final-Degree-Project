@@ -1,63 +1,68 @@
 ---
 // src/pages/music.astro
 import Layout from "../layouts/Layout.astro";
-import MusicGrid from "../components/music/MusicGrid.jsx";
+import MusicCatalogClient from "../components/music/MusicCatalogClient";
 import { serverApi } from "../lib/server-api";
 
-// Obtener canciones en tendencia en el servidor vía Eden Treaty (tipado fuerte)
-let tracks: any[] = [];
-let fetchError: string | null = null;
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=60, stale-while-revalidate=120",
+);
 
-const { data, error } = await serverApi.api.music.trending.songs.get();
-if (error) {
-  fetchError =
-    "Could not reach the API. Make sure apps/api is running on port 3000.";
-} else if (data && typeof data === "object" && "results" in data) {
-  tracks = (data as any).results ?? [];
+let music: {
+  items: any[];
+  total: number;
+  page: number;
+  perPage: number;
+  totalPages: number;
+  genres: string[];
+} = {
+  items: [],
+  total: 0,
+  page: 1,
+  perPage: 20,
+  totalPages: 1,
+  genres: [],
+};
+let errorMessage = "";
+
+try {
+  const { data, error } = await serverApi.api.music.get();
+  if (error) {
+    throw new Error(
+      typeof error.value === "string" ? error.value : "API no disponible",
+    );
+  }
+  music = data as typeof music;
+} catch (error) {
+  errorMessage =
+    error instanceof Error ? error.message : "No se pudieron cargar las canciones";
 }
 ---
 
-<Layout title="Music">
-  <section class="space-y-8">
-    <!-- Encabezado -->
-    <div class="space-y-1">
-      <h1 class="text-3xl font-bold text-ink dark:text-screen tracking-tight">🎵 Music</h1>
-      <p class="text-slate dark:text-mist text-sm">
-        Top songs right now — powered by Apple Music · iTunes preview (30s)
+<Layout title="Explorar Música - Alexandria">
+  <main class="min-h-screen pt-8">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+      <h1
+        class="text-4xl md:text-5xl font-extrabold text-ink dark:text-screen mb-4 tracking-tight"
+      >
+        Catálogo de <span class="text-sapphire dark:text-electric-sky">Música</span>
+      </h1>
+      <p class="text-slate dark:text-mist text-lg max-w-2xl mx-auto mb-8">
+        Descubre canciones populares, busca por título o artista y navega por páginas sin límite fijo local.
       </p>
     </div>
 
-    <!-- Estado de error -->
     {
-      fetchError && (
-        <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
-          ⚠️ {fetchError}
-        </div>
-      )
-    }
-
-    <!-- Cuadrícula de pistas con cargar más -->
-    {
-      tracks.length > 0 && (
-        <MusicGrid
-          client:load
-          initialTracks={tracks}
-          pageSize={tracks.length}
-        />
-      )
-    }
-
-    <!-- Estado vacío -->
-    {
-      !fetchError && tracks.length === 0 && (
-        <div class="flex flex-col items-center justify-center py-24 gap-4 text-slate dark:text-mist">
-          <span class="text-6xl">🎵</span>
-          <p class="text-lg font-medium">No tracks found</p>
-          <p class="text-sm">
-            Make sure the API is running and iTunes is reachable.
+      errorMessage && (
+        <div class="max-w-3xl mx-auto mt-8 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-center">
+          <p>
+            {errorMessage}. Verifica que apps/api esté corriendo en el puerto 3000.
           </p>
         </div>
       )
     }
-  </section>
+
+    {!errorMessage && <MusicCatalogClient client:load initialMusic={music} />}
+  </main>
 </Layout>

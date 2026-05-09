@@ -3,8 +3,8 @@ import { DEFAULT_AVATAR } from "../../types/user";
 import type { UserCollection } from "../../types/collection";
 
 const typeLabel: Record<UserCollection["type"], string> = {
-  music: "Musica",
-  movie: "Peliculas",
+  music: "Música",
+  movie: "Películas",
   game: "Juegos",
 };
 
