@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useChat } from "../../hooks/useChat";
 import type { ChatConversation } from "../../hooks/useChat";
 import ConversationList from "./ConversationList";
@@ -6,6 +6,7 @@ import MessageArea from "./MessageArea";
 
 type Props = {
   userId: number;
+  initialTargetUserId?: number | null;
   onClose: () => void;
 };
 
@@ -23,9 +24,16 @@ function getInterlocutorImage(conv: ChatConversation, userId: number): string | 
   return null;
 }
 
-export default function ChatWindow({ userId, onClose }: Props) {
+export default function ChatWindow({ userId, initialTargetUserId, onClose }: Props) {
   const { conversations, messages, sendMessage, subscribe, fetchMessages, markRead, startConversation } = useChat(userId);
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
+
+  // Check if we need to start a conversation with the initial target user
+  useEffect(() => {
+    if (initialTargetUserId) {
+      handleStartConversation(initialTargetUserId);
+    }
+  }, [initialTargetUserId]);
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId) ?? null;
 

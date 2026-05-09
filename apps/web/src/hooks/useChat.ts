@@ -25,8 +25,7 @@ export type ChatMessage = {
   createdAt: string;
 };
 
-const API_URL =
-  (import.meta.env.PUBLIC_API_URL as string | undefined) ?? "";
+const API_URL = ((import.meta.env.PUBLIC_API_URL as string | undefined) ?? "").replace(/\/api\/?$/, "");
 
 export function useChat(userId: number) {
   const [isConnected, setIsConnected] = useState(false);

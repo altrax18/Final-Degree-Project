@@ -1,0 +1,18 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PublicProfile from "../../components/profile/PublicProfile.tsx";
+
+// Obtenemos el parámetro dinámico :id
+const { id } = Astro.params;
+
+// Si no hay id, Astro puede lanzar 404, pero para SSR aseguramos validarlo o parsearlo a número
+const targetUserId = parseInt(id as string, 10);
+
+if (isNaN(targetUserId)) {
+  return Astro.redirect('/404');
+}
+---
+
+<Layout title="Perfil de Usuario">
+  <PublicProfile targetUserId={targetUserId} client:only="react" />
+</Layout>

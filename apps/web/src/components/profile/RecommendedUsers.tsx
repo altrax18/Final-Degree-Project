@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { DEFAULT_AVATAR } from "../../types/user";
 
-const API_URL = (import.meta.env.PUBLIC_API_URL as string | undefined) ?? "";
+const API_URL = ((import.meta.env.PUBLIC_API_URL as string | undefined) ?? "").replace(/\/api\/?$/, "");
 
 type RecommendedUser = {
   id: number;
@@ -19,7 +19,7 @@ function UserCard({ user }: { user: RecommendedUser }) {
   const matchPct = Math.max(0, Math.round(Number(user.similarity) * 100));
 
   return (
-    <div className="flex items-center gap-2.5 py-2 px-3 rounded-lg hover:bg-sand dark:hover:bg-coal transition-colors">
+    <a href={`/u/${user.id}`} className="flex items-center gap-2.5 py-2 px-3 rounded-lg hover:bg-sand dark:hover:bg-coal transition-colors decoration-transparent cursor-pointer">
       <img
         src={avatar}
         alt={user.username}
@@ -28,11 +28,11 @@ function UserCard({ user }: { user: RecommendedUser }) {
           (e.currentTarget as HTMLImageElement).src = DEFAULT_AVATAR;
         }}
       />
-      <span className="text-sm text-ink dark:text-screen truncate flex-1">
+      <span className="text-sm text-ink dark:text-screen truncate flex-1 font-medium hover:underline">
         {user.username}
       </span>
       <span className="text-xs text-slate dark:text-mist shrink-0">{matchPct}%</span>
-    </div>
+    </a>
   );
 }
 

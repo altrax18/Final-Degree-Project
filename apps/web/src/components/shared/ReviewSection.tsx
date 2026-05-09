@@ -205,11 +205,15 @@ export default function ReviewSection({ itemType, itemApiId, accentColor }: Prop
           ) : (
             reviews.map((review) => (
               <div key={review.id} className="flex gap-4 border-t border-bone dark:border-night-edge pt-6 group">
-                <img src={review.user.profileImageUrl} alt={review.user.username} className="w-12 h-12 rounded-full object-cover" />
+                <a href={`/u/${review.user.id}`} className="shrink-0">
+                  <img src={review.user.profileImageUrl} alt={review.user.username} className="w-12 h-12 rounded-full object-cover hover:opacity-80 transition-opacity" />
+                </a>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-3">
-                      <span className={`font-bold ${colors.textActive}`}>@{review.user.username}</span>
+                      <a href={`/u/${review.user.id}`} className={`font-bold ${colors.textActive} hover:underline`}>
+                        @{review.user.username}
+                      </a>
                       <span className="text-xs bg-linen dark:bg-night-edge px-2 py-0.5 rounded text-ink dark:text-screen border border-bone dark:border-night-edge flex items-center gap-1">
                         <Icon icon="tabler:star-filled" className={`w-3 h-3 ${colors.text}`} />
                         {review.rating}/5
