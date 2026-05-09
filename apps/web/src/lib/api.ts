@@ -89,6 +89,24 @@ export async function getGames(): Promise<Game[]> {
   );
 }
 
+// CONCEPTO: Endpoints de Tendencias (Cine y Juegos)
+// QUE HACE: Obtienen el catálogo dinámico de lo más popular actualmente.
+// POR QUE LO USO: Permite que la Home se sienta viva sin cargar todo el catálogo.
+// DOCUMENTACION: https://elysiajs.com/eden/treaty/overview.html
+export async function getTrendingMovies(): Promise<Movie[]> {
+  return requestApi<Movie[]>(
+    () => api.api.movies.trending.get() as Promise<EdenResponse>,
+    "No se pudieron cargar las tendencias de cine",
+  );
+}
+
+export async function getTrendingGames(): Promise<Game[]> {
+  return requestApi<Game[]>(
+    () => api.api.games.trending.get() as Promise<EdenResponse>,
+    "No se pudieron cargar las tendencias de juegos",
+  );
+}
+
 // CONCEPTO: Endpoint Parametrizado de Detalle
 // QUE HACE: Consulta un juego especifico por ID usando la ruta /api/games/:id.
 // POR QUE LO USO: Separa la carga de listado y detalle para evitar traer datos pesados en el catalogo.

@@ -349,10 +349,13 @@ export async function browseMoviesPage(query: {
         : normalizedCombinedMovies.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const offsetWithinCombined = (page - 1) * perPage;
-  const normalizedMovies = normalizedCombinedMovies.slice(
-    offsetWithinCombined,
-    offsetWithinCombined + perPage,
-  );
+  const normalizedMovies =
+    searchTerm.length > 0 && selectedGenreIds.length > 0
+      ? normalizedCombinedMovies.slice(
+          offsetWithinCombined,
+          offsetWithinCombined + perPage,
+        )
+      : normalizedCombinedMovies;
   const genres = Array.from(genreById.values());
 
   const responsePayload: PaginatedCatalogResponse<unknown> = {
@@ -367,6 +370,30 @@ export async function browseMoviesPage(query: {
   moviesListCache.set(cacheKey, { data: responsePayload, ts: Date.now() });
 
   return responsePayload;
+}
+
+// CONCEPTO: Consumo de Tendencias Reales (TMDB)
+// QUE HACE: Llama al endpoint oficial de TMDB para obtener lo mas visto de la semana y lo normaliza.
+// POR QUE LO USO: Provee datos reales y frescos sin que nuestro servidor tenga que calcular la popularidad.
+// DOCUMENTACION: https://developer.themoviedb.org/reference/trending-movies
+export async function getTrendingMovies(): Promise<unknown[]> {
+  const { headers, authQuery } = resolveTmdbAuth();
+
+  const { response, payload } = await fetchJsonWithTimeout(
+    `https://api.themoviedb.org/3/trending/movie/week?${authQuery}language=es-ES`,
+    { headers },
+  );
+
+  if (!response.ok || !Array.isArray((payload as any)?.results)) {
+    throw new Error(
+      `TMDB rechazó la solicitud de tendencias (${response.status})`,
+    );
+  }
+
+  const genreById = await getGenreMap(headers, authQuery);
+  const normalizedMovies = normalizeMovies((payload as any).results, genreById);
+
+  return normalizedMovies.slice(0, 10);
 }
 
 export async function getMovieByApiId(apiId: string): Promise<unknown> {

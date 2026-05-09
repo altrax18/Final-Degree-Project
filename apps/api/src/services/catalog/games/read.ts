@@ -322,6 +322,37 @@ export async function browseGamesPage(query: {
   return response;
 }
 
+export async function getTrendingGames(): Promise<unknown[]> {
+  const token = await getTwitchToken();
+
+  // CONCEPTO: Simulacion de Tendencias (IGDB)
+  // QUE HACE: Busca los juegos lanzados en los ultimos 6 meses y los ordena por su cantidad de calificaciones.
+  // POR QUE LO USO: IGDB no tiene un endpoint de "trending" nativo, esta es la forma mas precisa de calcular la popularidad actual.
+  // DOCUMENTACION: https://api-docs.igdb.com/#game
+  const sixMonthsAgo = Math.floor(Date.now() / 1000) - 180 * 24 * 60 * 60;
+  const query = `fields name, cover.url, summary, total_rating, first_release_date, genres.name, platforms.name; where first_release_date > ${sixMonthsAgo} & cover != null; sort total_rating_count desc; limit 10;`;
+
+  const { response, payload } = await fetchJsonWithTimeout(
+    "https://api.igdb.com/v4/games",
+    {
+      method: "POST",
+      headers: {
+        "Client-ID": process.env.TWITCH_CLIENT_ID!,
+        Authorization: `Bearer ${token}`,
+      },
+      body: query,
+    },
+  );
+
+  if (!response.ok || !Array.isArray(payload)) {
+    throw new Error(
+      `IGDB rechazó la solicitud de tendencias (${response.status})`,
+    );
+  }
+
+  return payload.map((game: any) => mapIgdbBaseGameFields(game));
+}
+
 export async function getGameByApiId(apiId: string): Promise<unknown> {
   const parsedGameId = parsePositiveGameId(apiId);
 

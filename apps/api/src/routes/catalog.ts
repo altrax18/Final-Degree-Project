@@ -1,6 +1,14 @@
 import { Elysia } from "elysia";
-import { browseMovies, getMovieByApiId } from "../services/catalog/movies";
-import { browseGames, getGameByApiId } from "../services/catalog/games";
+import {
+  browseMovies,
+  getMovieByApiId,
+  getTrendingMovies,
+} from "../services/catalog/movies";
+import {
+  browseGames,
+  getGameByApiId,
+  getTrendingGames,
+} from "../services/catalog/games";
 import {
   browseMusic,
   getLyrics,
@@ -14,16 +22,21 @@ import {
 } from "../services/catalog/music";
 
 export const catalogRoutes = new Elysia()
+  // CONCEPTO: Exposición de Tendencias de Cine
+  // QUE HACE: Crea un endpoint publico para entregar las peliculas populares.
+  // POR QUE LO USO: Mantiene separada la logica de peticion a TMDB de la interfaz web.
+  // DOCUMENTACION: https://elysiajs.com/essential/route.html
+  .get("/api/movies/trending", async () => getTrendingMovies())
   // CONCEPTO: Endpoint de Listado de Peliculas
   // QUE HACE: Expone el catalogo de peliculas normalizado en la ruta consumida por frontend.
   // POR QUE LO USO: Mantiene compatibilidad con el cliente Eden actual sin logica extra en UI.
   // DOCUMENTACION: https://elysiajs.com/essential/handler.html
   .get("/api/movies", async ({ query }) =>
     browseMovies({
-      q: query.q as string | undefined,
-      page: query.page as string | undefined,
-      limit: query.limit as string | undefined,
-      genres: query.genres as string | undefined,
+      q: query.q || undefined,
+      page: query.page || undefined,
+      limit: query.limit || undefined,
+      genres: query.genres || undefined,
     }),
   )
   .get("/api/movies/:apiId", async ({ params }) => {
@@ -31,17 +44,22 @@ export const catalogRoutes = new Elysia()
     if (!movie) return new Response("Not found", { status: 404 });
     return movie;
   })
+  // CONCEPTO: Exposición de Tendencias de Juegos
+  // QUE HACE: Crea un endpoint publico para entregar los juegos populares.
+  // POR QUE LO USO: Protege los tokens de Twitch/IGDB en el backend y solo envia la data lista.
+  // DOCUMENTACION: https://elysiajs.com/essential/route.html
+  .get("/api/games/trending", async () => getTrendingGames())
   // CONCEPTO: Endpoint de Listado de Juegos
   // QUE HACE: Publica juegos normalizados en la ruta usada por el catalogo web.
   // POR QUE LO USO: Separa capa HTTP de la capa de servicios y facilita mantenimiento.
   // DOCUMENTACION: https://elysiajs.com/essential/handler.html
   .get("/api/games", async ({ query }) =>
     browseGames({
-      q: query.q as string | undefined,
-      page: query.page as string | undefined,
-      limit: query.limit as string | undefined,
-      genres: query.genres as string | undefined,
-      genre: query.genre as string | undefined,
+      q: query.q || undefined,
+      page: query.page || undefined,
+      limit: query.limit || undefined,
+      genres: query.genres || undefined,
+      genre: query.genre || undefined,
     }),
   )
   .get("/api/games/:apiId", async ({ params }) => {

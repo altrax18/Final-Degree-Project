@@ -1,202 +1,81 @@
-import { useState, useEffect, useRef } from "react";
 import type { Game } from "../../types/game";
-import { useCollections } from "../../hooks/useCollections";
-import { Icon } from "@iconify/react";
-import ReviewSection from "../shared/ReviewSection";
+import SharedDetailsLayout from "../shared/details/SharedDetailsLayout";
 
 interface Props {
   game: Game;
 }
 
 export default function GameDetailsClient({ game }: Props) {
-  const [showCollections, setShowCollections] = useState(false);
-  const { collections, addItem } = useCollections();
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // Cerrar menú al hacer click fuera
-  useEffect(() => {
-    const handleClickOutside = (event: any) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setShowCollections(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleAddToCollection = async (collectionId: number) => {
-    await addItem(collectionId, {
-      apiId: game.id,
-      title: game.title,
-      type: "game",
-      metadata: {
-        image: game.image,
-        rating: game.rating,
-        genres: game.genres,
-        developer: game.developer
-      }
-    });
-    setShowCollections(false);
-    alert("¡Juego añadido a la colección!");
-  };
-
-  const relevantCollections = collections.filter(c => c.type === "game");
-
-  // CONCEPTO: Formateo de Fechas Nativo (Intl.DateTimeFormat)
   const releaseDate = game.firstReleaseDate
     ? new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "long", year: "numeric" }).format(new Date(game.firstReleaseDate * 1000))
     : "Fecha desconocida";
 
-  const heroBackground = game.screenshots && game.screenshots.length > 0 
-    ? game.screenshots[0] 
-    : game.image;
+  const leftColumn = (
+    <>
+      <section>
+        <h2 className="text-2xl font-bold mb-4 border-b border-bone dark:border-night-edge pb-2">Acerca del juego</h2>
+        <p className="text-slate dark:text-mist leading-relaxed text-lg">{game.summary}</p>
+        {game.storyline && (
+          <div className="mt-6 p-6 bg-linen dark:bg-coal rounded-xl border border-bone dark:border-night-edge italic text-slate dark:text-mist">
+            "{game.storyline}"
+          </div>
+        )}
+      </section>
+
+      {game.screenshots && game.screenshots.length > 0 && (
+        <section>
+          <h2 className="text-2xl font-bold mb-4 border-b border-bone dark:border-night-edge pb-2">Galería</h2>
+          <div className="grid grid-cols-2 gap-4">
+            {game.screenshots.slice(0, 4).map((shot, idx) => (
+              <img key={idx} src={shot} alt={`Captura ${idx + 1}`} className="rounded-lg object-cover w-full aspect-video hover:opacity-80 transition cursor-pointer border border-bone dark:border-night-edge" />
+            ))}
+          </div>
+        </section>
+      )}
+    </>
+  );
+
+  const rightColumn = (
+    <>
+      <div>
+        <h3 className="text-sm uppercase tracking-widest text-slate dark:text-mist mb-3 font-bold">Plataformas</h3>
+        <div className="flex flex-wrap gap-2">
+          {game.platforms.map(p => (
+            <span key={p} className="px-3 py-1 bg-linen dark:bg-night-edge text-sm rounded-md text-slate dark:text-mist">{p}</span>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm uppercase tracking-widest text-slate dark:text-mist mb-3 font-bold">Géneros</h3>
+        <div className="flex flex-wrap gap-2">
+          {game.genres.map(g => (
+            <span key={g} className="px-3 py-1 bg-blue-500/20 text-blue-300 text-sm rounded-md border border-blue-500/30">{g}</span>
+          ))}
+        </div>
+      </div>
+    </>
+  );
 
   return (
-    <article className="min-h-screen bg-parchment dark:bg-obsidian text-ink dark:text-screen w-full">
-      {/* 1. HERO SECTION (Cabecera Visual) */}
-      {/* CONCEPTO: Hero Pattern con Máscaras de Gradiente
-          QUÉ HACE: Pone una imagen grande de fondo y usa degradados de negro a transparente para fundirla con el resto de la página.
-          POR QUÉ LO USO: Es el estándar de diseño actual (Spotify, Netflix, Steam) para dar inmersión visual sin sacrificar legibilidad del texto.
-          DOCUMENTACIÓN: https://tailwindcss.com/docs/background-image#linear-gradients */}
-      <div className="relative w-full h-[50vh] md:h-[60vh] flex items-end justify-center">
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-30 mask-image-gradient"
-          style={{ backgroundImage: `url(${heroBackground})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-parchment dark:from-obsidian via-parchment/60 dark:via-obsidian/60 to-transparent" />
-        
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 pb-10 flex flex-col md:flex-row items-end gap-8">
-          {/* Portada */}
-          <div className="w-48 md:w-64 flex-shrink-0 rounded-2xl overflow-hidden shadow-2xl border-2 border-bone dark:border-night-edge shadow-black/50 transform md:translate-y-16">
-            <img src={game.image || ""} alt={game.title} className="w-full h-auto object-cover aspect-[3/4]" />
-          </div>
-          
-          {/* Título y Metadatos Rápidos */}
-          <div className="flex-1 pb-4">
-            <p className="text-blue-400 font-semibold tracking-widest uppercase text-xs mb-2">{game.developer}</p>
-            <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-4 drop-shadow-lg">{game.title}</h1>
-            
-            <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate dark:text-mist">
-              <span className="flex items-center gap-1 bg-ink/10 dark:bg-screen/10 px-3 py-1 rounded-full backdrop-blur-md">
-                ⭐ <span className="text-ink dark:text-screen font-bold">{game.rating}</span> / 100
-              </span>
-              <span className="bg-ink/10 dark:bg-screen/10 px-3 py-1 rounded-full backdrop-blur-md">📅 {releaseDate}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. CONTENIDO PRINCIPAL (Grid 2 Columnas) */}
-      <div className="w-full max-w-7xl mx-auto px-4 py-16 md:py-24 mt-8">
-        {/* CONCEPTO: CSS Grid para Layout Asimétrico
-            QUÉ HACE: Divide la pantalla en 3 fracciones: 2 para el resumen (izquierda) y 1 para la ficha técnica (derecha).
-            POR QUÉ LO USO: Es perfecto para artículos o detalles de productos, guiando la lectura hacia el texto principal y dejando los metadatos como barra lateral.
-            DOCUMENTACIÓN: https://tailwindcss.com/docs/grid-template-columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          
-          {/* Columna Izquierda: Historia y Detalles */}
-          <div className="lg:col-span-2 space-y-10">
-            <section>
-              <h2 className="text-2xl font-bold mb-4 border-b border-bone dark:border-night-edge pb-2">Acerca del juego</h2>
-              <p className="text-slate dark:text-mist leading-relaxed text-lg">{game.summary}</p>
-              {game.storyline && (
-                <div className="mt-6 p-6 bg-linen dark:bg-coal rounded-xl border border-bone dark:border-night-edge italic text-slate dark:text-mist">
-                  "{game.storyline}"
-                </div>
-              )}
-            </section>
-
-            {/* Capturas de Pantalla */}
-            {game.screenshots && game.screenshots.length > 0 && (
-              <section>
-                <h2 className="text-2xl font-bold mb-4 border-b border-bone dark:border-night-edge pb-2">Galería</h2>
-                <div className="grid grid-cols-2 gap-4">
-                  {game.screenshots.slice(0, 4).map((shot, idx) => (
-                    <img key={idx} src={shot} alt={`Captura ${idx + 1}`} className="rounded-lg object-cover w-full aspect-video hover:opacity-80 transition cursor-pointer border border-bone dark:border-night-edge" />
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
-
-          {/* Columna Derecha: Ficha Técnica */}
-          <aside className="space-y-8 bg-sand dark:bg-coal p-6 rounded-2xl border border-bone dark:border-night-edge h-fit">
-            <div>
-              <h3 className="text-sm uppercase tracking-widest text-slate dark:text-mist mb-3 font-bold">Plataformas</h3>
-              <div className="flex flex-wrap gap-2">
-                {game.platforms.map(p => (
-                  <span key={p} className="px-3 py-1 bg-linen dark:bg-night-edge text-sm rounded-md text-slate dark:text-mist">{p}</span>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-sm uppercase tracking-widest text-slate dark:text-mist mb-3 font-bold">Géneros</h3>
-              <div className="flex flex-wrap gap-2">
-                {game.genres.map(g => (
-                  <span key={g} className="px-3 py-1 bg-blue-500/20 text-blue-300 text-sm rounded-md border border-blue-500/30">{g}</span>
-                ))}
-              </div>
-            </div>
-            
-            {/* Botón de Llamada a la Acción (CTA) */}
-            <div className="relative" ref={menuRef}>
-              <button 
-                onClick={() => setShowCollections(!showCollections)}
-                className="w-full py-4 bg-ink dark:bg-screen text-screen dark:text-ink font-bold rounded-xl hover:bg-ink/80 dark:hover:bg-screen/80 transition-transform active:scale-95 shadow-[0_0_20px_rgba(0,0,0,0.2)] dark:shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2"
-              >
-                <Icon icon="tabler:plus" className="w-5 h-5" />
-                Añadir a mi Colección
-              </button>
-
-              {showCollections && (
-                <div className="absolute bottom-full left-0 mb-3 w-full bg-white dark:bg-night-edge border border-bone dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                  <div className="p-3 border-b border-bone dark:border-white/5">
-                    <p className="text-[10px] font-bold text-slate dark:text-white/40 uppercase tracking-widest px-2 text-left">Mis Listas de Juegos</p>
-                  </div>
-                  <div className="max-h-60 overflow-y-auto">
-                    {relevantCollections.length === 0 ? (
-                      <p className="text-xs text-slate dark:text-white/30 p-4 italic text-center">No tienes listas de juegos</p>
-                    ) : (
-                      relevantCollections.map(col => {
-                        const isAdded = col.items.some(i => i.apiId === game.id);
-                        return (
-                          <button
-                            key={col.id}
-                            onClick={() => !isAdded && handleAddToCollection(col.id)}
-                            disabled={isAdded}
-                            className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between transition-colors ${
-                              isAdded 
-                                ? "text-blue-500 bg-blue-500/5 cursor-default" 
-                                : "text-ink dark:text-white/70 hover:bg-blue-600/10 hover:text-blue-500"
-                            }`}
-                          >
-                            <div className="flex items-center gap-3 truncate">
-                              <Icon icon="tabler:list" className="w-5 h-5 opacity-40" />
-                              <span className="truncate">{col.name}</span>
-                            </div>
-                            {isAdded && <Icon icon="tabler:check" className="w-5 h-5" />}
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                  <a 
-                    href="/profile" 
-                    className="block text-center p-3 text-[10px] font-bold text-blue-500 hover:text-blue-400 border-t border-bone dark:border-white/5 uppercase tracking-wider"
-                  >
-                    + Nueva Lista
-                  </a>
-                </div>
-              )}
-            </div>
-
-          </aside>
-        </div>
-
-        {/* 3. SECCIÓN DE COMUNIDAD / COMENTARIOS */}
-        <ReviewSection itemType="game" itemApiId={game.id} accentColor="blue" />
-      </div>
-    </article>
+    <SharedDetailsLayout
+      id={game.id}
+      title={game.title}
+      type="game"
+      image={game.image}
+      heroBackground={game.screenshots && game.screenshots.length > 0 ? game.screenshots[0] : game.image}
+      heroSubtitle={game.developer || "Desconocido"}
+      rating={game.rating}
+      releaseDate={releaseDate}
+      accentColor="blue"
+      collectionMetadata={{
+        image: game.image,
+        rating: game.rating,
+        genres: game.genres,
+        developer: game.developer
+      }}
+      leftColumn={leftColumn}
+      rightColumn={rightColumn}
+    />
   );
 }
