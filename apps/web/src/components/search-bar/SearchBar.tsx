@@ -225,7 +225,7 @@ export default function SearchBar({ currentPath }: Props) {
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-1 max-w-[380px] items-stretch lg:max-w-[240px] xl:max-w-[380px]"
+      className="relative flex flex-1 max-w-none md:max-w-[380px] items-stretch lg:max-w-[240px] xl:max-w-[380px]"
     >
       {/* Category selector (only when not on a specific catalog route) */}
       {inferredCategory === null && (
@@ -295,7 +295,7 @@ export default function SearchBar({ currentPath }: Props) {
           }`}
         />
 
-        <kbd className="pointer-events-none absolute right-[0.65rem] rounded-[0.3rem] border border-bone dark:border-night-edge bg-linen dark:bg-coal px-[0.35rem] py-[0.1rem] font-[inherit] text-[0.65rem] text-slate dark:text-mist">
+        <kbd className="hidden sm:inline-block pointer-events-none absolute right-[0.65rem] rounded-[0.3rem] border border-bone dark:border-night-edge bg-linen dark:bg-coal px-[0.35rem] py-[0.1rem] font-[inherit] text-[0.65rem] text-slate dark:text-mist">
           Ctrl+K
         </kbd>
       </div>

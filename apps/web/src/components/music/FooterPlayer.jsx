@@ -217,7 +217,7 @@ export default function FooterPlayer() {
       className="fixed bottom-0 left-0 right-0 z-[100] h-20 flex items-center px-6 gap-4
         bg-parchment/95 dark:bg-abyss/95 backdrop-blur-xl border-t border-bone dark:border-night-edge font-sans text-ink dark:text-screen"
     >
-      <div className="flex items-center gap-3 w-[28%] min-w-[180px] overflow-hidden">
+      <div className="flex items-center gap-3 w-[45%] sm:w-[28%] sm:min-w-[180px] overflow-hidden">
         {currentTrack?.cover ? (
           <img
             src={currentTrack.cover}
@@ -264,7 +264,7 @@ export default function FooterPlayer() {
             onClick={toggleShuffle}
             aria-label="Shuffle"
             aria-pressed={isShuffle}
-            className={`relative bg-transparent border-none cursor-pointer p-1.5 transition-all leading-none flex items-center justify-center rounded-full ${
+            className={`hidden sm:flex relative bg-transparent border-none cursor-pointer p-1.5 transition-all leading-none items-center justify-center rounded-full ${
               isShuffle 
                 ? "text-electric-sky bg-electric-sky/10" 
                 : "text-slate dark:text-mist hover:text-ink dark:hover:text-screen hover:bg-white/5"
@@ -318,7 +318,7 @@ export default function FooterPlayer() {
             onClick={() => setIsLoop((l) => !l)}
             aria-label="Repeat"
             aria-pressed={isLoop}
-            className={`relative bg-transparent border-none cursor-pointer p-1.5 transition-all leading-none flex items-center justify-center rounded-full ${
+            className={`hidden sm:flex relative bg-transparent border-none cursor-pointer p-1.5 transition-all leading-none items-center justify-center rounded-full ${
               isLoop 
                 ? "text-electric-sky bg-electric-sky/10" 
                 : "text-slate dark:text-mist hover:text-ink dark:hover:text-screen hover:bg-white/5"
@@ -361,7 +361,7 @@ export default function FooterPlayer() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 w-[22%] justify-end">
+      <div className="hidden sm:flex items-center gap-2 w-[22%] justify-end">
         <button
           id="player-mute"
           onClick={toggleMute}

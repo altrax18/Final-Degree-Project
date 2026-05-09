@@ -111,7 +111,7 @@ export default function TrackDetail({ track }) {
   return (
     <div className="flex flex-col gap-8 pb-32">
       <div
-        className="relative z-20 flex flex-col sm:flex-row sm:items-end gap-7 px-5 pt-12 pb-9 sm:px-9
+        className="relative z-20 flex flex-col items-center text-center sm:flex-row sm:items-end sm:text-left gap-7 px-5 pt-12 pb-9 sm:px-9
           rounded-2xl border border-bone dark:border-night-edge backdrop-blur-xl"
         style={{
           background:
@@ -139,7 +139,7 @@ export default function TrackDetail({ track }) {
         </div>
 
         {/* Información */}
-          <div className="flex flex-col gap-2.5 min-w-0 text-ink dark:text-screen">
+          <div className="flex flex-col items-center sm:items-start gap-2.5 min-w-0 text-ink dark:text-screen">
             <span className="text-[0.7rem] font-bold uppercase tracking-[2px] text-slate dark:text-mist">
             SONG
           </span>
@@ -151,7 +151,7 @@ export default function TrackDetail({ track }) {
             {track.title}
           </h1>
 
-          <div className="flex items-center gap-2 flex-wrap text-[0.95rem]">
+          <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap text-[0.95rem]">
             <span className="font-bold text-ink dark:text-screen">{track.artist}</span>
             {track.album && (
               <>
@@ -183,7 +183,7 @@ export default function TrackDetail({ track }) {
           </div>
 
           {/* Acciones */}
-          <div className="flex items-center gap-4 mt-3">
+          <div className="flex items-center justify-center sm:justify-start gap-4 mt-3">
             <button
               id="track-detail-play-btn"
               onClick={handlePlay}

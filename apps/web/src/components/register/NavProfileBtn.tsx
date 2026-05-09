@@ -30,7 +30,7 @@ export default function NavProfileBtn({ mobile = false }: Props) {
         <img
           src={user.profileImageUrl}
           alt={user.username}
-          className="w-full h-full object-cover"
+          className={mobile ? "w-6 h-6 rounded-full object-cover flex-shrink-0 border border-bone/20 dark:border-white/10" : "w-full h-full object-cover"}
         />
         {mobile && <span>{user.username}</span>}
       </a>

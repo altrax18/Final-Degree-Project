@@ -102,22 +102,22 @@ export default function HeroSection({
               />
             </div>
 
-            <div className="flex flex-wrap gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2 w-full">
               <a
                 href={primaryCta.href}
-                className="inline-flex min-w-[130px] cursor-pointer items-center justify-center rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-screen transition-all hover:scale-105 hover:bg-amethyst active:scale-95 dark:bg-screen dark:text-ink dark:hover:bg-electric-sky"
+                className="inline-flex w-full sm:w-auto sm:min-w-[130px] cursor-pointer items-center justify-center rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-screen transition-all hover:scale-105 hover:bg-amethyst active:scale-95 dark:bg-screen dark:text-ink dark:hover:bg-electric-sky"
               >
                 {primaryCta.label}
               </a>
               <a
                 href={secondaryCta.href}
-                className="inline-flex min-w-[130px] cursor-pointer items-center justify-center rounded-xl border border-bone bg-transparent px-4 py-2.5 text-sm font-semibold text-ink transition-all hover:bg-bone/50 active:scale-95 dark:border-night-edge dark:text-screen dark:hover:bg-night-edge/50"
+                className="inline-flex w-full sm:w-auto sm:min-w-[130px] cursor-pointer items-center justify-center rounded-xl border border-bone bg-transparent px-4 py-2.5 text-sm font-semibold text-ink transition-all hover:bg-bone/50 active:scale-95 dark:border-night-edge dark:text-screen dark:hover:bg-night-edge/50"
               >
                 {secondaryCta.label}
               </a>
               <a
                 href={tertiaryCta.href}
-                className="inline-flex min-w-[130px] cursor-pointer items-center justify-center rounded-xl border border-bone bg-transparent px-4 py-2.5 text-sm font-semibold text-ink transition-all hover:bg-bone/50 active:scale-95 dark:border-night-edge dark:text-screen dark:hover:bg-night-edge/50"
+                className="inline-flex w-full sm:w-auto sm:min-w-[130px] cursor-pointer items-center justify-center rounded-xl border border-bone bg-transparent px-4 py-2.5 text-sm font-semibold text-ink transition-all hover:bg-bone/50 active:scale-95 dark:border-night-edge dark:text-screen dark:hover:bg-night-edge/50"
               >
                 {tertiaryCta.label}
               </a>
