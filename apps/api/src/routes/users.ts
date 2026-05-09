@@ -12,6 +12,7 @@ import {
   unfollowUser,
   isFollowing,
   getFollowing,
+  getFollowers,
 } from "../services/users";
 
 // CONCEPTO: Modulo de Rutas de Usuario
@@ -251,6 +252,11 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
   // GET /api/users/:userId/following – Lista de usuarios seguidos
   .get("/:userId/following", async ({ params }) => {
     return getFollowing(Number(params.userId));
+  })
+
+  // GET /api/users/:userId/followers – Lista de seguidores
+  .get("/:userId/followers", async ({ params }) => {
+    return getFollowers(Number(params.userId));
   })
 
   // GET /api/users/:userId/is-following/:targetId – Comprobar si sigue a un usuario específico

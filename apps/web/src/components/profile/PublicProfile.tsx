@@ -21,6 +21,7 @@ export default function PublicProfile({ targetUserId }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [following, setFollowing] = useState(false);
   const [checkingFollow, setCheckingFollow] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
   const { user: currentUser } = useProfile();
 
   useEffect(() => {
@@ -59,6 +60,15 @@ export default function PublicProfile({ targetUserId }: Props) {
         .catch(() => {});
     }
   }, [currentUser, targetUserId]);
+
+  useEffect(() => {
+    if (targetUserId) {
+      fetch(`/api/users/${targetUserId}/followers`)
+        .then((res) => res.json())
+        .then((data) => setFollowersCount(Array.isArray(data) ? data.length : 0))
+        .catch(() => {});
+    }
+  }, [targetUserId, following]);
 
   const handleStartChat = () => {
     if (!currentUser) {
@@ -181,6 +191,10 @@ export default function PublicProfile({ targetUserId }: Props) {
         </div>
 
         <div className="flex items-center gap-3 sm:mb-2 shrink-0">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[11px] font-bold uppercase tracking-wider text-indigo-500 shrink-0">
+            <Icon icon="tabler:users-group" className="w-3.5 h-3.5" />
+            <span className="text-ink dark:text-screen">{followersCount}</span> {followersCount === 1 ? "Seguidor" : "Seguidores"}
+          </div>
           {!isSelf ? (
             <>
               <button

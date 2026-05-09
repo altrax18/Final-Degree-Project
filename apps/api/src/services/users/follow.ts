@@ -47,3 +47,16 @@ export async function getFollowing(followerId: number) {
     .innerJoin(users, eq(follows.followingId, users.id))
     .where(eq(follows.followerId, followerId));
 }
+
+export async function getFollowers(followingId: number) {
+  return db
+    .select({
+      id: users.id,
+      username: users.username,
+      profileImageUrl: users.profileImageUrl,
+    })
+    .from(follows)
+    .innerJoin(users, eq(follows.followerId, users.id))
+    .where(eq(follows.followingId, followingId));
+}
+

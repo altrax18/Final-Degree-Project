@@ -1,4 +1,5 @@
 // Cabecera del perfil: avatar, nombre, email, stats y acciones.
+import { useState, useEffect } from "react";
 import type { SessionUser } from "../../types/user";
 import { DEFAULT_AVATAR } from "../../types/user";
 import ProfileAvatar from "./ProfileAvatar";
@@ -34,6 +35,17 @@ export default function ProfileHeader({
   const movieCount = collections.filter(c => c.type === "movie").length;
   const gameCount = collections.filter(c => c.type === "game").length;
   const totalCount = collections.length;
+
+  const [followersCount, setFollowersCount] = useState(0);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetch(`/api/users/${user.id}/followers`)
+        .then((res) => res.json())
+        .then((data) => setFollowersCount(Array.isArray(data) ? data.length : 0))
+        .catch(() => {});
+    }
+  }, [user]);
 
   return (
     <div className="flex flex-col gap-0">
@@ -131,7 +143,11 @@ export default function ProfileHeader({
 
         {/* Botones de acción: solo cuando hay sesión activa */}
         {user && (
-          <div className="flex items-center gap-3 sm:mb-2">
+          <div className="flex items-center gap-3 sm:mb-2 shrink-0">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[11px] font-bold uppercase tracking-wider text-indigo-500 shrink-0">
+              <Icon icon="tabler:users-group" className="w-3.5 h-3.5" />
+              <span className="text-ink dark:text-screen">{followersCount}</span> {followersCount === 1 ? "Seguidor" : "Seguidores"}
+            </div>
             <button
               id="profile-edit-btn"
               onClick={onEdit}
