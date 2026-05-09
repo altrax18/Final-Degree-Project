@@ -26,7 +26,7 @@ const navLinks = [
       class="flex shrink-0 items-center gap-2 no-underline opacity-100 transition-opacity duration-200 hover:opacity-85"
     >
       <Icon name="tabler:books" class="h-7 w-7 text-amethyst dark:text-electric-sky" />
-      <span class="text-[1.1rem] font-bold tracking-tight text-ink dark:text-screen">Alexandria</span>
+      <span class="hidden sm:inline text-[1.1rem] font-bold tracking-tight text-ink dark:text-screen">Alexandria</span>
     </a>
 
     <!-- Enlaces de navegación centrados (escritorio) -->
@@ -57,7 +57,7 @@ const navLinks = [
     </nav>
 
     <!-- Acciones derecha: búsqueda + tema + perfil -->
-    <div class="flex shrink-0 items-center gap-3 ml-auto md:ml-0">
+    <div class="flex flex-1 md:flex-none items-center justify-end gap-3 ml-3 md:ml-0">
       <!-- Barra de búsqueda -->
       <SearchBar client:load currentPath={currentPath} />
 
@@ -130,13 +130,21 @@ const navLinks = [
 </header>
 
 <script>
-  const btn = document.getElementById("mobile-menu-btn");
-  const drawer = document.getElementById("mobile-drawer");
+  function initMobileMenu() {
+    const btn = document.getElementById("mobile-menu-btn");
+    const drawer = document.getElementById("mobile-drawer");
 
-  btn?.addEventListener("click", () => {
-    const isOpen = drawer?.classList.toggle("hidden") === false;
-    drawer?.classList.toggle("flex", isOpen);
-    btn.setAttribute("aria-expanded", String(isOpen));
-    drawer?.setAttribute("aria-hidden", String(!isOpen));
-  });
+    // Elimina cualquier listener previo si es necesario (aunque page-load gestiona la instanciación nueva)
+    btn?.addEventListener("click", () => {
+      const isOpen = drawer?.classList.toggle("hidden") === false;
+      drawer?.classList.toggle("flex", isOpen);
+      btn.setAttribute("aria-expanded", String(isOpen));
+      drawer?.setAttribute("aria-hidden", String(!isOpen));
+    });
+  }
+
+  // Ejecuta en la carga inicial
+  initMobileMenu();
+  // Ejecuta despues de cada transicion de View Transitions
+  document.addEventListener("astro:page-load", initMobileMenu);
 </script>

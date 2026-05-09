@@ -77,14 +77,14 @@ export default function SharedDetailsLayout({
   return (
     <article className="min-h-screen bg-parchment dark:bg-obsidian text-ink dark:text-screen w-full">
       {/* 1. HERO SECTION */}
-      <div className="relative w-full h-[50vh] md:h-[60vh] flex items-end justify-center">
+      <div className="relative w-full min-h-[50vh] md:h-[60vh] pt-24 md:pt-0 flex items-end justify-center">
         <div
           className="absolute inset-0 bg-cover bg-top opacity-30 mask-image-gradient"
           style={{ backgroundImage: heroBackground ? `url(${heroBackground})` : "none" }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-parchment dark:from-obsidian via-parchment/60 dark:via-obsidian/60 to-transparent" />
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 pb-10 flex flex-col md:flex-row items-end gap-8">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 pb-10 flex flex-col items-center text-center md:flex-row md:items-end md:text-left gap-8">
           <div className="w-48 md:w-64 flex-shrink-0 rounded-2xl overflow-hidden shadow-2xl border-2 border-bone dark:border-night-edge shadow-black/50 transform md:translate-y-16">
             <img
               src={image || "https://placehold.co/600x900/111827/e5e7eb?text=No+Poster"}
@@ -93,7 +93,7 @@ export default function SharedDetailsLayout({
             />
           </div>
 
-          <div className="flex-1 pb-4">
+          <div className="w-full md:flex-1 pb-4">
             <p className="text-blue-400 font-semibold tracking-widest uppercase text-xs mb-2">
               {heroSubtitle || "Desconocido"}
             </p>
@@ -102,7 +102,7 @@ export default function SharedDetailsLayout({
             </h1>
             {tagline && <p className="text-slate dark:text-mist italic mb-4">"{tagline}"</p>}
 
-            <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate dark:text-mist">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm font-medium text-slate dark:text-mist">
               <span className="flex items-center gap-1 bg-ink/10 dark:bg-screen/10 px-3 py-1 rounded-full backdrop-blur-md border border-bone dark:border-night-edge">
                 ⭐ <span className="text-ink dark:text-screen font-bold">{rating}</span> / 100
               </span>
