@@ -22,6 +22,11 @@ const { title = "Alexandria" } = Astro.props;
       name="description"
       content="Alexandria — Tu catálogo social multiplataforma para cine, música y videojuegos."
     />
+    <meta name="robots" content="index, follow" />
+    <link
+      rel="canonical"
+      href={new URL(Astro.url.pathname, "https://tu-dominio-final.com")}
+    />
     <meta name="theme-color" content="#09090b" />
     <meta property="og:title" content={`${title} · Alexandria`} />
     <meta
@@ -35,16 +40,28 @@ const { title = "Alexandria" } = Astro.props;
     <!-- Slot nombrado para metadatos por pagina (concepto: slots en Astro). -->
     <slot name="head" />
     <script is:inline>
-      // Blocking theme init — runs before paint to avoid FOUC
-      (function () {
+      // CONCEPTO: Función de Aplicación de Tema Reutilizable (DRY)
+      // QUE HACE: Centraliza la lógica que lee localStorage y aplica la clase 'dark'.
+      // POR QUE LO USO: Para no repetir el mismo código en el script de carga inicial y en el de View Transitions.
+      function applyTheme() {
         var stored = localStorage.getItem("theme");
         var prefersDark = window.matchMedia(
           "(prefers-color-scheme: dark)",
         ).matches;
         if (stored === "dark" || (!stored && prefersDark)) {
           document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
         }
-      })();
+      }
+
+      // Ejecuta el tema antes del primer pintado para evitar FOUC en la carga inicial.
+      applyTheme();
+
+      // CONCEPTO: Persistencia de Tema en View Transitions
+      // QUE HACE: Vuelve a aplicar el tema inmediatamente después de que Astro cambie el DOM.
+      // POR QUE LO USO: Evita el "parpadeo blanco" (FOUC) en modo oscuro durante la navegación.
+      document.addEventListener("astro:after-swap", applyTheme);
     </script>
     <ClientRouter />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -1,8 +1,10 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useCollections } from "../../hooks/useCollections";
 import { DEFAULT_AVATAR, readSession } from "../../types/user";
 import RecommendedUsers from "../profile/RecommendedUsers";
 import type { UserCollection } from "../../types/collection";
+import AnimatedText from "./AnimatedText";
 
 const typeLabel: Record<UserCollection["type"], string> = {
   music: "Musica",
@@ -29,7 +31,7 @@ function MiniCollection({ collection }: { collection: UserCollection }) {
   return (
     <a
       href={typeHref[collection.type]}
-      className="group grid cursor-pointer grid-cols-[54px_minmax(0,1fr)] gap-3 rounded-lg border border-bone bg-parchment p-2.5 transition-colors hover:border-amethyst dark:border-night-edge dark:bg-coal dark:hover:border-electric-sky"
+      className="group grid cursor-pointer grid-cols-[54px_minmax(0,1fr)] gap-3 rounded-lg border border-bone bg-parchment p-2.5 transition-all duration-300 hover:scale-[1.02] hover:border-amethyst hover:shadow-md dark:border-night-edge dark:bg-coal dark:hover:border-electric-sky active:scale-[0.98]"
     >
       <div className="relative h-14 w-14 overflow-hidden rounded-lg bg-sand dark:bg-obsidian">
         <img
@@ -53,30 +55,51 @@ function MiniCollection({ collection }: { collection: UserCollection }) {
 }
 
 export default function PersonalSidebar() {
-  const user = readSession();
+  // CONCEPTO: Prevención de Error de Hidratación (Hydration Mismatch)
+  // QUE HACE: Asegura que el primer renderizado del cliente sea idéntico al del servidor.
+  // POR QUE LO USO: El servidor no tiene localStorage. Si el cliente lee la sesión inmediatamente, React detecta un cambio brusco y hace saltar el plugin de error de Astro.
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const user = isMounted ? readSession() : null;
   const { collections, loading, error } = useCollections();
   const visibleCollections = collections.slice(0, 4);
 
   if (!user) {
     return (
-      <aside className="self-start rounded-lg border border-bone bg-linen p-5 lg:sticky lg:top-24 dark:border-night-edge dark:bg-obsidian">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amethyst dark:text-electric-sky">
-          Espacio personal
-        </p>
-        <h2 className="mt-3 text-xl font-semibold text-ink dark:text-screen">
-          Entra para desbloquear tu portada.
-        </h2>
+      <motion.aside 
+        initial={{ opacity: 0, y: 18 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.25 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="self-start rounded-lg border border-bone bg-linen p-5 lg:sticky lg:top-24 dark:border-night-edge dark:bg-obsidian"
+      >
+        <AnimatedText
+          el="p"
+          mode="words"
+          text="Espacio personal"
+          className="text-xs font-semibold uppercase tracking-[0.2em] text-amethyst dark:text-electric-sky"
+        />
+        <AnimatedText
+          el="h2"
+          mode="words"
+          text="Entra para desbloquear tu portada."
+          className="mt-3 text-xl font-semibold text-ink dark:text-screen"
+        />
         <p className="mt-3 text-sm leading-6 text-slate dark:text-mist">
           Al iniciar sesion veras aqui tus colecciones y personas con gustos
           parecidos, sin pasar por el perfil.
         </p>
         <a
           href="/profile"
-          className="mt-5 inline-flex cursor-pointer rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-screen transition-colors hover:bg-amethyst dark:bg-electric-sky dark:text-obsidian dark:hover:bg-screen"
+          className="mt-5 inline-flex cursor-pointer rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-screen transition-all duration-300 hover:scale-105 active:scale-95 hover:bg-amethyst dark:bg-electric-sky dark:text-obsidian dark:hover:bg-screen"
         >
           Ir a mi perfil
         </a>
-      </aside>
+      </motion.aside>
     );
   }
 
@@ -84,7 +107,7 @@ export default function PersonalSidebar() {
     <motion.aside
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.25 }}
+      viewport={{ once: false, amount: 0.25 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="space-y-6 self-start lg:sticky lg:top-24"
     >

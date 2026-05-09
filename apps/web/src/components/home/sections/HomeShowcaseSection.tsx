@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { HomeFeatureItem } from "./home-utils";
+import AnimatedText from "../AnimatedText";
 
 type Props = {
   eyebrow: string;
@@ -17,7 +18,7 @@ function HomeFeatureCard({ item, index }: { item: HomeFeatureItem; index: number
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9, y: -16 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      className="group flex h-full flex-col overflow-hidden rounded-lg border border-bone bg-linen dark:border-night-edge dark:bg-obsidian"
+      className="group flex h-full flex-col overflow-hidden rounded-lg border border-bone bg-linen dark:border-night-edge dark:bg-obsidian transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-amethyst dark:hover:border-electric-sky"
     >
       <a href={item.href} className="block cursor-pointer">
         <div className="relative aspect-[4/5] overflow-hidden bg-sand dark:bg-coal">
@@ -89,19 +90,29 @@ export default function HomeShowcaseSection({
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.35 }}
+        viewport={{ once: false, amount: 0.35 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="max-w-3xl rounded-xl border border-bone bg-linen/50 p-6 sm:p-8 dark:border-night-edge dark:bg-obsidian/50"
       >
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amethyst dark:text-electric-sky">
-          {eyebrow}
-        </p>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink sm:text-3xl md:text-4xl dark:text-screen">
-          {title}
-        </h2>
-        <p className="mt-4 text-base leading-relaxed text-slate dark:text-mist">
-          {description}
-        </p>
+        <AnimatedText
+          el="p"
+          mode="words"
+          text={eyebrow}
+          className="text-xs font-semibold uppercase tracking-[0.22em] text-amethyst dark:text-electric-sky"
+        />
+        <AnimatedText
+          el="h2"
+          mode="letters"
+          text={title}
+          className="mt-3 text-2xl font-semibold tracking-tight text-ink sm:text-3xl md:text-4xl dark:text-screen"
+        />
+        <AnimatedText
+          el="p"
+          mode="words"
+          delay={0.2}
+          text={description}
+          className="mt-4 text-base leading-relaxed text-slate dark:text-mist"
+        />
 
         <div className="mt-6 flex flex-wrap items-center gap-2">
           {([

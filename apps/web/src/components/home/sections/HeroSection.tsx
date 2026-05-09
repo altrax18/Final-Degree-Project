@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import IconText, { type IconName } from "../IconText";
+import AnimatedText from "../AnimatedText";
 
 export type HeroStat = {
   label: string;
@@ -49,15 +50,32 @@ export default function HeroSection({
   return (
     <section className="relative isolate overflow-hidden rounded-2xl border border-bone bg-gradient-to-br from-linen to-bone/30 dark:border-night-edge dark:from-obsidian dark:to-abyss">
       {/* Detalles luminosos de fondo para no usar una imagen ruidosa */}
-      <div className="absolute -top-32 -right-32 -z-10 h-96 w-96 rounded-full bg-amethyst/15 blur-3xl dark:bg-electric-sky/10" />
-      <div className="absolute -bottom-32 -left-32 -z-10 h-96 w-96 rounded-full bg-sapphire/10 blur-3xl dark:bg-amethyst/10" />
+      {/* CONCEPTO: Efecto Aurora (Ambient Breathing Glow)
+          QUÉ HACE: Anima los destellos de fondo de forma infinita, suave y asíncrona.
+          POR QUÉ LO USO: Da una sensación de "organismo vivo" (Premium UI) sin distraer la lectura. */}
+      <motion.div
+        animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7], x: [0, -30, 0], y: [0, 40, 0] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-4 right-10 -z-10 h-[36rem] w-[36rem] rounded-full bg-amethyst/50 blur-[120px] dark:bg-electric-sky/40"
+      />
+      <motion.div
+        animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0.9, 0.6], x: [0, 40, 0], y: [0, -30, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        className="absolute -bottom-4 left-10 -z-10 h-[36rem] w-[36rem] rounded-full bg-sapphire/50 blur-[120px] dark:bg-amethyst/40"
+      />
+      <motion.div
+        animate={{ opacity: [0.5, 0.9, 0.5], scale: [1, 1.1, 1] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-1/2 left-1/2 -z-10 h-[32rem] w-[32rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-lilac-mist/50 blur-[120px] dark:bg-depth/50"
+      />
 
-      <div className="relative z-10 grid items-center gap-10 px-5 py-8 sm:px-8 sm:py-12 lg:min-h-[600px] lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 xl:gap-16 lg:px-10 lg:py-16">
+      <div className="relative z-10 grid items-center gap-8 px-5 py-6 sm:px-8 sm:py-8 lg:min-h-[480px] lg:grid-cols-[1.1fr_0.9fr] lg:gap-10 xl:gap-12 lg:px-10 lg:py-10">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.2 }}
           transition={{ duration: 0.65, ease: "easeOut" }}
-          className="flex max-w-2xl flex-col justify-center gap-10 lg:gap-12"
+          className="flex max-w-2xl flex-col justify-center gap-8 lg:gap-10"
         >
           <div className="space-y-7">
             <p className="inline-flex w-fit items-center rounded-lg bg-amethyst/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-amethyst dark:bg-electric-sky/10 dark:text-electric-sky">
@@ -65,30 +83,37 @@ export default function HeroSection({
             </p>
 
             <div className="space-y-4">
-              <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl lg:text-6xl dark:text-screen">
-                {title}
-              </h1>
-              <p className="max-w-xl text-base leading-relaxed text-slate sm:text-lg dark:text-mist">
-                {subtitle}
-              </p>
+              <AnimatedText
+                el="h1"
+                text={title}
+                mode="letters"
+                className="text-3xl font-bold leading-[1.1] tracking-tight text-ink sm:text-4xl lg:text-5xl dark:text-screen"
+              />
+              <AnimatedText
+                el="p"
+                text={subtitle}
+                mode="words"
+                delay={0.4}
+                className="max-w-xl text-base leading-relaxed text-slate sm:text-lg dark:text-mist"
+              />
             </div>
 
             <div className="flex flex-wrap gap-3 pt-2">
               <a
                 href={primaryCta.href}
-                className="inline-flex min-w-[140px] cursor-pointer items-center justify-center rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-screen transition-all hover:scale-105 hover:bg-amethyst active:scale-95 dark:bg-screen dark:text-ink dark:hover:bg-electric-sky"
+                className="inline-flex min-w-[130px] cursor-pointer items-center justify-center rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-screen transition-all hover:scale-105 hover:bg-amethyst active:scale-95 dark:bg-screen dark:text-ink dark:hover:bg-electric-sky"
               >
                 {primaryCta.label}
               </a>
               <a
                 href={secondaryCta.href}
-                className="inline-flex min-w-[140px] cursor-pointer items-center justify-center rounded-xl border border-bone bg-transparent px-5 py-3 text-sm font-semibold text-ink transition-all hover:bg-bone/50 active:scale-95 dark:border-night-edge dark:text-screen dark:hover:bg-night-edge/50"
+                className="inline-flex min-w-[130px] cursor-pointer items-center justify-center rounded-xl border border-bone bg-transparent px-4 py-2.5 text-sm font-semibold text-ink transition-all hover:bg-bone/50 active:scale-95 dark:border-night-edge dark:text-screen dark:hover:bg-night-edge/50"
               >
                 {secondaryCta.label}
               </a>
               <a
                 href={tertiaryCta.href}
-                className="inline-flex min-w-[140px] cursor-pointer items-center justify-center rounded-xl border border-bone bg-transparent px-5 py-3 text-sm font-semibold text-ink transition-all hover:bg-bone/50 active:scale-95 dark:border-night-edge dark:text-screen dark:hover:bg-night-edge/50"
+                className="inline-flex min-w-[130px] cursor-pointer items-center justify-center rounded-xl border border-bone bg-transparent px-4 py-2.5 text-sm font-semibold text-ink transition-all hover:bg-bone/50 active:scale-95 dark:border-night-edge dark:text-screen dark:hover:bg-night-edge/50"
               >
                 {tertiaryCta.label}
               </a>
@@ -116,13 +141,14 @@ export default function HeroSection({
 
         <motion.div
           initial={{ opacity: 1, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: false, amount: 0.2 }}
           transition={{ duration: 0.65, ease: "easeOut", delay: 0.12 }}
           className="grid gap-4 lg:content-center min-w-0"
         >
           <a
             href={mainSpotlight.href}
-            className="group relative block w-full aspect-square sm:aspect-[4/3] lg:aspect-[4/5] overflow-hidden rounded-2xl border border-bone shadow-xl shadow-ink/5 dark:border-night-edge dark:bg-coal dark:shadow-abyss/40"
+            className="group relative block w-full aspect-square sm:aspect-[4/3] lg:aspect-[5/4] overflow-hidden rounded-2xl border border-bone shadow-xl shadow-ink/5 dark:border-night-edge dark:bg-coal dark:shadow-abyss/40"
           >
             <img
               src={mainSpotlight.image}
@@ -160,7 +186,7 @@ export default function HeroSection({
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="h-full min-h-[96px] w-full object-cover transition duration-500 group-hover:scale-105"
+                  className="h-full min-h-[80px] w-full object-cover transition duration-500 group-hover:scale-105"
                 />
                 <div className="min-w-0 p-3 self-center">
                   <p className="text-[0.65rem] font-bold uppercase tracking-[0.16em] text-amethyst dark:text-electric-sky">

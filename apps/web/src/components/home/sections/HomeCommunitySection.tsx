@@ -72,9 +72,9 @@ export default function HomeCommunitySection() {
                 aria-label={`Ver reseña de ${review.user?.username || "usuario"} sobre ${review.media?.title || "este elemento"}`}
                 initial={{ opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
+                viewport={{ once: false, amount: 0.2 }}
                 transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
-                className="group flex cursor-pointer flex-col justify-between rounded-xl border border-bone bg-linen p-5 transition-all hover:-translate-y-1 hover:border-amethyst hover:shadow-lg dark:border-night-edge dark:bg-obsidian dark:hover:border-electric-sky"
+                className="group flex cursor-pointer flex-col justify-between rounded-xl border border-bone bg-linen p-5 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:border-amethyst hover:shadow-xl dark:border-night-edge dark:bg-obsidian dark:hover:border-electric-sky active:scale-[0.98]"
               >
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
