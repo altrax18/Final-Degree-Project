@@ -46,7 +46,7 @@ export default function HomeCommunitySection() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-[200px] rounded-xl bg-bone/40 dark:bg-night-edge/40 animate-pulse" />
           ))}
@@ -61,7 +61,7 @@ export default function HomeCommunitySection() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {reviews.slice(0, 3).map((review, index) => {
             const href = review.itemType && review.itemApiId 
               ? `/${review.itemType === "movie" ? "movies" : review.itemType === "game" ? "games" : "music"}/${review.itemApiId}`
