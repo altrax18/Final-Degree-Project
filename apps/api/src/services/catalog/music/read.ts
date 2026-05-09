@@ -1,3 +1,18 @@
+import { parsePositiveInteger } from "../utils";
+
+const MUSIC_GENRES = [
+  "Pop",
+  "Rock",
+  "Hip-Hop/Rap",
+  "Alternative",
+  "R&B/Soul",
+  "Latin",
+  "Electronic",
+  "Dance",
+  "Jazz",
+  "Country",
+];
+
 const ITUNES_SEARCH = "https://itunes.apple.com/search";
 const ITUNES_LOOKUP = "https://itunes.apple.com/lookup";
 const APPLE_RSS_SONGS =
@@ -252,13 +267,90 @@ export async function getMoreSongs(query: { page?: string; limit?: string }) {
   }
 }
 
-export async function browseMusic(query?: string): Promise<unknown[]> {
-  const result = await searchMusic(query ?? "top", "24");
-  if (result instanceof Response) {
-    return [];
+export async function browseMusic(query: {
+  q?: string;
+  page?: string;
+  limit?: string;
+  genres?: string;
+}): Promise<{
+  items: any[];
+  total: number;
+  page: number;
+  perPage: number;
+  totalPages: number;
+  genres: string[];
+}> {
+  const page = parsePositiveInteger(query.page, 1, 1, 1000);
+  const perPage = parsePositiveInteger(query.limit, 20, 1, 100);
+  const searchTerm = query.q?.trim() ?? "";
+  const selectedGenres = (query.genres ?? "")
+    .split(",")
+    .map((g) => g.trim().toLowerCase())
+    .filter(Boolean);
+
+  let term = searchTerm;
+  if (!term) {
+    if (selectedGenres.length > 0) {
+      term = selectedGenres[0];
+    } else {
+      term = "hits 2025";
+    }
   }
 
-  return result.results;
+  try {
+    const url = new URL(ITUNES_SEARCH);
+    url.searchParams.set("term", term);
+    url.searchParams.set("media", "music");
+    url.searchParams.set("entity", "song");
+    url.searchParams.set("limit", selectedGenres.length > 0 ? "100" : String(perPage * 3));
+    url.searchParams.set("country", "US");
+
+    const response = await fetch(url.toString());
+    const json = (await response.json()) as any;
+    let results: Track[] = (json.results ?? []).map(toTrack);
+
+    if (selectedGenres.length > 0) {
+      results = results.filter((track) =>
+        track.genre && selectedGenres.includes(track.genre.toLowerCase())
+      );
+    }
+
+    const total = results.length;
+    const totalPages = Math.max(1, Math.ceil(total / perPage));
+    const offset = (page - 1) * perPage;
+    const rawItems = results.slice(offset, offset + perPage);
+
+    const items = rawItems.map((track) => ({
+      id: track.id,
+      title: track.title,
+      type: "music" as const,
+      image: track.cover,
+      rating: 70 + (parseInt(track.id) || 0) % 25,
+      genres: track.genre ? [track.genre] : ["Música"],
+      artist: track.artist,
+      previewUrl: track.previewUrl,
+      album: track.album,
+      albumId: track.albumId,
+    }));
+
+    return {
+      items,
+      total,
+      page,
+      perPage,
+      totalPages,
+      genres: MUSIC_GENRES,
+    };
+  } catch {
+    return {
+      items: [],
+      total: 0,
+      page,
+      perPage,
+      totalPages: 1,
+      genres: MUSIC_GENRES,
+    };
+  }
 }
 
 export async function searchAlbums(term?: string, limit = "12") {

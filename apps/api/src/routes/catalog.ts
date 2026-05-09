@@ -95,8 +95,21 @@ export const catalogRoutes = new Elysia()
   .get("/api/music/album/:id", async ({ params }) =>
     getAlbumWithTracks(params.id),
   )
+  .get("/api/music", async ({ query }) =>
+    browseMusic({
+      q: query.q || undefined,
+      page: query.page || undefined,
+      limit: query.limit || undefined,
+      genres: query.genres || undefined,
+    }),
+  )
   .get("/music", async ({ query }) =>
-    browseMusic(query.q as string | undefined),
+    browseMusic({
+      q: query.q || undefined,
+      page: query.page || undefined,
+      limit: query.limit || undefined,
+      genres: query.genres || undefined,
+    }),
   )
   .get("/music/:apiId", async ({ params }) => {
     const track = await getMusicByApiId(params.apiId);

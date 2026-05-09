@@ -1,8 +1,8 @@
 import type { UserCollection } from "../../types/collection";
 
 const typeLabel: Record<UserCollection["type"], string> = {
-  music: "Musica",
-  movie: "Peliculas",
+  music: "Música",
+  movie: "Películas",
   game: "Juegos",
 };
 
@@ -65,7 +65,7 @@ export default function QuickCollectionsCard({ collections, loading, error }: Pr
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amethyst dark:text-electric-sky">
-            Acceso rapido
+            Acceso rápido
           </p>
           <h2 className="mt-1 text-lg font-semibold text-ink dark:text-screen">
             Tus colecciones
@@ -104,10 +104,10 @@ export default function QuickCollectionsCard({ collections, loading, error }: Pr
         {!loading && !error && visibleCollections.length === 0 ? (
           <div className="rounded-lg border border-dashed border-bone bg-parchment p-4 dark:border-night-edge dark:bg-coal">
             <p className="text-sm font-semibold text-ink dark:text-screen">
-              Aun no hay listas
+              Aún no hay listas
             </p>
             <p className="mt-1 text-xs leading-5 text-slate dark:text-mist">
-              Crea colecciones desde el perfil y apareceran aqui como accesos
+              Crea colecciones desde el perfil y aparecerán aquí como accesos
               directos.
             </p>
           </div>

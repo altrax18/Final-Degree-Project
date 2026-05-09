@@ -71,7 +71,7 @@ const { title = "Alexandria" } = Astro.props;
       rel="stylesheet"
     />
   </head>
-  <body class="min-h-screen font-sans">
+  <body class={`min-h-screen font-sans ${Astro.url.pathname === "/" ? "is-home" : ""}`}>
     <NavBar />
 
     <main

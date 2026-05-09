@@ -6,7 +6,7 @@ import { Icon } from "@iconify/react";
 export interface CatalogCardItem {
   id: string;
   title: string;
-  type: "movie" | "game";
+  type: "movie" | "game" | "music";
   image: string | null;
   rating: number;
   genres: string[];
@@ -36,6 +36,42 @@ function CatalogCard3D({ item, priority }: CatalogCard3DProps) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Sincronizar estado play/pause con el FooterPlayer
+  useEffect(() => {
+    if (item.type !== "music") return;
+    const onTrackChanged = (e: any) => {
+      setIsPlaying(e.detail?.id === item.id && e.detail?.playing);
+    };
+    window.addEventListener("player-state", onTrackChanged);
+    return () => window.removeEventListener("player-state", onTrackChanged);
+  }, [item.id, item.type]);
+
+  const handlePlay = (e: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (item.type !== "music" || !(item as any).previewUrl) return;
+
+    window.dispatchEvent(
+      new CustomEvent("play-track", {
+        detail: {
+          track: {
+            id: item.id,
+            title: item.title,
+            artist: (item as any).artist,
+            cover: item.image,
+            previewUrl: (item as any).previewUrl,
+            album: (item as any).album,
+            albumId: (item as any).albumId,
+            genre: item.genres[0],
+          },
+          queue: [],
+        },
+      })
+    );
+  };
 
   const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
     const card = event.currentTarget;
@@ -76,7 +112,7 @@ function CatalogCard3D({ item, priority }: CatalogCard3DProps) {
     
     setShowCollections(false);
     
-    setToastMessage(`¡${item.type === "movie" ? "Película" : "Juego"} añadido a tu lista!`);
+    setToastMessage(`¡${item.type === "movie" ? "Película" : item.type === "music" ? "Canción" : "Juego"} añadido a tu lista!`);
     
     // CONCEPTO: Feedback Auditivo
     // QUE HACE: Reproduce un pequeño sonido de "pop" al añadir la tarjeta.
@@ -215,6 +251,21 @@ function CatalogCard3D({ item, priority }: CatalogCard3DProps) {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2.5 rounded-full border border-bone/20 bg-ink px-5 py-3 text-sm font-semibold text-screen shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-300 dark:border-night-edge/20 dark:bg-screen dark:text-ink">
           <Icon icon="tabler:circle-check-filled" className="h-6 w-6 text-emerald-400 dark:text-emerald-500 animate-in zoom-in duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]" />
           <span>{toastMessage}</span>
+        </div>
+      )}
+      {/* Botón de reproducción flotante para música */}
+      {item.type === "music" && (item as any).previewUrl && (
+        <div
+          onClick={handlePlay}
+          role="button"
+          tabIndex={0}
+          aria-label={isPlaying ? `Pausar ${item.title}` : `Reproducir ${item.title}`}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-ink/90 dark:bg-screen/90 backdrop-blur-md text-screen dark:text-ink flex items-center justify-center z-30 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:scale-110 active:scale-95 cursor-pointer border border-white/20 opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100"
+        >
+          <Icon 
+            icon={isPlaying ? "tabler:player-pause-filled" : "tabler:player-play-filled"} 
+            className="text-2xl pointer-events-none" 
+          />
         </div>
       )}
     </div>

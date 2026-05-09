@@ -54,8 +54,8 @@ export default function HomePage({
   const featuredTracks = (trending || []).slice(0, 8);
   
   // CONCEPTO: Fallback Defensivo de Datos
-  // QUE HACE: Si la API de tendencias falla, inyecta los destacados del catalogo general.
-  // POR QUE LO USO: Asegura que la portada nunca colapse o se vea vacia si un servicio externo cae.
+  // QUE HACE: Si la API de tendencias falla, inyecta los destacados del catálogo general.
+  // POR QUE LO USO: Asegura que la portada nunca colapse o se vea vacía si un servicio externo cae.
   // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
   const featuredMovies = (trendingMovies?.length ? trendingMovies : safeMovies).slice(0, 8);
   const featuredGames = (trendingGames?.length ? trendingGames : safeGames).slice(0, 8);
@@ -80,8 +80,8 @@ export default function HomePage({
   // POR QUE LO USO: Simplifica el código del componente hijo, que no necesita saber qué es un 'TrendingItem' o un 'Movie'.
   // DOCUMENTACION: https://refactoring.guru/es/design-patterns/adapter
   const heroStats: HeroStat[] = [
-    { label: "Musica", value: `${featuredTracks.length}`, icon: "tabler:vinyl" },
-    { label: "Peliculas", value: `${featuredMovies.length}`, icon: "tabler:movie" },
+    { label: "Música", value: `${featuredTracks.length}`, icon: "tabler:vinyl" },
+    { label: "Películas", value: `${featuredMovies.length}`, icon: "tabler:movie" },
     { label: "Juegos", value: `${featuredGames.length}`, icon: "tabler:device-gamepad-2" },
   ];
 
@@ -107,8 +107,8 @@ export default function HomePage({
       label: "Cine destacado",
       title: featuredMovie?.title ?? "Sala principal",
       subtitle: featuredMovie
-        ? `${formatRating(featuredMovie.rating)} de puntuacion${featuredMovie.genres[0] ? ` · ${featuredMovie.genres[0]}` : ""}`
-        : "Tu catalogo de peliculas aparecera aqui.",
+        ? `${formatRating(featuredMovie.rating)} de puntuación${featuredMovie.genres[0] ? ` · ${featuredMovie.genres[0]}` : ""}`
+        : "Tu catálogo de películas aparecerá aquí.",
       image: featuredMovie?.image ?? fallbackCover,
       href: featuredMovie?.id ? `/movies/${featuredMovie.id}` : "/movies",
       accent: "movie",
@@ -117,8 +117,8 @@ export default function HomePage({
       label: "Juego recomendado",
       title: featuredGame?.title ?? "Partida pendiente",
       subtitle: featuredGame
-        ? `${formatRating(featuredGame.rating)} de puntuacion${featuredGame.platforms[0] ? ` · ${featuredGame.platforms[0]}` : ""}`
-        : "Los juegos destacados se mostraran en esta zona.",
+        ? `${formatRating(featuredGame.rating)} de puntuación${featuredGame.platforms[0] ? ` · ${featuredGame.platforms[0]}` : ""}`
+        : "Los juegos destacados se mostrarán en esta zona.",
       image: featuredGame?.image ?? fallbackCover,
       href: featuredGame?.id ? `/games/${featuredGame.id}` : "/games",
       accent: "game",
@@ -132,19 +132,19 @@ export default function HomePage({
   const featureItems: HomeFeatureItem[] = [
     ...featuredTracks.slice(0, 4).map((track, index) => ({
       id: `track-${track.id}`,
-      label: index === 0 ? "Tendencia principal" : "En rotacion",
+      label: index === 0 ? "Tendencia principal" : "En rotación",
       title: track.title,
       subtitle: track.artist ?? "Artista desconocido",
       image: track.cover ?? fallbackCover,
       href: track.previewUrl ? `/music/${track.id}` : "/music",
-      meta: track.genre ?? "Musica",
+      meta: track.genre ?? "Música",
       onClick: track.previewUrl ? () => handlePlayTrack(track) : undefined,
     })),
     ...featuredMovies.slice(0, 3).map((movie) => ({
       id: `movie-${movie.id}`,
       label: "Cine",
       title: movie.title,
-      subtitle: movie.summary || movie.tagline || "Ficha de pelicula disponible.",
+      subtitle: movie.summary || movie.tagline || "Ficha de película disponible.",
       image: movie.image ?? fallbackCover,
       href: `/movies/${movie.id}`,
       meta: `${formatRating(movie.rating)}${getReleaseYear(movie.firstReleaseDate) ? ` · ${getReleaseYear(movie.firstReleaseDate)}` : ""}`,
@@ -166,7 +166,7 @@ export default function HomePage({
   // DOCUMENTACION: https://react.dev/learn/rendering-lists
   const rails: HomeRail[] = [
     {
-      title: "Musica que marca el ritmo",
+      title: "Música que marca el ritmo",
       href: "/music",
       items: featuredTracks.slice(4, 8).map((track) => ({
         id: track.id,
@@ -205,7 +205,7 @@ export default function HomePage({
   );
 
   // CONCEPTO: Entrelazado de Contenido (Interleaving)
-  // QUE HACE: Mezcla elementos de musica, cine y juegos en un solo array iterando secuencialmente.
+  // QUE HACE: Mezcla elementos de música, cine y juegos en un solo array iterando secuencialmente.
   // POR QUE LO USO: Logra un carrusel muy variado sin requerir que el backend haga una consulta combinada.
   // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
   const marqueeItems: MarqueeItem[] = [];
@@ -244,8 +244,8 @@ export default function HomePage({
       <HeroSection
         heroStats={heroStats}
         kicker="Alexandria"
-        title="Tu universo cultural empieza aqui."
-        subtitle="Una portada viva para saltar entre musica, peliculas y videojuegos con destacados reales, ritmo visual y caminos claros hacia cada catalogo."
+        title="Tu universo cultural empieza aquí."
+        subtitle="Una portada viva para saltar entre música, películas y videojuegos con destacados reales, ritmo visual y caminos claros hacia cada catálogo."
         primaryCta={{ href: "/movies", label: "Explorar cine" }}
         secondaryCta={{ href: "/music", label: "Escuchar tendencias" }}
         tertiaryCta={{ href: "/games", label: "Ver juegos" }}
@@ -266,8 +266,8 @@ export default function HomePage({
         <div className="min-w-0 space-y-12">
           <HomeShowcaseSection
             eyebrow="Portada editorial"
-            title="Lo mejor del catalogo sin hacerte buscar."
-            description="La home resume lo importante: que escuchar, que ver y que jugar. Cada bloque lleva a contenido real y conserva una lectura rapida en movil."
+            title="Lo mejor del catálogo sin hacerte buscar."
+            description="La home resume lo importante: qué escuchar, qué ver y qué jugar. Cada bloque lleva a contenido real y conserva una lectura rápida en móvil."
             featureItems={featureItems}
           />
 

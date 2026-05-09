@@ -51,11 +51,11 @@ try {
   if (response.error) throw new Error("API error");
   const payload = response.data as { results?: TrendingTrack[] } | null;
   const results = Array.isArray(payload?.results) ? payload.results : [];
-  // Normalizo datos de musica para la UI (concepto: mapeo de DTOs).
+  // Normalizo datos de música para la UI (concepto: mapeo de DTOs).
   trending = results
     .map<TrendingItem>((track) => ({
       id: String(track.id ?? ""),
-      title: track.title ?? "Sin titulo",
+      title: track.title ?? "Sin título",
       artist: track.artist ?? "Artista desconocido",
       cover: track.cover ?? null,
       previewUrl: track.previewUrl ?? null,
@@ -86,7 +86,7 @@ try {
   featuredGames = [];
 }
 
-// Consulta SSR para peliculas destacadas (concepto: carga inicial en servidor).
+// Consulta SSR para películas destacadas (concepto: carga inicial en servidor).
 try {
   const { data, error } = await moviesPromise;
   if (error)
@@ -100,7 +100,7 @@ try {
   featuredMovies = moviesPayload.slice(0, 6);
 } catch (err) {
   moviesError =
-    err instanceof Error ? err.message : "No se pudieron cargar las peliculas";
+    err instanceof Error ? err.message : "No se pudieron cargar las películas";
   featuredMovies = [];
 }
 
@@ -118,8 +118,8 @@ try {
 }
 
 // CONCEPTO: Inyección SSR de Tendencias de Cine
-// QUE HACE: Solicita las peliculas populares al backend interno en el servidor.
-// POR QUE LO USO: Permite que el SEO lea el contenido y llegue instantaneamente a la pantalla del usuario.
+// QUE HACE: Solicita las películas populares al backend interno en el servidor.
+// POR QUE LO USO: Permite que el SEO lea el contenido y llegue instantáneamente a la pantalla del usuario.
 // DOCUMENTACION: https://docs.astro.build/en/guides/data-fetching/#fetch-in-astro
 try {
   const { data, error } = await moviesTrendPromise;
@@ -132,11 +132,11 @@ try {
 ---
 
 <Layout title="Inicio">
-  <!-- Metadato especifico por pagina usando slot nombrado (concepto: slots en Astro). -->
+  <!-- Metadato específico por página usando slot nombrado (concepto: slots en Astro). -->
   <meta
     slot="head"
     name="description"
-    content="Alexandria inicio con acceso rapido al catalogo, tendencias y destacados reales."
+    content="Alexandria — Inicio con acceso rápido al catálogo, tendencias y destacados reales."
   />
 
   <!-- Home React diferida para priorizar el pintado inicial rápido (concepto: islands con client:idle). -->
