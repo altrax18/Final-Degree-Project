@@ -40,7 +40,11 @@ export function useChat(userId: number) {
   }, [userId]);
 
   useEffect(() => {
-    const es = new EventSource(`${API_URL}/api/chat/sse?userId=${userId}`);
+    const lastIdKey = `chat_last_id_${userId}`;
+    const storedLastId = sessionStorage.getItem(lastIdKey) ?? "0";
+    const es = new EventSource(
+      `${API_URL}/api/chat/sse?userId=${userId}&lastId=${storedLastId}`,
+    );
 
     es.onopen = () => setIsConnected(true);
 
@@ -48,10 +52,18 @@ export function useChat(userId: number) {
       const data = JSON.parse(event.data);
       if (data.type === "new_message") {
         const msg = data.message as ChatMessage;
-        setMessages((prev) => ({
-          ...prev,
-          [msg.conversationId]: [...(prev[msg.conversationId] || []), msg],
-        }));
+
+        // Persist the highest seen ID so reconnects don't re-deliver old messages
+        const current = Number(sessionStorage.getItem(lastIdKey) ?? "0");
+        if (msg.id > current) sessionStorage.setItem(lastIdKey, String(msg.id));
+
+        // Deduplicate: skip if already present (guards against fetchMessages race)
+        setMessages((prev) => {
+          const existing = prev[msg.conversationId] || [];
+          if (existing.some((m) => m.id === msg.id)) return prev;
+          return { ...prev, [msg.conversationId]: [...existing, msg] };
+        });
+
         if (msg.senderId !== userId) {
           setConversations((prev) =>
             prev.map((c) =>
@@ -94,9 +106,18 @@ export function useChat(userId: number) {
 
   const fetchMessages = useCallback(async (conversationId: number) => {
     const res = await fetch(`${API_URL}/api/chat/messages/${conversationId}`);
-    const msgs = await res.json();
+    const msgs: ChatMessage[] = await res.json();
+
+    // Advance lastId so SSE won't re-deliver these on next reconnect
+    if (msgs.length > 0) {
+      const lastIdKey = `chat_last_id_${userId}`;
+      const maxId = Math.max(...msgs.map((m) => m.id));
+      const current = Number(sessionStorage.getItem(lastIdKey) ?? "0");
+      if (maxId > current) sessionStorage.setItem(lastIdKey, String(maxId));
+    }
+
     setMessages((prev) => ({ ...prev, [conversationId]: msgs }));
-  }, []);
+  }, [userId]);
 
   const markRead = useCallback((conversationId: number) => {
     fetch(`${API_URL}/api/chat/mark-read`, {
