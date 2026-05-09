@@ -24,6 +24,13 @@ function getInterlocutorImage(conv: ChatConversation, userId: number): string | 
   return null;
 }
 
+function getInterlocutorId(conv: ChatConversation, userId: number): number | null {
+  if (conv.type === "direct") {
+    return conv.members.find((m) => m.id !== userId)?.id ?? null;
+  }
+  return null;
+}
+
 export default function ChatWindow({ userId, initialTargetUserId, onClose }: Props) {
   const { conversations, messages, sendMessage, subscribe, fetchMessages, markRead, startConversation } = useChat(userId);
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
@@ -65,19 +72,29 @@ export default function ChatWindow({ userId, initialTargetUserId, onClose }: Pro
               </svg>
             </button>
           )}
-          {activeConversation && (() => {
+          {activeConversation ? (() => {
+              const targetId = getInterlocutorId(activeConversation, userId);
               const img = getInterlocutorImage(activeConversation, userId);
-              return img ? (
-                <img
-                  src={img}
-                  alt={getDisplayName(activeConversation, userId)}
-                  className="h-7 w-7 rounded-full object-cover shrink-0"
-                />
-              ) : null;
-            })()}
-          <h2 className="text-sm font-semibold">
-            {activeConversation ? getDisplayName(activeConversation, userId) : "Messages"}
-          </h2>
+              const name = getDisplayName(activeConversation, userId);
+
+              if (targetId) {
+                return (
+                  <a href={`/u/${targetId}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer text-ink dark:text-screen decoration-transparent group">
+                    {img && <img src={img} alt={name} className="h-7 w-7 rounded-full object-cover shrink-0" />}
+                    <h2 className="text-sm font-semibold group-hover:underline">{name}</h2>
+                  </a>
+                );
+              }
+
+              return (
+                <div className="flex items-center gap-2">
+                  {img && <img src={img} alt={name} className="h-7 w-7 rounded-full object-cover shrink-0" />}
+                  <h2 className="text-sm font-semibold">{name}</h2>
+                </div>
+              );
+            })() : (
+              <h2 className="text-sm font-semibold">Messages</h2>
+            )}
           {activeConversation?.type === "group" && (
             <span className="rounded-full bg-lilac-mist px-2 py-0.5 text-xs text-amethyst dark:bg-depth dark:text-electric-sky">Group</span>
           )}
