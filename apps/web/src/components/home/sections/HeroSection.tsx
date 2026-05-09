@@ -86,8 +86,8 @@ export default function HeroSection({
               <AnimatedText
                 el="h1"
                 text={title}
-                mode="letters"
-                className="text-3xl font-bold leading-[1.1] tracking-tight text-ink sm:text-4xl lg:text-5xl dark:text-screen"
+                mode="words"
+                className="text-3xl font-bold leading-[1.2] tracking-tight text-ink sm:text-4xl lg:text-5xl dark:text-screen"
               />
               <AnimatedText
                 el="p"
@@ -151,6 +151,7 @@ export default function HeroSection({
             className="group relative block w-full aspect-square sm:aspect-[4/3] lg:aspect-[5/4] overflow-hidden rounded-2xl border border-bone shadow-xl shadow-ink/5 dark:border-night-edge dark:bg-coal dark:shadow-abyss/40"
           >
             <img
+              key={mainSpotlight.image}
               src={mainSpotlight.image}
               alt={mainSpotlight.title}
               fetchPriority="high"
@@ -176,26 +177,29 @@ export default function HeroSection({
             </div>
           </a>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-4">
             {secondarySpotlights.map((item) => (
               <a
                 key={item.label}
                 href={item.href}
-                className="group grid grid-cols-[88px_minmax(0,1fr)] overflow-hidden rounded-xl border border-bone bg-linen/80 transition-colors hover:border-amethyst dark:border-night-edge dark:bg-depth/50 dark:hover:border-electric-sky"
+                className="group flex flex-row items-stretch overflow-hidden rounded-xl border border-bone bg-linen/80 transition-colors hover:border-amethyst dark:border-night-edge dark:bg-depth/50 dark:hover:border-electric-sky"
               >
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="h-full min-h-[80px] w-full object-cover transition duration-500 group-hover:scale-105"
-                />
-                <div className="min-w-0 p-3 self-center">
-                  <p className="text-[0.65rem] font-bold uppercase tracking-[0.16em] text-amethyst dark:text-electric-sky">
+                <div className="relative w-[88px] shrink-0 overflow-hidden bg-sand sm:w-[100px] dark:bg-coal">
+                  <img
+                    key={item.image}
+                    src={item.image}
+                    alt={item.title}
+                    className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  />
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col justify-center px-3.5 py-3 sm:px-4 sm:py-3.5">
+                  <p className="text-[0.65rem] font-bold uppercase tracking-wider text-amethyst dark:text-electric-sky">
                     {item.label}
                   </p>
-                  <h3 className="mt-1 truncate text-sm font-semibold text-ink dark:text-screen">
+                  <h3 className="mt-1 text-sm font-semibold leading-snug text-ink dark:text-screen">
                     {item.title}
                   </h3>
-                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate dark:text-mist">
+                  <p className="mt-1.5 text-xs leading-relaxed text-slate dark:text-mist">
                     {item.subtitle}
                   </p>
                 </div>

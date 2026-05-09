@@ -241,7 +241,7 @@ export default function HomePage({
         </section>
       ) : null}
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] xl:gap-10 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] xl:gap-10 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-12">
           <HomeShowcaseSection
             eyebrow="Portada editorial"

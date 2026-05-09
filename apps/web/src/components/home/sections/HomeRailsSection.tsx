@@ -28,20 +28,19 @@ function HomeRailCard({ rail }: { rail: HomeRail }) {
       <div className="mt-5 grid gap-3">
         {rail.items.length > 0 ? (
           rail.items.map((item) => (
-            <a href={item.href} key={item.id} className="group grid cursor-pointer grid-cols-[56px_minmax(0,1fr)] gap-3 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
-              <div className="overflow-hidden rounded-lg bg-sand dark:bg-coal">
+            <a href={item.href} key={item.id} className="group flex cursor-pointer items-center gap-3.5 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
+              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-sand dark:bg-coal">
                 <img
                   src={item.image}
                   alt={item.title}
-                  loading="lazy"
-                  className="h-14 w-14 object-cover transition duration-300 group-hover:scale-110"
+                  className="h-full w-full object-cover transition duration-300 group-hover:scale-110"
                 />
               </div>
-              <div className="min-w-0 self-center">
-                <p className="truncate text-sm font-semibold text-ink transition-colors group-hover:text-amethyst dark:text-screen dark:group-hover:text-electric-sky">
+              <div className="min-w-0 flex-1 py-1">
+                <p className="line-clamp-2 text-sm font-semibold leading-snug text-ink transition-colors group-hover:text-amethyst dark:text-screen dark:group-hover:text-electric-sky">
                   {item.title}
                 </p>
-                <p className="truncate text-xs text-slate dark:text-mist">
+                <p className="mt-0.5 text-xs leading-snug text-slate dark:text-mist">
                   {item.meta}
                 </p>
               </div>
@@ -64,7 +63,7 @@ export default function HomeRailsSection({ rails }: Props) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: false, amount: 0.2 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 sm:grid sm:gap-5 sm:overflow-x-visible sm:pb-0 md:grid-cols-2 xl:grid-cols-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 sm:grid sm:gap-4 lg:gap-5 sm:overflow-x-visible sm:pb-0 md:grid-cols-2 xl:grid-cols-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {rails.map((rail) => (
         <HomeRailCard key={rail.title} rail={rail} />

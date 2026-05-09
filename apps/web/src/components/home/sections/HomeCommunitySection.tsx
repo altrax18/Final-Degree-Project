@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 export type RecentReview = {
   id: string | number;
   content: string;
-  rating: number; // del 1 al 5 (adaptado al componente de tu compañero)
+  rating: number; // del 1 al 5 (adaptado al componente review)
   createdAt: string | Date;
   user?: {
     username?: string;
@@ -83,16 +83,16 @@ export default function HomeCommunitySection() {
                       alt={review.user?.username || "Usuario"}
                       className="h-10 w-10 rounded-full border border-screen/20 object-cover"
                     />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-ink dark:text-screen">
+                    <div className="min-w-0 flex-1">
+                      <p className="line-clamp-1 text-sm font-semibold leading-tight text-ink dark:text-screen">
                         {review.user?.username || "Usuario anónimo"}
                       </p>
-                      <p className="truncate text-[0.65rem] uppercase tracking-wider text-slate dark:text-mist">
+                      <p className="mt-0.5 text-[0.65rem] uppercase tracking-wider text-slate dark:text-mist">
                         escribió una reseña
                       </p>
                     </div>
                   </div>
-                  <p className="text-xs text-slate dark:text-mist">
+                  <p className="line-clamp-2 text-xs leading-relaxed text-slate dark:text-mist">
                     Sobre <span className="font-semibold text-ink dark:text-screen">{
                       review.media?.title || 
                       (review.itemType === "movie" ? "una película" : 

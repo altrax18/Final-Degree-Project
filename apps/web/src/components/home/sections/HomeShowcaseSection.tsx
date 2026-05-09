@@ -13,7 +13,6 @@ type Props = {
 function HomeFeatureCard({ item, index }: { item: HomeFeatureItem; index: number }) {
   return (
     <motion.article
-      layout
       initial={{ opacity: 0, scale: 0.9, y: 16 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9, y: -16 }}
@@ -21,14 +20,26 @@ function HomeFeatureCard({ item, index }: { item: HomeFeatureItem; index: number
       className="group flex h-full flex-col overflow-hidden rounded-lg border border-bone bg-linen dark:border-night-edge dark:bg-obsidian transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-amethyst dark:hover:border-electric-sky"
     >
       <a href={item.href} className="block cursor-pointer">
-        <div className="relative aspect-[4/5] overflow-hidden bg-sand dark:bg-coal">
-          <img
-            src={item.image}
-            alt={item.title}
-            loading="lazy"
-            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-abyss/78 via-transparent to-transparent" />
+        <div className="relative aspect-[4/3] w-full overflow-hidden border-b border-bone/50 bg-sand dark:border-night-edge/50 dark:bg-coal">
+          {/* Fondo borroso dinámico para evitar recortes (Letterboxing premium) */}
+          <div className="absolute inset-0">
+            <img
+              key={`blur-${item.image}`}
+              src={item.image}
+              alt=""
+              className="h-full w-full object-cover blur-xl opacity-40 scale-110"
+            />
+          </div>
+          {/* Imagen principal completa (object-contain) */}
+          <div className="absolute inset-0 p-4">
+            <img
+              key={item.image}
+              src={item.image}
+              alt={item.title}
+              className="h-full w-full object-contain drop-shadow-2xl transition duration-700 group-hover:scale-105"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-abyss/90 via-transparent to-transparent pointer-events-none" />
           <span className="absolute left-3 top-3 rounded-lg border border-screen/15 bg-abyss/65 px-2 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-screen backdrop-blur">
             {item.label}
           </span>
@@ -38,28 +49,28 @@ function HomeFeatureCard({ item, index }: { item: HomeFeatureItem; index: number
         </div>
       </a>
 
-      <div className="flex flex-1 flex-col justify-between space-y-4 p-4">
-        <div>
-          <h3 className="truncate text-base font-semibold text-ink dark:text-screen">
+      <div className="flex flex-1 flex-col p-3.5 sm:p-4">
+        <div className="mb-3 flex-1">
+          <h3 className="line-clamp-2 text-base font-semibold leading-tight text-ink dark:text-screen">
             {item.title}
           </h3>
-          <p className="mt-1 line-clamp-2 min-h-10 text-sm leading-5 text-slate dark:text-mist">
+          <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-slate dark:text-mist">
             {item.subtitle}
           </p>
         </div>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="mt-auto flex flex-row gap-2">
           {item.onClick ? (
             <button
               type="button"
               onClick={item.onClick}
-              className="w-full cursor-pointer rounded-lg bg-electric-sky px-3 py-2 text-xs font-semibold text-obsidian transition-colors hover:bg-sapphire"
+              className="inline-flex flex-1 cursor-pointer items-center justify-center rounded-lg bg-electric-sky px-2 py-2 text-[0.7rem] font-semibold sm:text-xs text-obsidian transition-all active:scale-[0.98] hover:bg-sapphire"
             >
               Reproducir
             </button>
           ) : null}
           <a
             href={item.href}
-            className="inline-flex w-full cursor-pointer items-center justify-center rounded-lg border border-bone px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-amethyst dark:border-night-edge dark:text-screen dark:hover:border-electric-sky"
+            className="inline-flex flex-1 cursor-pointer items-center justify-center rounded-lg border border-bone px-2 py-2 text-[0.7rem] font-semibold sm:text-xs text-ink transition-all active:scale-[0.98] hover:bg-bone/50 dark:border-night-edge dark:text-screen dark:hover:bg-night-edge/50"
           >
             Abrir ficha
           </a>
@@ -102,7 +113,7 @@ export default function HomeShowcaseSection({
         />
         <AnimatedText
           el="h2"
-          mode="letters"
+          mode="words"
           text={title}
           className="mt-3 text-2xl font-semibold tracking-tight text-ink sm:text-3xl md:text-4xl dark:text-screen"
         />
@@ -145,13 +156,13 @@ export default function HomeShowcaseSection({
         </div>
       </motion.div>
 
-      <motion.div layout className="grid items-start gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        <AnimatePresence mode="popLayout">
+      <div className="grid items-start gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <AnimatePresence>
           {filteredItems.map((item, index) => (
             <HomeFeatureCard key={item.id} item={item} index={index} />
           ))}
         </AnimatePresence>
-      </motion.div>
+      </div>
     </section>
   );
 }
