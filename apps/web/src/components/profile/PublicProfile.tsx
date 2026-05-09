@@ -19,6 +19,8 @@ export default function PublicProfile({ targetUserId }: Props) {
   const [collections, setCollections] = useState<UserCollection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [following, setFollowing] = useState(false);
+  const [checkingFollow, setCheckingFollow] = useState(false);
   const { user: currentUser } = useProfile();
 
   useEffect(() => {
@@ -49,6 +51,15 @@ export default function PublicProfile({ targetUserId }: Props) {
     fetchPublicProfile();
   }, [targetUserId]);
 
+  useEffect(() => {
+    if (currentUser && targetUserId && currentUser.id !== targetUserId) {
+      fetch(`/api/users/${currentUser.id}/is-following/${targetUserId}`)
+        .then((res) => res.json())
+        .then((data) => setFollowing(data.isFollowing))
+        .catch(() => {});
+    }
+  }, [currentUser, targetUserId]);
+
   const handleStartChat = () => {
     if (!currentUser) {
       alert("Debes iniciar sesión para enviar mensajes");
@@ -60,6 +71,31 @@ export default function PublicProfile({ targetUserId }: Props) {
         detail: { targetUserId },
       })
     );
+  };
+
+  const handleFollowToggle = async () => {
+    if (!currentUser) {
+      alert("Debes iniciar sesión para seguir a otros usuarios");
+      return;
+    }
+    setCheckingFollow(true);
+    try {
+      if (following) {
+        const res = await fetch(`/api/users/${currentUser.id}/follow/${targetUserId}`, {
+          method: "DELETE",
+        });
+        if (res.ok) setFollowing(false);
+      } else {
+        const res = await fetch(`/api/users/${currentUser.id}/follow/${targetUserId}`, {
+          method: "POST",
+        });
+        if (res.ok) setFollowing(true);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCheckingFollow(false);
+    }
   };
 
   if (loading) {
@@ -146,16 +182,30 @@ export default function PublicProfile({ targetUserId }: Props) {
 
         <div className="flex items-center gap-3 sm:mb-2 shrink-0">
           {!isSelf ? (
-            <button
-              onClick={handleStartChat}
-              className="px-5 py-2 rounded-full border border-bone dark:border-white/15 bg-amethyst/10 dark:bg-amethyst/20
-                         text-amethyst dark:text-electric-sky text-sm font-bold uppercase tracking-wide
-                         hover:bg-amethyst/20 dark:hover:bg-amethyst/30 hover:border-amethyst/40 hover:scale-105
-                         transition-all duration-200 cursor-pointer flex items-center gap-2"
-            >
-              <Icon icon="tabler:messages" className="w-4 h-4" />
-              Enviar Mensaje
-            </button>
+            <>
+              <button
+                onClick={handleFollowToggle}
+                disabled={checkingFollow}
+                className={`px-5 py-2 rounded-full border text-sm font-bold uppercase tracking-wide hover:scale-105 transition-all duration-200 cursor-pointer flex items-center gap-2 ${
+                  following
+                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20"
+                    : "border-bone dark:border-white/15 bg-ink/[0.06] dark:bg-white/[0.06] text-ink dark:text-screen hover:bg-ink/[0.12] dark:hover:bg-white/[0.12]"
+                }`}
+              >
+                <Icon icon={following ? "tabler:user-check" : "tabler:user-plus"} className="w-4 h-4" />
+                {following ? "Siguiendo" : "Seguir"}
+              </button>
+              <button
+                onClick={handleStartChat}
+                className="px-5 py-2 rounded-full border border-bone dark:border-white/15 bg-amethyst/10 dark:bg-amethyst/20
+                           text-amethyst dark:text-electric-sky text-sm font-bold uppercase tracking-wide
+                           hover:bg-amethyst/20 dark:hover:bg-amethyst/30 hover:border-amethyst/40 hover:scale-105
+                           transition-all duration-200 cursor-pointer flex items-center gap-2"
+              >
+                <Icon icon="tabler:messages" className="w-4 h-4" />
+                Enviar Mensaje
+              </button>
+            </>
           ) : (
              <a
               href="/profile"

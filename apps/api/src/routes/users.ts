@@ -8,6 +8,10 @@ import {
   searchUsersByUsername,
   updateUser,
   deleteUser,
+  followUser,
+  unfollowUser,
+  isFollowing,
+  getFollowing,
 } from "../services/users";
 
 // CONCEPTO: Modulo de Rutas de Usuario
@@ -242,4 +246,33 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
 
     await deleteUser(Number(params.userId));
     return { ok: true };
+  })
+
+  // GET /api/users/:userId/following – Lista de usuarios seguidos
+  .get("/:userId/following", async ({ params }) => {
+    return getFollowing(Number(params.userId));
+  })
+
+  // GET /api/users/:userId/is-following/:targetId – Comprobar si sigue a un usuario específico
+  .get("/:userId/is-following/:targetId", async ({ params }) => {
+    const following = await isFollowing(Number(params.userId), Number(params.targetId));
+    return { isFollowing: following };
+  })
+
+  // POST /api/users/:userId/follow/:targetId – Seguir a un usuario
+  .post("/:userId/follow/:targetId", async ({ params, set }) => {
+    try {
+      await followUser(Number(params.userId), Number(params.targetId));
+      return { ok: true };
+    } catch (err: any) {
+      set.status = 400;
+      return { error: err.message || "Error al seguir al usuario" };
+    }
+  })
+
+  // DELETE /api/users/:userId/follow/:targetId – Dejar de seguir a un usuario
+  .delete("/:userId/follow/:targetId", async ({ params }) => {
+    await unfollowUser(Number(params.userId), Number(params.targetId));
+    return { ok: true };
   });
+

@@ -112,6 +112,18 @@ export const collectionItemsRelations = relations(collectionItems, ({ one }) => 
   }),
 }));
 
+export const follows = pgTable(
+  "follows",
+  {
+    followerId: integer("follower_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    followingId: integer("following_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.followerId, table.followingId] }),
+  ]
+);
+
 export const reviews = pgTable("reviews", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),

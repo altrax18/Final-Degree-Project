@@ -5,6 +5,7 @@ import { useCollections } from "../../hooks/useCollections";
 import ProfileHeader from "./ProfileHeader";
 import ProfileCollections from "./ProfileCollections";
 import RecommendedUsers from "./RecommendedUsers";
+import FollowedUsers from "./FollowedUsers";
 import EditModal from "./EditModal";
 import DeleteModal from "./DeleteModal";
 
@@ -95,6 +96,12 @@ export default function ProfilePage() {
         {/* Contenido principal */}
         <div className="mt-8 flex flex-col gap-10">
           <ProfileCollections {...collectionHelpers} />
+
+          {user && (
+            <section className="pt-6 border-t border-bone dark:border-night-edge">
+              <FollowedUsers userId={user.id} />
+            </section>
+          )}
 
           {user && (
             <section className="pt-6 border-t border-bone dark:border-night-edge">
