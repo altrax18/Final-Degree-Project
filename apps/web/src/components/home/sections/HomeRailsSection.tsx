@@ -56,6 +56,10 @@ function HomeRailCard({ rail }: { rail: HomeRail }) {
   );
 }
 
+// CONCEPTO: Native CSS Scroll Snap (Carrusel sin JavaScript)
+// QUE HACE: Renderiza las listas horizontales apoyándose exclusivamente en propiedades nativas de CSS (`snap-x`, `overflow-x-auto`).
+// POR QUE LO USO: Maximiza el rendimiento evitando librerías pesadas y ofrece la mejor experiencia táctil en navegadores móviles.
+// DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_scroll_snap
 export default function HomeRailsSection({ rails }: Props) {
   return (
     <motion.section

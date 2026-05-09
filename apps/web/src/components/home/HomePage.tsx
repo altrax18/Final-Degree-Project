@@ -22,6 +22,11 @@ import {
   type HomeRail,
 } from "./sections/home-utils";
 
+// CONCEPTO: Container Component (Patrón Contenedor / Componente Inteligente)
+// QUE HACE: Actúa como el cerebro de la página. Recibe datos crudos del servidor (Astro), los filtra, formatea y los reparte a los componentes visuales "tontos" (HeroSection, HomeRailsSection...).
+// POR QUE LO USO: Cumple el principio de Separación de Responsabilidades (SoC). Si la API cambia mañana, solo tocas este archivo; el diseño de las tarjetas se queda intacto.
+// DOCUMENTACION: https://legacy.reactjs.org/docs/components-and-props.html
+
 type Props = {
   trending: TrendingItem[];
   games: CatalogPayload<Game>;
@@ -70,12 +75,20 @@ export default function HomePage({
     );
   };
 
+  // CONCEPTO: View Model Mapping (Patrón Adaptador)
+  // QUE HACE: Transforma datos de negocio en una estructura plana y predecible (HeroStat) que la vista puede pintar fácilmente sin lógica extra.
+  // POR QUE LO USO: Simplifica el código del componente hijo, que no necesita saber qué es un 'TrendingItem' o un 'Movie'.
+  // DOCUMENTACION: https://refactoring.guru/es/design-patterns/adapter
   const heroStats: HeroStat[] = [
     { label: "Musica", value: `${featuredTracks.length}`, icon: "tabler:vinyl" },
     { label: "Peliculas", value: `${featuredMovies.length}`, icon: "tabler:movie" },
     { label: "Juegos", value: `${featuredGames.length}`, icon: "tabler:device-gamepad-2" },
   ];
 
+  // CONCEPTO: Optional Chaining & Nullish Coalescing (Programación Defensiva)
+  // QUE HACE: Usa `?.` para no romper si 'featuredTrack' es undefined, y `??` para dar un valor de respaldo elegante.
+  // POR QUE LO USO: Evita los temidos pantallazos en blanco y asegura la resistencia de la UI (Resilient UI).
+  // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing
   const spotlights: HeroSpotlight[] = [
     {
       label: "Ahora sonando",
@@ -112,6 +125,10 @@ export default function HomePage({
     },
   ];
 
+  // CONCEPTO: Data Aggregation & Spread Syntax (...)
+  // QUE HACE: Junta los arrays de música, cine y juegos en una única lista fusionada para el Showcase.
+  // POR QUE LO USO: Mantiene el código declarativo y evita hacer `push` manualmente en arrays temporales.
+  // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
   const featureItems: HomeFeatureItem[] = [
     ...featuredTracks.slice(0, 4).map((track, index) => ({
       id: `track-${track.id}`,
@@ -143,6 +160,10 @@ export default function HomePage({
     })),
   ].slice(0, 9);
 
+  // CONCEPTO: Data Grouping para Listas Horizontales
+  // QUE HACE: Mapea sub-secciones del catálogo a un formato estándar de 'raíl' (HomeRail).
+  // POR QUE LO USO: Permite renderizar todos los raíles con un simple .map() en la vista, haciendo el componente HomeRailsSection genérico y reutilizable.
+  // DOCUMENTACION: https://react.dev/learn/rendering-lists
   const rails: HomeRail[] = [
     {
       title: "Musica que marca el ritmo",

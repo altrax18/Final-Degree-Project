@@ -24,8 +24,10 @@ export default function HomeCommunitySection() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // CONCEPTO: CSR (Client-Side Rendering) en Isla
-    // QUE HACE: Carga las reseñas en tiempo real ignorando la caché del HTML principal.
+    // CONCEPTO: Client-Side Rendering (CSR) / Patrón "Isla Dinámica"
+    // QUE HACE: Solicita las reseñas recientes desde el cliente al montarse el componente, de forma asíncrona.
+    // POR QUE LO USO: La actividad de la comunidad cambia constantemente; incrustarla estáticamente en el servidor (SSG) mostraría datos viejos.
+    // DOCUMENTACION: https://react.dev/reference/react/useEffect#fetching-data-with-effects
     fetch("/recent-reviews")
       .then((res) => res.json())
       .then((data) => {
