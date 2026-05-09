@@ -6,6 +6,7 @@ import MessageArea from "./MessageArea";
 
 type Props = {
   userId: number;
+  playerVisible?: boolean;
   initialTargetUserId?: number | null;
   onClose: () => void;
 };
@@ -31,7 +32,7 @@ function getInterlocutorId(conv: ChatConversation, userId: number): number | nul
   return null;
 }
 
-export default function ChatWindow({ userId, initialTargetUserId, onClose }: Props) {
+export default function ChatWindow({ userId, playerVisible = false, initialTargetUserId, onClose }: Props) {
   const { conversations, messages, sendMessage, subscribe, fetchMessages, markRead, startConversation } = useChat(userId);
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
 
@@ -57,7 +58,7 @@ export default function ChatWindow({ userId, initialTargetUserId, onClose }: Pro
   };
 
   return (
-    <div className="fixed bottom-24 right-6 z-50 flex h-[480px] w-[360px] flex-col overflow-hidden rounded-2xl bg-parchment border border-bone shadow-2xl dark:bg-obsidian dark:border-night-edge">
+    <div className={`animate-chat-enter fixed ${playerVisible ? "bottom-[176px]" : "bottom-24"} right-6 z-50 flex h-[480px] w-[360px] flex-col overflow-hidden rounded-2xl bg-parchment border border-bone shadow-[0_25px_50px_-12px_rgb(0,0,0,0.25),0_0_0_2px_rgba(217,112,50,0.2)] dark:bg-obsidian dark:border-night-edge dark:shadow-[0_25px_50px_-12px_rgb(0,0,0,0.5),0_0_0_2px_rgba(255,255,255,0.1)] transition-[bottom] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]`}>
       {/* Header */}
       <div className="flex items-center justify-between bg-sand text-ink px-4 py-3 dark:bg-coal dark:text-screen">
         <div className="flex items-center gap-2">

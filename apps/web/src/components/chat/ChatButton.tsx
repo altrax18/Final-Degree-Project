@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
+import { Icon } from "@iconify/react";
 import ChatWindow from "./ChatWindow";
 import { readSession } from "../../types/user";
+
+// Squircle shape via CSS corner-shape with circular fallback
+const squircleStyle: React.CSSProperties = {
+  borderRadius: "50%",
+  // @ts-expect-error — corner-shape is a newer CSS property not yet in TS types
+  "cornerShape": "squircle",
+};
 
 export default function ChatButton() {
   // client:only="react" garantiza que esto sólo corre en el navegador,
@@ -8,6 +16,9 @@ export default function ChatButton() {
   const [userId] = useState<number | null>(() => readSession()?.id ?? null);
   const [isOpen, setIsOpen] = useState(false);
   const [targetUserId, setTargetUserId] = useState<number | null>(null);
+  const [isPlayerVisible, setIsPlayerVisible] = useState(
+    () => !!document.getElementById("footer-player"),
+  );
 
   useEffect(() => {
     const handleOpenChat = (e: Event) => {
@@ -19,29 +30,37 @@ export default function ChatButton() {
     return () => window.removeEventListener("open-chat", handleOpenChat);
   }, []);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ id: string | null }>).detail;
+      setIsPlayerVisible(detail.id != null);
+    };
+    window.addEventListener("player-state", handler);
+    return () => window.removeEventListener("player-state", handler);
+  }, []);
+
   if (!userId) return null;
+
+  const btnBottom = isPlayerVisible ? "bottom-[104px]" : "bottom-6";
 
   return (
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-[110] flex h-14 w-14 items-center justify-center rounded-full bg-amethyst text-screen shadow-lg hover:bg-orchid dark:bg-sapphire dark:hover:bg-depth transition-colors cursor-pointer"
+        style={squircleStyle}
+        className={`fixed ${btnBottom} right-6 z-[110] flex h-14 w-14 items-center justify-center bg-amethyst text-screen shadow-lg hover:bg-orchid dark:bg-sapphire dark:hover:bg-depth transition-[bottom] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] cursor-pointer`}
         aria-label={isOpen ? "Close chat" : "Open chat"}
       >
-        {isOpen ? (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-        )}
+        <Icon
+          icon={isOpen ? "tabler:x" : "tabler:message-circle"}
+          className="h-6 w-6 transition-transform duration-300"
+        />
       </button>
 
       {isOpen && (
         <ChatWindow
           userId={userId}
+          playerVisible={isPlayerVisible}
           initialTargetUserId={targetUserId}
           onClose={() => {
             setIsOpen(false);
