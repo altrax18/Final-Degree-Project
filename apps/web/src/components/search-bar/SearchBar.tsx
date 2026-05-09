@@ -225,16 +225,16 @@ export default function SearchBar({ currentPath }: Props) {
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-1 max-w-[380px] items-center lg:max-w-[240px] xl:max-w-[380px]"
+      className="relative flex flex-1 max-w-[380px] items-stretch lg:max-w-[240px] xl:max-w-[380px]"
     >
       {/* Category selector (only when not on a specific catalog route) */}
       {inferredCategory === null && (
-        <div className="relative shrink-0">
+        <div className="relative shrink-0 flex items-stretch">
           <button
             type="button"
             onClick={() => setShowCategoryMenu((v) => !v)}
             aria-label="Select search category"
-            className="flex items-center gap-1 rounded-l-[0.6rem] border border-r-0 border-bone dark:border-night-edge bg-linen dark:bg-coal px-2 py-2 text-xs text-slate dark:text-mist transition-colors duration-150 hover:bg-sand dark:hover:bg-coal hover:text-ink dark:hover:text-screen h-full"
+            className="flex items-center gap-1.5 rounded-l-[0.6rem] border border-bone dark:border-night-edge bg-linen dark:bg-coal px-3 text-sm text-slate dark:text-mist transition-colors duration-150 hover:bg-sand dark:hover:bg-coal hover:text-ink dark:hover:text-screen h-full"
           >
             <Icon icon={config.icon} width={14} height={14} aria-hidden="true" />
             <Icon icon="tabler:chevron-down" width={10} height={10} aria-hidden="true" />
