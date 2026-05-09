@@ -36,7 +36,7 @@ export const fallbackBackdrop =
   "https://placehold.co/1440x900/0A0A0A/FFFFFF?text=Alexandria";
 
 export const formatRating = (value: number) =>
-  Number.isFinite(value) ? value.toFixed(1) : "0.0";
+  Number.isFinite(value) ? String(Math.round(value)) : "0";
 
 export const normalizeCatalog = <T>(payload: CatalogPayload<T>): T[] => {
   if (Array.isArray(payload)) return payload;
