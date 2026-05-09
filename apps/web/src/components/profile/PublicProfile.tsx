@@ -81,56 +81,98 @@ export default function PublicProfile({ targetUserId }: Props) {
 
   const isSelf = currentUser?.id === user.id;
 
+  const musicCount = collections.filter(c => c.type === "music").length;
+  const movieCount = collections.filter(c => c.type === "movie").length;
+  const gameCount = collections.filter(c => c.type === "game").length;
+  const totalCount = collections.length;
+
   return (
-    <div className="flex flex-col gap-8 max-w-5xl mx-auto w-full pt-10 px-4 md:px-8">
+    <div className="flex flex-col gap-0">
       {/* Profile Header */}
-      <section className="relative overflow-hidden rounded-3xl bg-sand dark:bg-coal border border-bone dark:border-night-edge p-8 sm:p-12 animate-in fade-in zoom-in-95 duration-500 shadow-xl shadow-ink/5 dark:shadow-none">
-        {/* Decoración de fondo */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-amethyst/10 dark:bg-amethyst/5 blur-3xl rounded-full -translate-y-1/2 translate-x-1/3" />
-        
-        <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-10">
+      <div
+        className="flex flex-col sm:flex-row sm:items-end gap-6 px-5 pt-12 pb-8 sm:px-9
+                   rounded-2xl border border-bone dark:border-night-edge bg-linen dark:bg-coal animate-in fade-in zoom-in-95 duration-500"
+      >
+        <div className="relative shrink-0" style={{ width: 160, height: 160 }}>
           <img
             src={user.profileImageUrl || "https://avatar.vercel.sh/default"}
             alt={user.username}
-            className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-bone dark:border-night-edge shadow-2xl bg-linen dark:bg-obsidian"
+            className="w-full h-full rounded-full object-cover"
+            style={{
+              boxShadow: "0 4px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08)",
+            }}
           />
+        </div>
 
-          <div className="flex-1 text-center md:text-left">
-            <h1 className="text-3xl md:text-4xl font-black text-ink dark:text-screen tracking-tight">
-              {user.username}
-            </h1>
-            <p className="text-slate dark:text-mist mt-2 font-medium">
-              Explora las colecciones y gustos de {user.username}
-            </p>
+        <div className="flex flex-col flex-1 min-w-0 gap-1">
+          <span className="text-[0.7rem] font-bold uppercase tracking-[2px] text-slate dark:text-mist">
+            Perfil Público
+          </span>
+          <h1
+            className="m-0 font-black leading-tight tracking-tight text-ink dark:text-screen truncate"
+            style={{ fontSize: "clamp(2rem, 5vw, 5rem)" }}
+          >
+            {user.username}
+          </h1>
+
+          {/* Stats */}
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-ink/[0.04] dark:bg-screen/[0.04] border border-bone dark:border-night-edge text-[11px] font-bold uppercase tracking-wider text-slate dark:text-mist">
+              <span className="text-ink dark:text-screen">{totalCount}</span> Colecciones
+            </div>
+            
+            {musicCount > 0 && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amethyst/10 border border-amethyst/20 text-[10px] font-bold uppercase tracking-wider text-amethyst">
+                <Icon icon="tabler:music" className="w-3.5 h-3.5" />
+                <span className="text-ink dark:text-screen">{musicCount}</span> Música
+              </div>
+            )}
+
+            {movieCount > 0 && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold uppercase tracking-wider text-amber-500">
+                <Icon icon="tabler:movie" className="w-3.5 h-3.5" />
+                <span className="text-ink dark:text-screen">{movieCount}</span> Películas
+              </div>
+            )}
+
+            {gameCount > 0 && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider text-emerald-500">
+                <Icon icon="tabler:device-gamepad-2" className="w-3.5 h-3.5" />
+                <span className="text-ink dark:text-screen">{gameCount}</span> Juegos
+              </div>
+            )}
           </div>
+        </div>
 
-          {!isSelf && (
-            <div className="shrink-0">
-              <button
-                onClick={handleStartChat}
-                className="flex items-center gap-2 px-6 py-3 bg-amethyst hover:bg-orchid text-white rounded-xl font-bold transition-all shadow-lg shadow-amethyst/20 hover:scale-105 active:scale-95"
-              >
-                <Icon icon="tabler:messages" className="w-5 h-5" />
-                Enviar Mensaje
-              </button>
-            </div>
-          )}
-          {isSelf && (
-            <div className="shrink-0">
-               <a
-                href="/profile"
-                className="flex items-center gap-2 px-6 py-3 bg-ink/10 dark:bg-white/10 hover:bg-ink/20 dark:hover:bg-white/20 text-ink dark:text-screen rounded-xl font-bold transition-all"
-              >
-                <Icon icon="tabler:pencil" className="w-5 h-5" />
-                Editar mi Perfil
-              </a>
-            </div>
+        <div className="flex items-center gap-3 sm:mb-2 shrink-0">
+          {!isSelf ? (
+            <button
+              onClick={handleStartChat}
+              className="px-5 py-2 rounded-full border border-bone dark:border-white/15 bg-amethyst/10 dark:bg-amethyst/20
+                         text-amethyst dark:text-electric-sky text-sm font-bold uppercase tracking-wide
+                         hover:bg-amethyst/20 dark:hover:bg-amethyst/30 hover:border-amethyst/40 hover:scale-105
+                         transition-all duration-200 cursor-pointer flex items-center gap-2"
+            >
+              <Icon icon="tabler:messages" className="w-4 h-4" />
+              Enviar Mensaje
+            </button>
+          ) : (
+             <a
+              href="/profile"
+              className="px-5 py-2 rounded-full border border-bone dark:border-white/15 bg-ink/[0.06] dark:bg-white/[0.06]
+                         text-ink dark:text-screen text-sm font-bold uppercase tracking-wide
+                         hover:bg-ink/[0.12] dark:hover:bg-white/[0.12] hover:border-ink/30 dark:hover:border-white/30 hover:scale-105
+                         transition-all duration-200 cursor-pointer flex items-center gap-2"
+            >
+              <Icon icon="tabler:pencil" className="w-4 h-4" />
+              Editar Perfil
+            </a>
           )}
         </div>
-      </section>
+      </div>
 
       {/* Profile Collections */}
-      <div className="mt-8">
+      <div className="mt-8 flex flex-col gap-10">
         <ProfileCollections
           collections={collections}
           loading={loading}

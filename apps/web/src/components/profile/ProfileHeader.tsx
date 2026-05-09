@@ -116,7 +116,7 @@ export default function ProfileHeader({
             {movieCount > 0 && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold uppercase tracking-wider text-amber-500">
                 <Icon icon="tabler:movie" className="w-3.5 h-3.5" />
-                <span className="text-ink dark:text-screen">{movieCount}</span> Pelis
+                <span className="text-ink dark:text-screen">{movieCount}</span> Películas
               </div>
             )}
 
