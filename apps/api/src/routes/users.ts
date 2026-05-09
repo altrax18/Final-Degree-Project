@@ -1,4 +1,5 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
+import { put, del } from "@vercel/blob";
 import bcrypt from "bcryptjs";
 import {
   createUser,
@@ -147,6 +148,82 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
 
     const { password: _pw, ...safeUser } = user;
     return safeUser;
+  })
+
+  // POST /api/users/:userId/avatar – Sube un avatar y actualiza el usuario
+  .post("/:userId/avatar", async ({ params, body, set }) => {
+    const file = body.file as File;
+    if (!file) {
+      set.status = 400;
+      return { error: "No se proporcionó ningún archivo" };
+    }
+
+    try {
+      // Obtener la URL anterior para borrarla después
+      const currentUser = await getUserById(Number(params.userId));
+      
+      // Sanitizar el nombre del archivo
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filename = `${params.userId}-${Date.now()}-${sanitizedName}`;
+      
+      const blob = await put(filename, file, { access: 'public' });
+
+      // Actualizar URL en la base de datos
+      const user = await updateUser(Number(params.userId), { profileImageUrl: blob.url });
+      if (!user) return new Response("Not found", { status: 404 });
+
+      // Borrar la imagen anterior del Blob (si existía y es de Vercel Blob)
+      if (currentUser?.profileImageUrl && currentUser.profileImageUrl.includes('blob.vercel-storage.com')) {
+        try {
+          await del(currentUser.profileImageUrl);
+        } catch (e: any) {
+          console.warn('No se pudo borrar la imagen anterior:', e.message);
+        }
+      }
+
+      const { password: _pw, ...safeUser } = user;
+      return safeUser;
+    } catch (err: any) {
+      console.error("Error subiendo avatar:", err);
+      set.status = 500;
+      return { error: "Error al subir la imagen", details: err.message || String(err) };
+    }
+  }, {
+    body: t.Object({
+      file: t.File()
+    })
+  })
+
+  // DELETE /api/users/:userId/avatar – Borrar imagen de perfil del Blob de Vercel
+  .delete("/:userId/avatar", async ({ params, set }) => {
+    try {
+      const currentUser = await getUserById(Number(params.userId));
+      
+      if (!currentUser?.profileImageUrl) {
+        set.status = 404;
+        return { error: "No tienes imagen de perfil" };
+      }
+
+      // Borrar del Blob
+      if (currentUser.profileImageUrl.includes('blob.vercel-storage.com')) {
+        try {
+          await del(currentUser.profileImageUrl);
+        } catch (e: any) {
+          console.warn('No se pudo borrar la imagen del blob:', e.message);
+        }
+      }
+
+      // Restablecer al valor por defecto
+      const user = await updateUser(Number(params.userId), { profileImageUrl: "https://avatar.vercel.sh/default" });
+      if (!user) return new Response("Not found", { status: 404 });
+
+      const { password: _pw, ...safeUser } = user;
+      return safeUser;
+    } catch (error: any) {
+      console.error("Error al borrar avatar:", error);
+      set.status = 500;
+      return { error: "Error al borrar la imagen de perfil" };
+    }
   })
 
   // DELETE /api/users/:userId – Elimina la cuenta del usuario

@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "bun --watch --env-file ../../.env src/index.ts"
+    "dev": "bun --watch --env-file ../../.env --env-file ../../.env.local src/index.ts"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.1",
-    "@huggingface/transformers": "^4.2.0",
     "@neondatabase/serverless": "^1.1.0",
     "@types/bcryptjs": "^3.0.0",
+    "@vercel/blob": "^2.3.3",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.2",

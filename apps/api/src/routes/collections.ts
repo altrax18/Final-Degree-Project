@@ -51,7 +51,7 @@ export const collectionsRoutes = new Elysia({ prefix: "/api/users/:userId" })
   })
   .post("/collections/:collectionId/items", async ({ params, body }) => {
     const item = await addItemToCollection(Number(params.collectionId), body as CollectionItemBody);
-    updateUserEmbedding(Number(params.userId)).catch(console.error);
+    await updateUserEmbedding(Number(params.userId));
     return item;
   })
   .get("/collections/:collectionId/items/:itemId", async ({ params }) => {
@@ -62,6 +62,6 @@ export const collectionsRoutes = new Elysia({ prefix: "/api/users/:userId" })
   .delete("/collections/:collectionId/items/:itemId", async ({ params }) => {
     const item = await removeItemFromCollection(Number(params.collectionId), Number(params.itemId));
     if (!item) return new Response("Not found", { status: 404 });
-    updateUserEmbedding(Number(params.userId)).catch(console.error);
+    await updateUserEmbedding(Number(params.userId));
     return item;
   });

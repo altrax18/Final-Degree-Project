@@ -10,9 +10,22 @@ interface Props {
   collections: UserCollection[];
   onEdit: () => void;
   onLogout: () => void;
+  uploadingAvatar?: boolean;
+  deletingAvatar?: boolean;
+  onAvatarUpload?: (file: File) => void;
+  onAvatarDelete?: () => void;
 }
 
-export default function ProfileHeader({ user, collections, onEdit, onLogout }: Props) {
+export default function ProfileHeader({
+  user,
+  collections,
+  onEdit,
+  onLogout,
+  uploadingAvatar,
+  deletingAvatar,
+  onAvatarUpload,
+  onAvatarDelete,
+}: Props) {
   const displayName = user?.username ?? "Invitado";
   const displayEmail = user?.email ?? "";
   const displayAvatar = user?.profileImageUrl ?? DEFAULT_AVATAR;
@@ -63,7 +76,14 @@ export default function ProfileHeader({ user, collections, onEdit, onLogout }: P
         className="flex flex-col sm:flex-row sm:items-end gap-6 px-5 pt-12 pb-8 sm:px-9
                    rounded-2xl border border-bone dark:border-night-edge bg-linen dark:bg-coal"
       >
-        <ProfileAvatar src={displayAvatar} username={displayName} />
+        <ProfileAvatar 
+          src={displayAvatar} 
+          username={displayName}
+          isUploading={uploadingAvatar}
+          isDeleting={deletingAvatar}
+          onUpload={onAvatarUpload}
+          onDelete={onAvatarDelete}
+        />
 
         {/* Info */}
         <div className="flex flex-col flex-1 min-w-0 gap-1">

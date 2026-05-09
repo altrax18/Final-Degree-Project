@@ -82,27 +82,25 @@ async function fetchResults(
   }
 
   if (category === "movies") {
-    const res = await fetch(`/api/movies?q=${encodeURIComponent(term)}`);
+    const res = await fetch(`/api/movies?q=${encodeURIComponent(term)}&limit=12`);
     const data = await res.json();
-    if (!Array.isArray(data)) return [];
-    return (data as { id: string; title: string; image: string | null; firstReleaseDate?: number | null }[])
-      .slice(0, 12)
-      .map((r) => {
-        const year = r.firstReleaseDate ? new Date(r.firstReleaseDate).getFullYear().toString() : undefined;
-        return { id: r.id, title: r.title, subtitle: year, image: r.image };
-      });
+    const items: { id: string; title: string; image: string | null; firstReleaseDate?: number | null }[] =
+      Array.isArray(data) ? data : (data?.items ?? []);
+    return items.slice(0, 12).map((r) => {
+      const year = r.firstReleaseDate ? new Date(r.firstReleaseDate).getFullYear().toString() : undefined;
+      return { id: r.id, title: r.title, subtitle: year, image: r.image };
+    });
   }
 
   if (category === "games") {
-    const res = await fetch(`/api/games?q=${encodeURIComponent(term)}`);
+    const res = await fetch(`/api/games?q=${encodeURIComponent(term)}&limit=12`);
     const data = await res.json();
-    if (!Array.isArray(data)) return [];
-    return (data as { id: string; title: string; image: string | null; genres?: string[] }[])
-      .slice(0, 12)
-      .map((r) => {
-        const genre = r.genres && r.genres.length > 0 ? r.genres[0] : undefined;
-        return { id: r.id, title: r.title, subtitle: genre, image: r.image };
-      });
+    const items: { id: string; title: string; image: string | null; genres?: string[] }[] =
+      Array.isArray(data) ? data : (data?.items ?? []);
+    return items.slice(0, 12).map((r) => {
+      const genre = r.genres && r.genres.length > 0 ? r.genres[0] : undefined;
+      return { id: r.id, title: r.title, subtitle: genre, image: r.image };
+    });
   }
 
   return [];
