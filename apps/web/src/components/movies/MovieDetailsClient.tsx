@@ -106,7 +106,7 @@ export default function MovieDetailsClient({ movie }: Props) {
           {movie.genres.map((genre) => (
             <span
               key={genre}
-              className="px-3 py-1 bg-red-500/20 text-red-300 text-sm rounded-md border border-red-500/30"
+              className="px-3 py-1 bg-amethyst/10 text-amethyst text-sm rounded-md border border-amethyst/20 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/30"
             >
               {genre}
             </span>
@@ -144,7 +144,7 @@ export default function MovieDetailsClient({ movie }: Props) {
             href={movie.homepage}
             target="_blank"
             rel="noreferrer"
-            className="block w-full rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-center font-semibold text-blue-300 hover:bg-blue-500/20 transition"
+            className="block w-full rounded-lg border border-sapphire/30 bg-sapphire/10 px-4 py-3 text-center font-semibold text-sapphire hover:bg-sapphire/20 transition dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-500/20"
           >
             Sitio web oficial
           </a>
@@ -154,7 +154,7 @@ export default function MovieDetailsClient({ movie }: Props) {
             href={`https://www.imdb.com/title/${movie.imdbId}/`}
             target="_blank"
             rel="noreferrer"
-            className="block w-full rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-center font-semibold text-yellow-300 hover:bg-yellow-500/20 transition"
+            className="block w-full rounded-lg border border-amber/30 bg-amber/10 px-4 py-3 text-center font-semibold text-amber hover:bg-amber/20 transition dark:border-yellow-500/30 dark:bg-yellow-500/10 dark:text-yellow-300 dark:hover:bg-yellow-500/20"
           >
             Ver en IMDb
           </a>

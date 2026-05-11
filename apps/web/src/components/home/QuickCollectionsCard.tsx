@@ -6,11 +6,6 @@ const typeLabel: Record<UserCollection["type"], string> = {
   game: "Juegos",
 };
 
-const typeHref: Record<UserCollection["type"], string> = {
-  music: "/music",
-  movie: "/movies",
-  game: "/games",
-};
 
 const getCollectionCover = (collection: UserCollection) => {
   const firstItem = collection.items?.[0];
@@ -24,7 +19,7 @@ const getCollectionCover = (collection: UserCollection) => {
 function MiniCollection({ collection }: { collection: UserCollection }) {
   return (
     <a
-      href={typeHref[collection.type]}
+      href="/profile"
       className="group flex cursor-pointer items-center gap-3.5 rounded-lg border border-bone bg-parchment p-3 transition-all duration-300 hover:scale-[1.02] hover:border-amethyst hover:shadow-md dark:border-night-edge dark:bg-coal dark:hover:border-electric-sky active:scale-[0.98]"
     >
       <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-sand dark:bg-obsidian">

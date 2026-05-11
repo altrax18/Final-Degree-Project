@@ -50,7 +50,7 @@ export default function GameDetailsClient({ game }: Props) {
         <h3 className="text-sm uppercase tracking-widest text-slate dark:text-mist mb-3 font-bold">Géneros</h3>
         <div className="flex flex-wrap gap-2">
           {game.genres.map(g => (
-            <span key={g} className="px-3 py-1 bg-blue-500/20 text-blue-300 text-sm rounded-md border border-blue-500/30">{g}</span>
+            <span key={g} className="px-3 py-1 bg-sapphire/10 text-sapphire text-sm rounded-md border border-sapphire/20 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30">{g}</span>
           ))}
         </div>
       </div>

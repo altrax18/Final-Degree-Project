@@ -91,7 +91,7 @@ export default function HomePage({
   // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing
   const spotlights: HeroSpotlight[] = [
     {
-      label: "Ahora sonando",
+      label: "La más escuchada",
       title: featuredTrack?.title ?? "Alexandria Mix",
       subtitle:
         featuredTrack?.artist ?? "Tendencias musicales listas para descubrir.",
