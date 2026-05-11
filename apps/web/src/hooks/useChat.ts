@@ -11,7 +11,7 @@ export type ChatConversation = {
   id: number;
   type: "direct" | "group";
   name: string | null;
-  updatedAt: string | null;
+  updatedAt: string | Date | null;
   unreadCount: number;
   members: ChatMember[];
 };
@@ -23,7 +23,7 @@ export type ChatMessage = {
   senderUsername: string;
   content: string;
   type: string;
-  createdAt: string;
+  createdAt: string | Date | null;
 };
 
 const API_URL = ((import.meta.env.PUBLIC_API_URL as string | undefined) ?? "").replace(/\/api\/?$/, "");

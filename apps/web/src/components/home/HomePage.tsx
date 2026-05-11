@@ -1,5 +1,6 @@
 import type { TrendingItem } from "../../types/home";
 import type { Game } from "../../types/game";
+import type { Movie } from "../../types/movie";
 import HeroSection, {
   type HeroSpotlight,
   type HeroStat,
