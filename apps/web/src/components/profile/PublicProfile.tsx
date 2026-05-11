@@ -3,6 +3,7 @@ import { Icon } from "@iconify/react";
 import ProfileCollections from "./ProfileCollections";
 import type { UserCollection } from "../../types/collection";
 import { useProfile } from "../../hooks/useProfile";
+import { api } from "../../lib/api";
 
 interface PublicUser {
   id: number;
@@ -28,19 +29,19 @@ export default function PublicProfile({ targetUserId }: Props) {
     async function fetchPublicProfile() {
       try {
         setLoading(true);
+        const targetApi = api.api.users({ userId: String(targetUserId) });
+
         // 1. Fetch user info
-        const userRes = await fetch(`/api/users/${targetUserId}`);
-        if (!userRes.ok) {
+        const userResponse = await targetApi.get();
+        if (userResponse.error || !userResponse.data) {
           throw new Error("Usuario no encontrado");
         }
-        const userData = await userRes.json();
-        setUser(userData);
+        setUser(userResponse.data as unknown as PublicUser);
 
         // 2. Fetch user collections
-        const colsRes = await fetch(`/api/users/${targetUserId}/collections`);
-        if (colsRes.ok) {
-          const colsData = await colsRes.json();
-          setCollections(colsData);
+        const collectionsResponse = await targetApi.collections.get();
+        if (!collectionsResponse.error && collectionsResponse.data) {
+          setCollections(collectionsResponse.data as UserCollection[]);
         }
       } catch (err: any) {
         setError(err.message || "Error al cargar el perfil");
@@ -54,18 +55,22 @@ export default function PublicProfile({ targetUserId }: Props) {
 
   useEffect(() => {
     if (currentUser && targetUserId && currentUser.id !== targetUserId) {
-      fetch(`/api/users/${currentUser.id}/is-following/${targetUserId}`)
-        .then((res) => res.json())
-        .then((data) => setFollowing(data.isFollowing))
+      const currentApi = api.api.users({ userId: String(currentUser.id) });
+      currentApi["is-following"]({ targetId: String(targetUserId) }).get()
+        .then(({ data }: any) => {
+          if (data) setFollowing(data.isFollowing);
+        })
         .catch(() => {});
     }
   }, [currentUser, targetUserId]);
 
   useEffect(() => {
     if (targetUserId) {
-      fetch(`/api/users/${targetUserId}/followers`)
-        .then((res) => res.json())
-        .then((data) => setFollowersCount(Array.isArray(data) ? data.length : 0))
+      const targetApi = api.api.users({ userId: String(targetUserId) });
+      targetApi.followers.get()
+        .then(({ data }: any) => {
+          if (data) setFollowersCount(Array.isArray(data) ? data.length : 0);
+        })
         .catch(() => {});
     }
   }, [targetUserId, following]);
@@ -90,16 +95,13 @@ export default function PublicProfile({ targetUserId }: Props) {
     }
     setCheckingFollow(true);
     try {
+      const userApi = api.api.users({ userId: String(currentUser.id) });
       if (following) {
-        const res = await fetch(`/api/users/${currentUser.id}/follow/${targetUserId}`, {
-          method: "DELETE",
-        });
-        if (res.ok) setFollowing(false);
+        const { error } = await userApi.follow({ targetId: String(targetUserId) }).delete();
+        if (!error) setFollowing(false);
       } else {
-        const res = await fetch(`/api/users/${currentUser.id}/follow/${targetUserId}`, {
-          method: "POST",
-        });
-        if (res.ok) setFollowing(true);
+        const { error } = await userApi.follow({ targetId: String(targetUserId) }).post();
+        if (!error) setFollowing(true);
       }
     } catch (err) {
       console.error(err);

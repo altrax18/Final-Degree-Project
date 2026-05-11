@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
+import { api } from "../../lib/api";
 
 type Category = "music" | "movies" | "games";
 
@@ -36,74 +37,22 @@ async function fetchResults(
   category: Category,
   term: string,
 ): Promise<SearchResult[]> {
-  if (category === "music") {
-    const [songsRes, albumsRes] = await Promise.all([
-      fetch(`/api/music/search?term=${encodeURIComponent(term)}&limit=9`),
-      fetch(`/api/music/search/albums?term=${encodeURIComponent(term)}&limit=6`),
-    ]);
-    const songsData = await songsRes.json();
-    const albumsData = await albumsRes.json();
-
-    const songs: SearchResult[] = (songsData.results ?? []).map(
-      (r: { id: string; title: string; artist: string; cover: string }) => ({
-        id: r.id,
-        title: r.title,
-        subtitle: r.artist,
-        image: r.cover,
-        isAlbum: false,
-      }),
-    );
-
-    const albums: SearchResult[] = (albumsData.results ?? []).map(
-      (r: { id: string; title: string; artist: string; cover: string; trackCount?: number }) => ({
-        id: r.id,
-        title: r.title,
-        subtitle: r.artist,
-        image: r.cover,
-        isAlbum: true,
-        trackCount: r.trackCount,
-      }),
-    );
-
-    // Mezclar y ordenar por relevancia (igual que SoundHub)
-    const mixed = [...songs, ...albums];
-    const lowerTerm = term.toLowerCase();
-    mixed.sort((a, b) => {
-      const tA = a.title.toLowerCase();
-      const tB = b.title.toLowerCase();
-      if (tA === lowerTerm && tB !== lowerTerm) return -1;
-      if (tB === lowerTerm && tA !== lowerTerm) return 1;
-      if (tA.startsWith(lowerTerm) && !tB.startsWith(lowerTerm)) return -1;
-      if (tB.startsWith(lowerTerm) && !tA.startsWith(lowerTerm)) return 1;
-      return 0;
+  try {
+    const { data, error } = await api.api.catalog["quick-search"].get({
+      query: { category, q: term },
     });
 
-    return mixed.slice(0, 12);
-  }
+    if (error || !data) {
+      console.error("Error performing quick-search", error);
+      return [];
+    }
 
-  if (category === "movies") {
-    const res = await fetch(`/api/movies?q=${encodeURIComponent(term)}&limit=12`);
-    const data = await res.json();
-    const items: { id: string; title: string; image: string | null; firstReleaseDate?: number | null }[] =
-      Array.isArray(data) ? data : (data?.items ?? []);
-    return items.slice(0, 12).map((r) => {
-      const year = r.firstReleaseDate ? new Date(r.firstReleaseDate).getFullYear().toString() : undefined;
-      return { id: r.id, title: r.title, subtitle: year, image: r.image };
-    });
+    // El backend devuelve un array de objetos que cumplen con la forma de SearchResult
+    return data as SearchResult[];
+  } catch (err) {
+    console.error("Failed to fetch results:", err);
+    return [];
   }
-
-  if (category === "games") {
-    const res = await fetch(`/api/games?q=${encodeURIComponent(term)}&limit=12`);
-    const data = await res.json();
-    const items: { id: string; title: string; image: string | null; genres?: string[] }[] =
-      Array.isArray(data) ? data : (data?.items ?? []);
-    return items.slice(0, 12).map((r) => {
-      const genre = r.genres && r.genres.length > 0 ? r.genres[0] : undefined;
-      return { id: r.id, title: r.title, subtitle: genre, image: r.image };
-    });
-  }
-
-  return [];
 }
 
 function buildResultHref(category: Category, result: SearchResult): string {

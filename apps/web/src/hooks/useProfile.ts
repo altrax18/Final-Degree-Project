@@ -7,6 +7,7 @@ import {
   writeSession,
   clearSession,
 } from "../types/user";
+import { api } from "../lib/api";
 
 export type EditForm = {
   username: string;
@@ -37,10 +38,11 @@ export function useProfile() {
     setUser(stored);
     setLoadingUser(false);
 
-    fetch(`/api/users/${stored.id}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((fresh) => {
-        if (fresh) {
+    const refreshProfile = async () => {
+      try {
+        const { data, error } = await api.api.users({ userId: String(stored.id) }).get();
+        if (!error && data) {
+          const fresh = data as any;
           const updated: SessionUser = {
             id: fresh.id,
             username: fresh.username,
@@ -51,8 +53,12 @@ export function useProfile() {
           setUser(updated);
           writeSession(updated);
         }
-      })
-      .catch(() => {/* falla silenciosa, usamos el dato de localStorage */});
+      } catch (err) {
+        // falla silenciosa, usamos el dato de localStorage
+      }
+    };
+    
+    refreshProfile();
   }, []);
 
   // Envía PUT /api/users/:id y actualiza localStorage.
@@ -62,22 +68,18 @@ export function useProfile() {
     setFeedback(null);
 
     try {
-      const body: Record<string, unknown> = {
+      const updateData: any = {
         username: form.username,
         email: form.email,
         newsletter: form.newsletter,
       };
-      if (form.password) body.password = form.password;
+      if (form.password) updateData.password = form.password;
 
-      const res = await fetch(`/api/users/${user.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const { data, error } = await api.api.users({ userId: String(user.id) }).put(updateData);
 
-      if (!res.ok) throw new Error("Error al guardar");
+      if (error || !data) throw new Error("Error al guardar");
 
-      const updated = await res.json();
+      const updated = data as any;
       const newSession: SessionUser = {
         id: updated.id,
         username: updated.username,
@@ -102,15 +104,12 @@ export function useProfile() {
     setDeleting(true);
 
     try {
-      const res = await fetch(`/api/users/${user.id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
-      });
+      const { error } = await api.api.users({ userId: String(user.id) }).delete({ password });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error ?? "Error al eliminar");
+      if (error) {
+        // extraemos el mensaje del error tipado de Eden si existe
+        const errorMsg = (error.value as any)?.error ?? "Error al eliminar";
+        throw new Error(errorMsg);
       }
 
       clearSession();
@@ -134,17 +133,12 @@ export function useProfile() {
     setFeedback(null);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      // Al pasar un objeto con t.File, el cliente Eden construye automáticamente el FormData
+      const { data, error } = await api.api.users({ userId: String(user.id) }).avatar.post({ file });
 
-      const res = await fetch(`/api/users/${user.id}/avatar`, {
-        method: "POST",
-        body: formData,
-      });
+      if (error || !data) throw new Error("Error al subir el avatar");
 
-      if (!res.ok) throw new Error("Error al subir el avatar");
-
-      const updated = await res.json();
+      const updated = data as any;
       const newSession: SessionUser = {
         ...user,
         profileImageUrl: updated.profileImageUrl ?? DEFAULT_AVATAR,
@@ -166,13 +160,11 @@ export function useProfile() {
     setFeedback(null);
 
     try {
-      const res = await fetch(`/api/users/${user.id}/avatar`, {
-        method: "DELETE",
-      });
+      const { data, error } = await api.api.users({ userId: String(user.id) }).avatar.delete();
 
-      if (!res.ok) throw new Error("Error al borrar el avatar");
+      if (error || !data) throw new Error("Error al borrar el avatar");
 
-      const updated = await res.json();
+      const updated = data as any;
       const newSession: SessionUser = {
         ...user,
         profileImageUrl: updated.profileImageUrl ?? DEFAULT_AVATAR,

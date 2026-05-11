@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { useProfile } from "../../hooks/useProfile";
+import { api } from "../../lib/api";
 
 interface Review {
   id: number;
@@ -61,10 +62,13 @@ export default function ReviewSection({ itemType, itemApiId, accentColor }: Prop
 
   const fetchReviews = async () => {
     try {
-      const res = await fetch(`/api/reviews/${itemType}/${itemApiId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setReviews(data);
+      const { data, error } = await api.api.reviews({ 
+        itemType, 
+        itemApiId: String(itemApiId) 
+      }).get();
+      
+      if (!error && data) {
+        setReviews(data as Review[]);
       }
     } catch (err) {
       console.error("Error fetching reviews", err);
@@ -82,19 +86,15 @@ export default function ReviewSection({ itemType, itemApiId, accentColor }: Prop
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/reviews", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          itemType,
-          itemApiId: String(itemApiId),
-          rating,
-          content,
-        }),
+      const { error } = await api.api.reviews.post({
+        userId: user.id,
+        itemType,
+        itemApiId: String(itemApiId),
+        rating,
+        content,
       });
 
-      if (res.ok) {
+      if (!error) {
         setContent("");
         setRating(5);
         fetchReviews(); // Recargar reseñas
@@ -113,8 +113,8 @@ export default function ReviewSection({ itemType, itemApiId, accentColor }: Prop
     if (!confirm("¿Estás seguro de que quieres borrar esta reseña?")) return;
     
     try {
-      const res = await fetch(`/api/reviews/${id}`, { method: "DELETE" });
-      if (res.ok) {
+      const { error } = await api.api.reviews({ id: String(id) }).delete();
+      if (!error) {
         setReviews(reviews.filter(r => r.id !== id));
       } else {
         alert("Error al borrar la reseña");

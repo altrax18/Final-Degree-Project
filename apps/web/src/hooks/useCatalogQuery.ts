@@ -1,13 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCatalogFilters } from "../components/shared/catalog/catalogFilterStore";
+import { api } from "../lib/api";
 
 // HOOK COMPARTIDO: useCatalogQuery
 // RESPONSABILIDAD:
-// - Encapsula la lógica de consulta paginada para los catálogos (games/movies).
-// - Construye la URL de la API con `q`, `page`, `limit` y `genres`, realiza la petición
-//   y expone un API simple para los componentes consumidores.
-// POR QUÉ: Evita duplicar `fetch` y la composición del queryKey entre `GameCatalogClient` y `MovieCatalogClient`.
+// - Encapsula la lógica de consulta paginada para los catálogos (games/movies/music).
+// - Lanza la petición a través del cliente unificado de Eden y expone la data a React Query.
 // DOCUMENTACION RELEVANTE:
 // - React Query: https://tanstack.com/query/latest
 
@@ -19,16 +18,6 @@ export type CatalogPage<T> = {
   totalPages: number;
   genres: string[];
 };
-
-function getApiBaseUrl() {
-  if (typeof window !== "undefined") return window.location.origin;
-
-  if (typeof process !== "undefined" && process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-
-  return "http://localhost:4321";
-}
 
 export function useCatalogQuery<T>(
   catalogKey: string,
@@ -52,21 +41,33 @@ export function useCatalogQuery<T>(
     pageSize,
   ];
 
-  const queryFn = async (pageToFetch: number) => {
-    const url = new URL(`${getApiBaseUrl()}${apiPath}`);
-    if (searchTerm.trim().length > 0) {
-      url.searchParams.set("q", searchTerm.trim());
-    }
-    url.searchParams.set("page", String(pageToFetch));
-    url.searchParams.set("limit", String(pageSize));
-    if (selectedGenres.length > 0) {
-      url.searchParams.set("genres", selectedGenres.join(","));
+  const queryFn = useCallback(async (pageToFetch: number) => {
+    const queryParams = {
+      page: String(pageToFetch),
+      limit: String(pageSize),
+      q: searchTerm.trim() || undefined,
+      genres: selectedGenres.length > 0 ? selectedGenres.join(",") : undefined,
+    };
+
+    let response;
+    
+    // Derivar el endpoint correcto del cliente Eden según la ruta lógica
+    if (apiPath.includes("movies")) {
+      response = await api.api.movies.get({ query: queryParams });
+    } else if (apiPath.includes("games")) {
+      response = await api.api.games.get({ query: queryParams });
+    } else if (apiPath.includes("music")) {
+      response = await api.api.music.get({ query: queryParams });
+    } else {
+      throw new Error(`Unsupported api path: ${apiPath}`);
     }
 
-    const res = await fetch(url.toString());
-    if (!res.ok) throw new Error("No se pudo cargar el catálogo");
-    return (await res.json()) as CatalogPage<T>;
-  };
+    if (response.error || !response.data) {
+      throw new Error("No se pudo cargar el catálogo");
+    }
+
+    return response.data as unknown as CatalogPage<T>;
+  }, [apiPath, searchTerm, selectedGenres, pageSize]);
 
   const query = useQuery<CatalogPage<T>>({
     queryKey,

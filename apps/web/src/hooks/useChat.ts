@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { api } from "../lib/api";
 
 export type ChatMember = {
   id: number;
@@ -32,11 +33,18 @@ export function useChat(userId: number) {
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [messages, setMessages] = useState<Record<number, ChatMessage[]>>({});
 
-  useEffect(() => {
-    fetch(`${API_URL}/api/chat/conversations/${userId}`)
-      .then((res) => res.json())
-      .then((data) => setConversations(data));
+  const fetchConversations = useCallback(async () => {
+    try {
+      const { data } = await api.api.chat.conversations({ userId: String(userId) }).get();
+      if (data) setConversations(data as ChatConversation[]);
+    } catch (err) {
+      // silent fail
+    }
   }, [userId]);
+
+  useEffect(() => {
+    fetchConversations();
+  }, [fetchConversations]);
 
   useEffect(() => {
     const lastIdKey = `chat_last_id_${userId}`;
@@ -96,37 +104,41 @@ export function useChat(userId: number) {
       [conversationId]: [...(prev[conversationId] || []), optimistic],
     }));
 
-    await fetch(`${API_URL}/api/chat/messages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ conversationId, senderId: userId, content }),
-    });
+    try {
+      await api.api.chat.messages.post({ conversationId, senderId: userId, content });
+    } catch (err) {
+      // Error silenciado
+    }
   }, [userId]);
 
   const fetchMessages = useCallback(async (conversationId: number) => {
-    const res = await fetch(`${API_URL}/api/chat/messages/${conversationId}`);
-    const msgs: ChatMessage[] = await res.json();
+    try {
+      const { data } = await api.api.chat.messages({ conversationId: String(conversationId) }).get();
+      const msgs = (data as ChatMessage[]) || [];
 
-    // Advance lastId so SSE won't re-deliver these on next reconnect
-    if (msgs.length > 0) {
-      const lastIdKey = `chat_last_id_${userId}`;
-      const maxId = Math.max(...msgs.map((m) => m.id));
-      const current = Number(sessionStorage.getItem(lastIdKey) ?? "0");
-      if (maxId > current) sessionStorage.setItem(lastIdKey, String(maxId));
+      // Advance lastId so SSE won't re-deliver these on next reconnect
+      if (msgs.length > 0) {
+        const lastIdKey = `chat_last_id_${userId}`;
+        const maxId = Math.max(...msgs.map((m) => m.id));
+        const current = Number(sessionStorage.getItem(lastIdKey) ?? "0");
+        if (maxId > current) sessionStorage.setItem(lastIdKey, String(maxId));
+      }
+
+      setMessages((prev) => ({ ...prev, [conversationId]: msgs }));
+    } catch (err) {
+      // silent fail
     }
-
-    setMessages((prev) => ({ ...prev, [conversationId]: msgs }));
   }, [userId]);
 
-  const markRead = useCallback((conversationId: number) => {
-    fetch(`${API_URL}/api/chat/mark-read`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ conversationId, userId }),
-    });
-    setConversations((prev) =>
-      prev.map((c) => (c.id === conversationId ? { ...c, unreadCount: 0 } : c))
-    );
+  const markRead = useCallback(async (conversationId: number) => {
+    try {
+      await api.api.chat["mark-read"].post({ conversationId, userId });
+      setConversations((prev) =>
+        prev.map((c) => (c.id === conversationId ? { ...c, unreadCount: 0 } : c))
+      );
+    } catch (err) {
+      // silent
+    }
   }, [userId]);
 
   const startConversation = useCallback(async (targetUserId: number): Promise<number> => {
@@ -135,19 +147,20 @@ export function useChat(userId: number) {
     );
     if (existing) return existing.id;
 
-    const res = await fetch(`${API_URL}/api/chat/conversations`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "direct", memberIds: [userId, targetUserId] }),
-    });
-    const conv = await res.json();
+    try {
+      const { data } = await api.api.chat.conversations.post({
+        type: "direct",
+        memberIds: [userId, targetUserId]
+      });
+      const conv = data as any;
 
-    const convsRes = await fetch(`${API_URL}/api/chat/conversations/${userId}`);
-    const convs = await convsRes.json();
-    setConversations(convs);
+      await fetchConversations();
 
-    return conv.id;
-  }, [conversations, userId]);
+      return conv.id;
+    } catch (err) {
+      return -1;
+    }
+  }, [conversations, userId, fetchConversations]);
 
   return { conversations, messages, sendMessage, subscribe, fetchMessages, markRead, startConversation, isConnected };
 }

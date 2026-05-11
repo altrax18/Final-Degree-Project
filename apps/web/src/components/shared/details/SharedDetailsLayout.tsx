@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useCollections } from "../../../hooks/useCollections";
 import { Icon } from "@iconify/react";
 import ReviewSection from "../ReviewSection";
-import type { UserCollection } from "../../../types/collection";
+import AddToCollectionDropdown from "./AddToCollectionDropdown";
 
 interface Props {
   id: string;
@@ -25,21 +25,9 @@ export default function SharedDetailsLayout({
   id, title, type, image, heroBackground, heroSubtitle, tagline, rating, releaseDate, 
   extraHeroTags, collectionMetadata, leftColumn, rightColumn, accentColor
 }: Props) {
-  const [showCollections, setShowCollections] = useState(false);
-  const { collections, addItem } = useCollections();
-  const menuRef = useRef<HTMLDivElement>(null);
+  const { addItem } = useCollections();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setShowCollections(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleAddToCollection = async (collectionId: number) => {
     await addItem(collectionId, {
@@ -48,7 +36,6 @@ export default function SharedDetailsLayout({
       type,
       metadata: collectionMetadata
     });
-    setShowCollections(false);
 
     setToastMessage(`¡${type === "movie" ? "Película añadida" : "Juego añadido"} a tu lista!`);
 
@@ -59,20 +46,6 @@ export default function SharedDetailsLayout({
     if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     toastTimeoutRef.current = setTimeout(() => setToastMessage(null), 3000);
   };
-
-  const relevantCollections = collections.filter((c: UserCollection) => c.type === type);
-
-  const colorMap = {
-    blue: {
-      text: "text-blue-500", hoverText: "hover:text-blue-500", hoverBg: "hover:bg-blue-600/10",
-      activeBg: "bg-blue-500/5", btnHover: "hover:text-blue-400", btnHoverBg: "hover:bg-blue-500/10",
-    },
-    red: {
-      text: "text-red-500", hoverText: "hover:text-red-500", hoverBg: "hover:bg-red-600/10",
-      activeBg: "bg-red-500/5", btnHover: "hover:text-red-400", btnHoverBg: "hover:bg-red-500/10",
-    }
-  };
-  const colors = colorMap[accentColor];
 
   return (
     <article className="min-h-screen bg-parchment dark:bg-obsidian text-ink dark:text-screen w-full">
@@ -126,56 +99,14 @@ export default function SharedDetailsLayout({
           <aside className="space-y-8 bg-sand dark:bg-coal p-6 rounded-2xl border border-bone dark:border-night-edge h-fit shadow-2xl">
             {rightColumn}
 
-            <div className="relative" ref={menuRef}>
-              <button
-                onClick={() => setShowCollections(!showCollections)}
-                className="w-full py-4 bg-ink dark:bg-screen text-screen dark:text-ink font-bold rounded-xl hover:bg-ink/80 dark:hover:bg-screen/80 transition-transform active:scale-95 shadow-[0_0_20px_rgba(0,0,0,0.2)] dark:shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2"
-              >
-                <Icon icon="tabler:plus" className="w-5 h-5" />
-                Añadir a mi Colección
-              </button>
-
-              {showCollections && (
-                <div className="absolute bottom-full left-0 mb-3 w-full bg-white dark:bg-night-edge border border-bone dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                  <div className="p-3 border-b border-bone dark:border-white/5">
-                    <p className="text-[10px] font-bold text-slate dark:text-white/40 uppercase tracking-widest px-2 text-left">Mis Listas</p>
-                  </div>
-                  <div className="max-h-60 overflow-y-auto">
-                    {relevantCollections.length === 0 ? (
-                      <p className="text-xs text-slate dark:text-white/30 p-4 italic text-center">No tienes listas</p>
-                    ) : (
-                      relevantCollections.map((col: UserCollection) => {
-                        const isAdded = col.items.some((i: any) => String(i.apiId) === String(id));
-                        return (
-                          <button
-                            key={col.id}
-                            onClick={() => !isAdded && handleAddToCollection(col.id)}
-                            disabled={isAdded}
-                            className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between transition-all ${
-                              isAdded
-                                ? `${colors.text} ${colors.activeBg} cursor-default`
-                                : `cursor-pointer text-ink dark:text-white/70 ${colors.hoverBg} ${colors.hoverText} active:scale-[0.98]`
-                            }`}
-                          >
-                            <div className="flex items-center gap-3 truncate">
-                              <Icon icon="tabler:list" className="w-5 h-5 opacity-40" />
-                              <span className="truncate">{col.name}</span>
-                            </div>
-                            {isAdded && <Icon icon="tabler:check" className="w-5 h-5" />}
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                  <a
-                    href="/profile"
-                    className={`block cursor-pointer text-center p-3 text-[10px] font-bold ${colors.text} ${colors.btnHoverBg} ${colors.btnHover} border-t border-bone dark:border-white/5 uppercase tracking-wider transition-colors`}
-                  >
-                    + Nueva Lista
-                  </a>
-                </div>
-              )}
-            </div>
+            <AddToCollectionDropdown
+              itemId={String(id)}
+              itemType={type}
+              onAdd={handleAddToCollection}
+              accentColor={accentColor}
+              position="top"
+              triggerClassName="w-full py-4 bg-ink dark:bg-screen text-screen dark:text-ink font-bold rounded-xl hover:bg-ink/80 dark:hover:bg-screen/80 transition-transform active:scale-95 shadow-[0_0_20px_rgba(0,0,0,0.2)] dark:shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+            />
           </aside>
         </div>
       </div>

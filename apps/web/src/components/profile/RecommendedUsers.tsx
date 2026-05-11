@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { DEFAULT_AVATAR } from "../../types/user";
-
-const API_URL = ((import.meta.env.PUBLIC_API_URL as string | undefined) ?? "").replace(/\/api\/?$/, "");
+import { api } from "../../lib/api";
 
 type RecommendedUser = {
   id: number;
@@ -41,9 +40,8 @@ export default function RecommendedUsers({ userId }: Props) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/recommendations/${userId}/friends`)
-      .then((r) => r.json())
-      .then((data) => setUsers(Array.isArray(data) ? data : []))
+    api.api.recommendations({ userId: String(userId) }).friends.get()
+      .then(({ data }) => setUsers(Array.isArray(data) ? data as any : []))
       .catch(() => setUsers([]))
       .finally(() => setLoading(false));
   }, [userId]);

@@ -5,6 +5,7 @@ import { DEFAULT_AVATAR } from "../../types/user";
 import ProfileAvatar from "./ProfileAvatar";
 import type { UserCollection } from "../../types/collection";
 import { Icon } from "@iconify/react";
+import { api } from "../../lib/api";
 
 interface Props {
   user: SessionUser | null;
@@ -40,9 +41,10 @@ export default function ProfileHeader({
 
   useEffect(() => {
     if (user?.id) {
-      fetch(`/api/users/${user.id}/followers`)
-        .then((res) => res.json())
-        .then((data) => setFollowersCount(Array.isArray(data) ? data.length : 0))
+      api.api.users({ userId: String(user.id) }).followers.get()
+        .then(({ data }: any) => {
+          if (data) setFollowersCount(Array.isArray(data) ? data.length : 0);
+        })
         .catch(() => {});
     }
   }, [user]);

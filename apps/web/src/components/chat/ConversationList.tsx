@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import type { ChatConversation } from "../../hooks/useChat";
-
-const API_URL = ((import.meta.env.PUBLIC_API_URL as string | undefined) ?? "").replace(/\/api\/?$/, "");
+import { api } from "../../lib/api";
 
 type UserResult = {
   id: number;
@@ -33,11 +32,13 @@ export default function ConversationList({ userId, conversations, onSelect, onSt
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(async () => {
       setSearching(true);
-      const res = await fetch(
-        `${API_URL}/api/users/search?q=${encodeURIComponent(query)}&excludeId=${userId}`
-      );
-      const data = await res.json();
-      setResults(data);
+      const { data } = await api.api.users.search.get({
+        query: {
+          q: query,
+          excludeId: String(userId),
+        },
+      });
+      setResults(data ? (data as any) : []);
       setSearching(false);
     }, 300);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
@@ -46,9 +47,8 @@ export default function ConversationList({ userId, conversations, onSelect, onSt
   useEffect(() => {
     if (activeTab === "followed") {
       setLoadingFollowed(true);
-      fetch(`/api/users/${userId}/following`)
-        .then((r) => r.json())
-        .then((data) => setFollowedUsers(Array.isArray(data) ? data : []))
+      api.api.users({ userId: String(userId) }).following.get()
+        .then(({ data }) => setFollowedUsers(Array.isArray(data) ? data as any : []))
         .catch(() => setFollowedUsers([]))
         .finally(() => setLoadingFollowed(false));
     }

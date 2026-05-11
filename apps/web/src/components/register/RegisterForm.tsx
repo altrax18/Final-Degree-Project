@@ -1,10 +1,5 @@
-// CONCEPTO: Formulario de Autenticacion
-// QUE HACE: Gestiona el login y registro del usuario, llama a los endpoints
-//           de la API y persiste la sesion en localStorage.
-// POR QUE LO USO: Centraliza la logica de auth en el cliente y evita duplicar
-//                 logica de fetch en otros componentes.
-// DOCUMENTACION: https://react.dev/reference/react/useState
 import { useState } from "react";
+import { api } from "../../lib/api";
 
 const SESSION_KEY = "alex_user";
 
@@ -48,19 +43,16 @@ export default function RegisterForm({ onClose, dropdown = false }: Props) {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/users/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+      const { data, error } = await api.api.users.login.post({ 
+        email: loginEmail, 
+        password: loginPassword 
       });
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? "Credenciales incorrectas");
+      if (error || !data) {
+        throw new Error((error as any)?.value?.error || "Credenciales incorrectas");
       }
 
-      const user = await res.json();
-      saveSession(user);
+      saveSession(data as any);
       onClose();
       window.location.reload();
     } catch (err: unknown) {
@@ -91,23 +83,17 @@ export default function RegisterForm({ onClose, dropdown = false }: Props) {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: registerUsername,
-          email: registerEmail,
-          password: registerPassword,
-        }),
+      const { data, error } = await api.api.users.post({
+        username: registerUsername,
+        email: registerEmail,
+        password: registerPassword,
       });
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? "No se pudo crear la cuenta");
+      if (error || !data) {
+        throw new Error((error as any)?.value?.error || "No se pudo crear la cuenta");
       }
 
-      const user = await res.json();
-      saveSession(user);
+      saveSession(data as any);
       onClose();
       window.location.reload();
     } catch (err: unknown) {

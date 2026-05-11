@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { DEFAULT_AVATAR } from "../../types/user";
+import { api } from "../../lib/api";
 
 type FollowedUser = {
   id: number;
@@ -17,19 +18,16 @@ export default function FollowedUsers({ userId }: Props) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/users/${userId}/following`)
-      .then((r) => r.json())
-      .then((data) => setUsers(Array.isArray(data) ? data : []))
+    api.api.users({ userId: String(userId) }).following.get()
+      .then(({ data }) => setUsers(Array.isArray(data) ? data as any : []))
       .catch(() => setUsers([]))
       .finally(() => setLoading(false));
   }, [userId]);
 
   const handleUnfollow = async (targetId: number) => {
     try {
-      const res = await fetch(`/api/users/${userId}/follow/${targetId}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
+      const { error } = await api.api.users({ userId: String(userId) }).follow({ targetId: String(targetId) }).delete();
+      if (!error) {
         setUsers((prev) => prev.filter((u) => u.id !== targetId));
       }
     } catch (err) {

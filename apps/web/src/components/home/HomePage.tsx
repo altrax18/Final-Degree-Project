@@ -1,6 +1,5 @@
 import type { TrendingItem } from "../../types/home";
 import type { Game } from "../../types/game";
-import type { Movie } from "../../types/movie";
 import HeroSection, {
   type HeroSpotlight,
   type HeroStat,
@@ -84,6 +83,7 @@ export default function HomePage({
     { label: "Películas", value: `${featuredMovies.length}`, icon: "tabler:movie" },
     { label: "Juegos", value: `${featuredGames.length}`, icon: "tabler:device-gamepad-2" },
   ];
+
 
   // CONCEPTO: Optional Chaining & Nullish Coalescing (Programación Defensiva)
   // QUE HACE: Usa `?.` para no romper si 'featuredTrack' es undefined, y `??` para dar un valor de respaldo elegante.

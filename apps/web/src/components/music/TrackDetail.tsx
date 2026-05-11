@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useCollections } from "../../hooks/useCollections";
 import { Icon } from "@iconify/react";
+import { api } from "../../lib/api";
 import ReviewSection from "../shared/ReviewSection";
-
-const API_BASE = "";
+import AddToCollectionDropdown from "../shared/details/AddToCollectionDropdown";
+import type { Track } from "../../types/music";
 
 function LyricsSkeleton() {
   return (
@@ -19,27 +20,18 @@ function LyricsSkeleton() {
   );
 }
 
-export default function TrackDetail({ track }) {
+type TrackDetailProps = {
+  track: Track;
+};
+
+export default function TrackDetail({ track }: TrackDetailProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [lyrics, setLyrics] = useState(null); // null = cargando, "" = no encontrado
+  const [lyrics, setLyrics] = useState<string | null>(null); 
   const [lyricsLoading, setLyricsLoading] = useState(true);
   
-  const [showCollections, setShowCollections] = useState(false);
-  const { collections, addItem } = useCollections();
-  const menuRef = useRef(null);
+  const { addItem } = useCollections();
 
-  // Cerrar menú al hacer click fuera
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setShowCollections(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleAddToCollection = async (collectionId) => {
+  const handleAddToCollection = async (collectionId: number) => {
     await addItem(collectionId, {
       apiId: track.id,
       title: track.title,
@@ -53,18 +45,15 @@ export default function TrackDetail({ track }) {
         albumId: track.albumId
       }
     });
-    setShowCollections(false);
     alert("¡Canción añadida a la colección!");
   };
 
-  const musicCollections = collections.filter(c => c.type === "music");
-
   useEffect(() => {
-    const onPlayerState = (e) => {
+    const onPlayerState = (e: any) => {
       setIsPlaying(e.detail?.id === track.id && e.detail?.playing);
     };
-    window.addEventListener("player-state", onPlayerState);
-    return () => window.removeEventListener("player-state", onPlayerState);
+    window.addEventListener("player-state", onPlayerState as EventListener);
+    return () => window.removeEventListener("player-state", onPlayerState as EventListener);
   }, [track.id]);
 
   useEffect(() => {
@@ -74,26 +63,30 @@ export default function TrackDetail({ track }) {
       ? Math.round(track.duration / 1000)
       : 0;
 
-    const params = new URLSearchParams({
-      track_name: track.title,
-      artist_name: track.artist,
-      album_name: track.album ?? "",
-      ...(durationSeconds > 0 && { duration: String(durationSeconds) }),
-    });
+    const fetchLyrics = async () => {
+      try {
+        const { data, error } = await api.api.music.lyrics.get({
+          query: {
+            track_name: track.title,
+            artist_name: track.artist,
+            album_name: track.album ?? "",
+            ...(durationSeconds > 0 && { duration: String(durationSeconds) }),
+          }
+        });
 
-    fetch(`${API_BASE}/api/music/lyrics?${params}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("not found");
-        return r.json();
-      })
-      .then((data) => {
+        if (error || !data) {
+          throw new Error("not found");
+        }
+
         setLyrics(data.plainLyrics || data.syncedLyrics || "");
-        setLyricsLoading(false);
-      })
-      .catch(() => {
+      } catch (err) {
         setLyrics("");
+      } finally {
         setLyricsLoading(false);
-      });
+      }
+    };
+
+    fetchLyrics();
   }, [track]);
 
   const handlePlay = () => {
@@ -204,56 +197,14 @@ export default function TrackDetail({ track }) {
               />
             </button>
 
-            <div className="relative" ref={menuRef}>
-              <button
-                onClick={() => setShowCollections(!showCollections)}
-                className="flex items-center gap-2 px-6 py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-white font-semibold transition-all active:scale-95"
-              >
-                <Icon icon="tabler:plus" className="w-5 h-5" />
-                Añadir a lista
-              </button>
-
-              {showCollections && (
-                <div className="absolute top-full left-0 mt-3 w-56 bg-white dark:bg-night-edge border border-bone dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
-                  <div className="p-3 border-b border-bone dark:border-white/5">
-                    <p className="text-[10px] font-bold text-slate dark:text-white/40 uppercase tracking-widest px-2 text-left">Mis Listas de Música</p>
-                  </div>
-                  <div className="max-h-60 overflow-y-auto">
-                    {musicCollections.length === 0 ? (
-                      <p className="text-xs text-slate dark:text-white/30 p-4 italic text-center">No tienes listas de música</p>
-                    ) : (
-                      musicCollections.map(col => {
-                        const isAdded = col.items.some(i => i.apiId === track.id);
-                        return (
-                          <button
-                            key={col.id}
-                            onClick={() => !isAdded && handleAddToCollection(col.id)}
-                            disabled={isAdded}
-                            className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between transition-colors ${
-                              isAdded 
-                                ? "text-amethyst bg-amethyst/5 cursor-default" 
-                                : "text-ink dark:text-white/70 hover:bg-amethyst/10 hover:text-amethyst"
-                            }`}
-                          >
-                            <div className="flex items-center gap-3 truncate">
-                              <Icon icon="tabler:list" className="w-5 h-5 opacity-40" />
-                              <span className="truncate">{col.name}</span>
-                            </div>
-                            {isAdded && <Icon icon="tabler:check" className="w-5 h-5" />}
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                  <a 
-                    href="/profile" 
-                    className="block text-center p-3 text-[10px] font-bold text-amethyst hover:text-orchid border-t border-bone dark:border-white/5 uppercase tracking-wider transition-colors"
-                  >
-                    + Nueva Lista
-                  </a>
-                </div>
-              )}
-            </div>
+            <AddToCollectionDropdown
+              itemId={track.id}
+              itemType="music"
+              onAdd={handleAddToCollection}
+              accentColor="purple"
+              position="bottom"
+              triggerClassName="px-6 py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-white font-semibold"
+            />
 
             {!hasPreview && (
               <span className="text-xs text-slate dark:text-mist italic">

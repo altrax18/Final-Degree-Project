@@ -1,19 +1,20 @@
-// src/components/music/MusicGrid.jsx
 import { useState, useRef } from "react";
 import { Icon } from "@iconify/react";
-import TrackCard from "./TrackCard.jsx";
+import TrackCard from "./TrackCard";
+import { api } from "../../lib/api";
+import type { Track } from "../../types/music";
 
-const API_BASE = "";
+type MusicGridProps = {
+  initialTracks?: Track[];
+  pageSize?: number;
+};
 
-/**
- * @param {{ initialTracks?: any[], pageSize?: number }} props
- */
-export default function MusicGrid({ initialTracks = [], pageSize = 24 }) {
-  const [pages, setPages] = useState([initialTracks]);
+export default function MusicGrid({ initialTracks = [], pageSize = 24 }: MusicGridProps) {
+  const [pages, setPages] = useState<Track[][]>([initialTracks]);
   const [nextPage, setNextPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [exhausted, setExhausted] = useState(false);
-  const loadMoreRef = useRef(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const allTracks = pages.flat();
 
@@ -22,12 +23,16 @@ export default function MusicGrid({ initialTracks = [], pageSize = 24 }) {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `${API_BASE}/api/music/more?page=${nextPage}&limit=${pageSize}`
-      );
-      if (!res.ok) throw new Error("API error");
-      const data = await res.json();
-      const newTracks = data.results ?? [];
+      const { data, error } = await api.api.music.more.get({
+        query: {
+          page: nextPage.toString(),
+          limit: pageSize.toString()
+        }
+      });
+
+      if (error || !data) throw new Error("API error");
+
+      const newTracks = (data as any).results as Track[] ?? [];
 
       if (newTracks.length === 0) {
         setExhausted(true);

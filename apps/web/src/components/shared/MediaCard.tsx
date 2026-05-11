@@ -1,8 +1,11 @@
-export default function MediaCard({ title, type, image }) {
+interface MediaCardProps {
+  title: string;
+  type: string;
+  image?: string | null;
+}
+
+export default function MediaCard({ title, type, image }: MediaCardProps) {
   // CONCEPTO: Fallback de Recursos
-  // QUE HACE: Define una imagen por defecto cuando no llega portada de la API.
-  // POR QUE LO USO: Evita huecos visuales en cards de juegos/peliculas/series sin imagen.
-  // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_OR
   const fallback = "https://placehold.co/400x600/1f2937/e5e7eb?text=No+Image";
 
   return (

@@ -20,8 +20,24 @@ import {
   searchAlbums,
   getAlbumWithTracks,
 } from "../services/catalog/music";
+import { performQuickSearch } from "../services/catalog/quick-search/read";
 
 export const catalogRoutes = new Elysia()
+  .get("/api/catalog/quick-search", async ({ query, set }) => {
+    const { category, q } = query as { category?: string; q?: string };
+
+    if (!category || !q) {
+      set.status = 400;
+      return { error: "Parameters 'category' and 'q' are required." };
+    }
+
+    if (!["music", "movies", "games"].includes(category)) {
+      set.status = 400;
+      return { error: "Invalid category." };
+    }
+
+    return performQuickSearch(category as "music" | "movies" | "games", q);
+  })
   // CONCEPTO: Exposición de Tendencias de Cine
   // QUE HACE: Crea un endpoint publico para entregar las peliculas populares.
   // POR QUE LO USO: Mantiene separada la logica de peticion a TMDB de la interfaz web.

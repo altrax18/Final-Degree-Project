@@ -107,7 +107,7 @@ export default function HomeShowcaseSection({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: false, amount: 0.35 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="max-w-3xl rounded-xl border border-bone bg-linen/50 p-6 sm:p-8 dark:border-night-edge dark:bg-obsidian/50"
+        className="w-full rounded-xl border border-bone bg-linen/50 p-6 sm:p-8 dark:border-night-edge dark:bg-obsidian/50"
       >
         <AnimatedText
           el="p"

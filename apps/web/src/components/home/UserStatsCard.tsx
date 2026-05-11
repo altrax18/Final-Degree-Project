@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { DEFAULT_AVATAR } from "../../types/user";
 import type { UserCollection } from "../../types/collection";
+import { api } from "../../lib/api";
 
 const typeLabel: Record<UserCollection["type"], string> = {
   music: "Música",
@@ -22,12 +23,10 @@ export default function UserStatsCard({ user, collections }: Props) {
 
   useEffect(() => {
     if (!user) return;
-    const API_URL = (import.meta.env.PUBLIC_API_URL as string | undefined) ?? "";
-    fetch(`${API_URL}/api/chat/conversations/${user.id}`)
-      .then((res) => res.json())
-      .then((data) => {
+    api.api.chat.conversations({ userId: String(user.id) }).get()
+      .then(({ data }) => {
         if (Array.isArray(data)) {
-          const totalUnread = data.reduce((acc, conv) => acc + (conv.unreadCount || 0), 0);
+          const totalUnread = data.reduce((acc: number, conv: any) => acc + (conv.unreadCount || 0), 0);
           setUnreadCount(totalUnread);
         }
       })
