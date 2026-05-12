@@ -52,7 +52,7 @@ export default function SharedDetailsLayout({
       {/* 1. HERO SECTION */}
       <div className="relative w-full min-h-[50vh] md:h-[60vh] pt-24 md:pt-0 flex items-end justify-center">
         <div
-          className="absolute inset-0 bg-cover bg-top opacity-30 mask-image-gradient"
+          className="absolute inset-0 bg-cover bg-top opacity-120 mask-image-gradient"
           style={{ backgroundImage: heroBackground ? `url(${heroBackground})` : "none" }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-parchment dark:from-obsidian via-parchment/60 dark:via-obsidian/60 to-transparent" />
