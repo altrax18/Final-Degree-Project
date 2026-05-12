@@ -154,5 +154,6 @@ export function useCatalogQuery<T>(
     items,
     totalPages,
     safeCurrentPage,
+    genres,
   };
 }
