@@ -42,6 +42,7 @@ function SharedCatalogContent<T extends { id: string | number; title: string }>(
     setSearchTerm,
     toggleSelectedGenre,
     resetCatalogFilters,
+    setCurrentPage,
   } = useCatalogFilters(catalogKey);
 
   const {
@@ -55,7 +56,6 @@ function SharedCatalogContent<T extends { id: string | number; title: string }>(
     totalPages,
     safeCurrentPage,
     genres,
-    setCurrentPage,
   } = useCatalogQuery<T>(catalogKey, apiPath, initialData, DEFAULT_ITEMS_PER_PAGE);
 
   const hasResults = items.length > 0;
