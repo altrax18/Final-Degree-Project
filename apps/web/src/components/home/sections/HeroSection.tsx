@@ -2,12 +2,6 @@ import { motion } from "framer-motion";
 import IconText, { type IconName } from "../IconText";
 import AnimatedText from "../AnimatedText";
 
-export type HeroStat = {
-  label: string;
-  value: string;
-  icon: IconName;
-};
-
 export type HeroSpotlight = {
   label: string;
   title: string;
@@ -18,7 +12,6 @@ export type HeroSpotlight = {
 };
 
 type Props = {
-  heroStats: HeroStat[];
   kicker: string;
   title: string;
   subtitle: string;
@@ -39,7 +32,6 @@ const accentClassByType: Record<HeroSpotlight["accent"], string> = {
 // POR QUE LO USO: Garantiza que el "Largest Contentful Paint" sea casi instantáneo, obteniendo una puntuación perfecta de rendimiento.
 // DOCUMENTACION: https://web.dev/articles/lcp
 export default function HeroSection({
-  heroStats,
   kicker,
   title,
   subtitle,
@@ -122,24 +114,6 @@ export default function HeroSection({
                 {tertiaryCta.label}
               </a>
             </div>
-          </div>
-
-          <div className="grid gap-4 pt-4 sm:grid-cols-3 border-t border-bone/50 dark:border-night-edge/50">
-            {heroStats.map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-xl border border-bone bg-linen/50 p-4 dark:border-night-edge dark:bg-depth/30"
-              >
-                <IconText
-                  icon={stat.icon}
-                  text={stat.label}
-                  className="text-[0.65rem] font-bold uppercase tracking-wider text-slate dark:text-mist"
-                />
-                <p className="mt-2 text-2xl font-bold text-ink dark:text-screen">
-                  {stat.value}
-                </p>
-              </div>
-            ))}
           </div>
         </motion.div>
 
