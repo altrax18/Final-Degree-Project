@@ -65,3 +65,41 @@ body {
 body.has-active-player main {
   padding-bottom: 6rem !important;
 }
+
+/* Affinity bar — solid fill + glow pulsante */
+@keyframes affinity-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.82; }
+}
+
+.affinity-fill {
+  animation: affinity-pulse 2.5s ease-in-out infinite;
+}
+
+/* >75% — accent del tema */
+.affinity-fill-high {
+  background: var(--color-amethyst);
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--color-amethyst) 50%, transparent);
+}
+:where(.dark, .dark *) .affinity-fill-high {
+  background: var(--color-electric-sky);
+  box-shadow: 0 0 10px 3px color-mix(in srgb, var(--color-electric-sky) 50%, transparent);
+}
+
+/* 50–75% — verde */
+.affinity-fill-good {
+  background: #3DAD6E;
+  box-shadow: 0 0 8px 2px color-mix(in srgb, #3DAD6E 50%, transparent);
+}
+
+/* 25–49% — ámbar */
+.affinity-fill-mid {
+  background: var(--color-amber);
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--color-amber) 50%, transparent);
+}
+
+/* <25% — rojo */
+.affinity-fill-low {
+  background: #C94040;
+  box-shadow: 0 0 8px 2px color-mix(in srgb, #C94040 50%, transparent);
+}

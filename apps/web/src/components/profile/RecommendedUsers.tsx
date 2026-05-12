@@ -11,11 +11,13 @@ type RecommendedUser = {
 
 type Props = {
   userId: number;
+  showBar?: boolean;
 };
 
-function UserCard({ user }: { user: RecommendedUser }) {
+function UserCard({ user, showBar }: { user: RecommendedUser; showBar?: boolean }) {
   const avatar = user.profile_image_url || DEFAULT_AVATAR;
   const matchPct = Math.max(0, Math.round(Number(user.similarity) * 100));
+  const affinityClass = matchPct > 75 ? "affinity-fill affinity-fill-high" : matchPct >= 50 ? "affinity-fill affinity-fill-good" : matchPct >= 25 ? "affinity-fill affinity-fill-mid" : "affinity-fill affinity-fill-low";
 
   return (
     <a href={`/u/${user.id}`} className="flex items-center gap-2.5 py-2 px-3 rounded-lg hover:bg-sand dark:hover:bg-coal transition-colors decoration-transparent cursor-pointer">
@@ -30,20 +32,45 @@ function UserCard({ user }: { user: RecommendedUser }) {
       <span className="text-sm text-ink dark:text-screen truncate flex-1 font-medium hover:underline">
         {user.username}
       </span>
-      <span className="text-xs text-slate dark:text-mist shrink-0">{matchPct}%</span>
+      {showBar ? (
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="relative w-24 h-2 rounded-full bg-sand dark:bg-coal overflow-hidden">
+            <div
+              className={`${affinityClass} absolute inset-y-0 left-0 rounded-full`}
+              style={{ width: `${matchPct}%` }}
+            />
+          </div>
+          <span className="text-xs text-slate dark:text-mist w-8 text-right">{matchPct}%</span>
+        </div>
+      ) : (
+        <span className="text-xs text-slate dark:text-mist shrink-0">{matchPct}%</span>
+      )}
     </a>
   );
 }
 
-export default function RecommendedUsers({ userId }: Props) {
+export default function RecommendedUsers({ userId, showBar }: Props) {
   const [users, setUsers] = useState<RecommendedUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.api.recommendations({ userId: String(userId) }).friends.get()
-      .then(({ data }) => setUsers(Array.isArray(data) ? data as any : []))
-      .catch(() => setUsers([]))
-      .finally(() => setLoading(false));
+    let cancelled = false;
+
+    const fetchUsers = () => {
+      setLoading(true);
+      setUsers([]);
+      api.api.recommendations({ userId: String(userId) }).friends.get()
+        .then(({ data }) => { if (!cancelled) setUsers(Array.isArray(data) ? data as any : []); })
+        .catch(() => { if (!cancelled) setUsers([]); })
+        .finally(() => { if (!cancelled) setLoading(false); });
+    };
+
+    fetchUsers();
+    document.addEventListener("astro:page-load", fetchUsers);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("astro:page-load", fetchUsers);
+    };
   }, [userId]);
 
   return (
@@ -93,7 +120,7 @@ export default function RecommendedUsers({ userId }: Props) {
         {!loading && users.length > 0 && (
           <div className="divide-y divide-bone dark:divide-night-edge">
             {users.map((user) => (
-              <UserCard key={user.id} user={user} />
+              <UserCard key={user.id} user={user} showBar={showBar} />
             ))}
           </div>
         )}
