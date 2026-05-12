@@ -7,6 +7,12 @@ const COHERE_MODEL = "embed-multilingual-light-v3.0";
 // Cohere free tier allows up to 96 texts per request
 const COHERE_BATCH_SIZE = 96;
 
+type ItemRef = { apiId: string; title: string; type: "movie" | "music" | "game" };
+
+// ---------------------------------------------------------------------------
+// Cohere helpers
+// ---------------------------------------------------------------------------
+
 export async function generateEmbedding(text: string): Promise<number[]> {
   const apiKey = process.env.COHERE_API_KEY;
   if (!apiKey) throw new Error("COHERE_API_KEY is not set");
@@ -61,21 +67,98 @@ async function generateEmbeddingsBatch(texts: string[]): Promise<number[][]> {
   return data.embeddings.float;
 }
 
+// ---------------------------------------------------------------------------
+// Math helper
+// ---------------------------------------------------------------------------
+
+function averageEmbeddings(embeddings: number[][]): number[] {
+  const dim = embeddings[0].length;
+  const sum = new Array<number>(dim).fill(0);
+  for (const emb of embeddings) {
+    for (let i = 0; i < dim; i++) sum[i] += emb[i];
+  }
+  return sum.map((v) => v / embeddings.length);
+}
+
+// ---------------------------------------------------------------------------
+// item_embeddings — persistent store, primary source for profile embeddings
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolves embeddings for a list of items. Reads from item_embeddings first;
+ * calls Cohere only for items that have no stored embedding yet, then persists them.
+ * Returns a map keyed by `"${apiId}:${type}"`.
+ */
+async function getOrGenerateItemEmbeddings(
+  items: ItemRef[]
+): Promise<Map<string, number[]>> {
+  const result = new Map<string, number[]>();
+  if (items.length === 0) return result;
+
+  // 1. Fetch already-stored embeddings
+  const apiIds = items.map((i) => i.apiId);
+  const types = items.map((i) => i.type);
+
+  const stored = await sql`
+    SELECT api_id, type, embedding
+    FROM item_embeddings
+    WHERE (api_id, type) IN (SELECT unnest(${apiIds}::text[]), unnest(${types}::text[]))
+  ` as { api_id: string; type: string; embedding: number[] }[];
+
+  for (const row of stored) {
+    result.set(`${row.api_id}:${row.type}`, row.embedding);
+  }
+
+  // 2. Determine which items still need a Cohere call
+  const missing = items.filter((i) => !result.has(`${i.apiId}:${i.type}`));
+  if (missing.length === 0) return result;
+
+  // 3. Call Cohere in batches for missing items
+  const newEmbeddings: number[][] = [];
+  for (let i = 0; i < missing.length; i += COHERE_BATCH_SIZE) {
+    const batch = missing.slice(i, i + COHERE_BATCH_SIZE);
+    const batchEmbeddings = await generateEmbeddingsBatch(batch.map((it) => it.title));
+    newEmbeddings.push(...batchEmbeddings);
+  }
+
+  // 4. Persist new embeddings and populate result map
+  for (let i = 0; i < missing.length; i++) {
+    const { apiId, type } = missing[i];
+    const vectorLiteral = `[${newEmbeddings[i].join(",")}]`;
+    await sql`
+      INSERT INTO item_embeddings (api_id, type, embedding)
+      VALUES (${apiId}, ${type}, ${vectorLiteral}::vector)
+      ON CONFLICT (api_id, type) DO NOTHING
+    `;
+    result.set(`${apiId}:${type}`, newEmbeddings[i]);
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
 export async function updateUserEmbedding(userId: number): Promise<void> {
-  // Construye el embedding del usuario concatenando los títulos de los items
-  // guardados en sus colecciones — no depende de la tabla de interacciones.
   const rows = await sql`
-    SELECT ci.title
+    SELECT ci.api_id, ci.title, ci.type
     FROM collection_items ci
     JOIN user_collections uc ON uc.id = ci.collection_id
     WHERE uc.user_id = ${userId}
-  `;
+  ` as ItemRef[];
 
   if (rows.length === 0) return;
 
-  const text = (rows as { title: string }[]).map((r) => r.title).join(", ");
-  const embedding = await generateEmbedding(text);
-  const vectorLiteral = `[${embedding.join(",")}]`;
+  const embeddingMap = await getOrGenerateItemEmbeddings(rows);
+  const embeddings = rows
+    .map((r) => embeddingMap.get(`${r.apiId}:${r.type}`))
+    .filter((e): e is number[] => e !== undefined);
+
+  if (embeddings.length === 0) return;
+
+  const avg = averageEmbeddings(embeddings);
+  const vectorLiteral = `[${avg.join(",")}]`;
 
   await sql`
     INSERT INTO user_embeddings (user_id, embedding, updated_at)
@@ -87,39 +170,49 @@ export async function updateUserEmbedding(userId: number): Promise<void> {
 }
 
 export async function rebuildAllUserEmbeddings(): Promise<{ updated: number; skipped: number }> {
-  // Fetch all users that have at least one collection item
+  // 1. Fetch all (user_id, api_id, title, type) for users with at least one item
   const rows = await sql`
-    SELECT uc.user_id, array_agg(ci.title) AS titles
+    SELECT uc.user_id, ci.api_id, ci.title, ci.type
     FROM collection_items ci
     JOIN user_collections uc ON uc.id = ci.collection_id
-    GROUP BY uc.user_id
-  ` as { user_id: number; titles: string[] }[];
+  ` as { user_id: number; api_id: string; title: string; type: "movie" | "music" | "game" }[];
 
   if (rows.length === 0) return { updated: 0, skipped: 0 };
 
-  // Build one text per user
-  const userIds = rows.map((r) => r.user_id);
-  const texts = rows.map((r) => r.titles.join(", "));
+  // 2. Collect the distinct items across all users and resolve their embeddings
+  const distinctItems = Array.from(
+    new Map(rows.map((r) => [`${r.api_id}:${r.type}`, { apiId: r.api_id, title: r.title, type: r.type }])).values()
+  );
+  const embeddingMap = await getOrGenerateItemEmbeddings(distinctItems);
 
-  // Call Cohere in batches of COHERE_BATCH_SIZE (1 API call per batch)
-  const allEmbeddings: number[][] = [];
-  for (let i = 0; i < texts.length; i += COHERE_BATCH_SIZE) {
-    const batchTexts = texts.slice(i, i + COHERE_BATCH_SIZE);
-    const batchEmbeddings = await generateEmbeddingsBatch(batchTexts);
-    allEmbeddings.push(...batchEmbeddings);
+  // 3. Group items by user and compute per-user average embedding
+  const byUser = new Map<number, ItemRef[]>();
+  for (const r of rows) {
+    const list = byUser.get(r.user_id) ?? [];
+    list.push({ apiId: r.api_id, title: r.title, type: r.type });
+    byUser.set(r.user_id, list);
   }
 
-  // Upsert each user embedding
-  for (let i = 0; i < userIds.length; i++) {
-    const vectorLiteral = `[${allEmbeddings[i].join(",")}]`;
+  let updated = 0;
+  for (const [userId, items] of byUser) {
+    const embeddings = items
+      .map((it) => embeddingMap.get(`${it.apiId}:${it.type}`))
+      .filter((e): e is number[] => e !== undefined);
+
+    if (embeddings.length === 0) continue;
+
+    const avg = averageEmbeddings(embeddings);
+    const vectorLiteral = `[${avg.join(",")}]`;
+
     await sql`
       INSERT INTO user_embeddings (user_id, embedding, updated_at)
-      VALUES (${userIds[i]}, ${vectorLiteral}::vector, now())
+      VALUES (${userId}, ${vectorLiteral}::vector, now())
       ON CONFLICT (user_id) DO UPDATE
       SET embedding = EXCLUDED.embedding,
           updated_at = now()
     `;
+    updated++;
   }
 
-  return { updated: userIds.length, skipped: 0 };
+  return { updated, skipped: 0 };
 }

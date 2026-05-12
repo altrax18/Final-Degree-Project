@@ -51,7 +51,9 @@ export const collectionsRoutes = new Elysia({ prefix: "/api/users/:userId" })
   })
   .post("/collections/:collectionId/items", async ({ params, body }) => {
     const item = await addItemToCollection(Number(params.collectionId), body as CollectionItemBody);
-    await updateUserEmbedding(Number(params.userId));
+    updateUserEmbedding(Number(params.userId)).catch((err) =>
+      console.error("[embeddings] Failed to update embedding for user", params.userId, err)
+    );
     return item;
   })
   .get("/collections/:collectionId/items/:itemId", async ({ params }) => {
@@ -62,6 +64,8 @@ export const collectionsRoutes = new Elysia({ prefix: "/api/users/:userId" })
   .delete("/collections/:collectionId/items/:itemId", async ({ params }) => {
     const item = await removeItemFromCollection(Number(params.collectionId), Number(params.itemId));
     if (!item) return new Response("Not found", { status: 404 });
-    await updateUserEmbedding(Number(params.userId));
+    updateUserEmbedding(Number(params.userId)).catch((err) =>
+      console.error("[embeddings] Failed to update embedding for user", params.userId, err)
+    );
     return item;
   });

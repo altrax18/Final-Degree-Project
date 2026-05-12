@@ -98,6 +98,14 @@ export const collectionItems = pgTable("collection_items", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
+export const itemEmbeddings = pgTable("item_embeddings", {
+  id: serial("id").primaryKey(),
+  apiId: text("api_id").notNull(),
+  type: text("type", { enum: ["movie", "music", "game"] }).notNull(),
+  embedding: vector("embedding", { dimensions: 384 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
 // Relations
 import { relations } from "drizzle-orm";
 

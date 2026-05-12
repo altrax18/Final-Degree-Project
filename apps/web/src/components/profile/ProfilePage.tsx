@@ -105,7 +105,7 @@ export default function ProfilePage() {
 
           {user && (
             <section className="pt-6 border-t border-bone dark:border-night-edge">
-              <RecommendedUsers userId={user.id} />
+              <RecommendedUsers userId={user.id} showBar />
             </section>
           )}
 
