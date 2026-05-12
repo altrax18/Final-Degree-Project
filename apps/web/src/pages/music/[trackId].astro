@@ -11,7 +11,9 @@ let track: any = null;
 let fetchError: string | null = null;
 
 if (trackId) {
-  const { data, error } = await serverApi.api.music.track({ id: trackId }).get();
+  const { data, error } = await serverApi.api.music
+    .track({ id: trackId })
+    .get();
   if (error || !data) {
     fetchError =
       "No se pudo cargar la canción. Comprueba que la API esté activa.";
