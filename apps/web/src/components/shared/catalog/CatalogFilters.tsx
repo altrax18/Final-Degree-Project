@@ -17,9 +17,9 @@ interface CatalogFiltersProps {
 }
 
 export default function CatalogFilters({
-  searchTerm,
-  selectedGenres,
-  genres,
+  searchTerm = "",
+  selectedGenres = [],
+  genres = [],
   searchPlaceholder,
   filterTitle,
   onSearchTermChange,

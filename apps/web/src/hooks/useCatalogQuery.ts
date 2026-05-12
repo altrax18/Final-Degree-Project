@@ -41,33 +41,37 @@ export function useCatalogQuery<T>(
     pageSize,
   ];
 
-  const queryFn = useCallback(async (pageToFetch: number) => {
-    const queryParams = {
-      page: String(pageToFetch),
-      limit: String(pageSize),
-      q: searchTerm.trim() || undefined,
-      genres: selectedGenres.length > 0 ? selectedGenres.join(",") : undefined,
-    };
+  const queryFn = useCallback(
+    async (pageToFetch: number) => {
+      const queryParams = {
+        page: String(pageToFetch),
+        limit: String(pageSize),
+        q: searchTerm.trim() || undefined,
+        genres:
+          selectedGenres.length > 0 ? selectedGenres.join(",") : undefined,
+      };
 
-    let response;
-    
-    // Derivar el endpoint correcto del cliente Eden según la ruta lógica
-    if (apiPath.includes("movies")) {
-      response = await api.api.movies.get({ query: queryParams });
-    } else if (apiPath.includes("games")) {
-      response = await api.api.games.get({ query: queryParams });
-    } else if (apiPath.includes("music")) {
-      response = await api.api.music.get({ query: queryParams });
-    } else {
-      throw new Error(`Unsupported api path: ${apiPath}`);
-    }
+      let response;
 
-    if (response.error || !response.data) {
-      throw new Error("No se pudo cargar el catálogo");
-    }
+      // Derivar el endpoint correcto del cliente Eden según la ruta lógica
+      if (apiPath.includes("movies")) {
+        response = await api.api.movies.get({ query: queryParams });
+      } else if (apiPath.includes("games")) {
+        response = await api.api.games.get({ query: queryParams });
+      } else if (apiPath.includes("music")) {
+        response = await api.api.music.get({ query: queryParams });
+      } else {
+        throw new Error(`Unsupported api path: ${apiPath}`);
+      }
 
-    return response.data as unknown as CatalogPage<T>;
-  }, [apiPath, searchTerm, selectedGenres, pageSize]);
+      if (response.error || !response.data) {
+        throw new Error("No se pudo cargar el catálogo");
+      }
+
+      return response.data as unknown as CatalogPage<T>;
+    },
+    [apiPath, searchTerm, selectedGenres, pageSize],
+  );
 
   const query = useQuery<CatalogPage<T>>({
     queryKey,
@@ -86,9 +90,9 @@ export function useCatalogQuery<T>(
     // POR QUE LO USO: Evita el parpadeo a "No hay resultados" durante la carga de nuevas páginas.
     placeholderData: (prev) => prev,
     // CONCEPTO: Caché de Cliente Avanzada (Stale Time)
-    // QUE HACE: Considera los datos frescos durante 1 minuto. No hace fetch al volver atrás.
+    // QUE HACE: Considera los datos frescos durante 5 minutos. No hace fetch al volver atrás.
     // POR QUE LO USO: Elimina tiempos de carga innecesarios y reduce peticiones al servidor.
-    staleTime: 1000 * 60,
+    staleTime: 1000 * 60 * 5,
   });
 
   // Garantiza que la página actual siempre esté dentro del rango devuelto por el servidor.
@@ -150,7 +154,5 @@ export function useCatalogQuery<T>(
     items,
     totalPages,
     safeCurrentPage,
-    genres,
-    setCurrentPage,
   };
 }

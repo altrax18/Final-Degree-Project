@@ -68,11 +68,31 @@ async function fetchJsonWithTimeout(url: string, init?: RequestInit) {
   }
 }
 
+// CONCEPTO: Traducción Dinámica (On-the-fly Translation)
+// QUE HACE: Usa la API pública de Google Translate para traducir textos del inglés al español.
+// POR QUE LO USO: IGDB (Twitch) es una API exclusiva en inglés y no ofrece descripciones en español en su base de datos.
+async function translateToSpanish(text: string): Promise<string> {
+  if (!text || text === "Sin descripcion disponible.") return text;
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=es&dt=t&q=${encodeURIComponent(text)}`;
+    const res = await fetch(url);
+    if (!res.ok) return text;
+    const json = await res.json();
+    return json[0].map((item: any) => item[0]).join("");
+  } catch (error) {
+    return text; // Fallback: si falla, devolvemos el texto original
+  }
+}
+
 // CONCEPTO: Normalizacion DRY para IGDB
 // QUE HACE: Centraliza campos comunes entre listado y detalle de juegos.
 // POR QUE LO USO: Mantiene el mismo contrato del frontend en ambos endpoints.
 // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
-function mapIgdbBaseGameFields(game: any) {
+async function mapIgdbBaseGameFields(game: any) {
+  const translatedSummary = await translateToSpanish(
+    game.summary || "Sin descripcion disponible.",
+  );
+
   return {
     id: game.id.toString(),
     title: game.name,
@@ -82,7 +102,7 @@ function mapIgdbBaseGameFields(game: any) {
       : null,
     rating: Math.round(game.total_rating || 0),
     firstReleaseDate: game.first_release_date || null,
-    summary: game.summary || "Sin descripcion disponible.",
+    summary: translatedSummary,
     genres: game.genres ? game.genres.map((genre: any) => genre.name) : [],
     platforms: game.platforms
       ? game.platforms.map((platform: any) => platform.name)
@@ -299,8 +319,8 @@ export async function browseGamesPage(query: {
     );
   }
 
-  const normalizedGames = listResult.payload.map((game: any) =>
-    mapIgdbBaseGameFields(game),
+  const normalizedGames = await Promise.all(
+    listResult.payload.map((game: any) => mapIgdbBaseGameFields(game)),
   );
   const total = countResult.response.ok
     ? parseCountPayload(countResult.payload)
@@ -350,7 +370,9 @@ export async function getTrendingGames(): Promise<unknown[]> {
     );
   }
 
-  return payload.map((game: any) => mapIgdbBaseGameFields(game));
+  return await Promise.all(
+    payload.map((game: any) => mapIgdbBaseGameFields(game)),
+  );
 }
 
 export async function getGameByApiId(apiId: string): Promise<unknown> {
@@ -382,9 +404,14 @@ export async function getGameByApiId(apiId: string): Promise<unknown> {
   }
 
   const game = rawGames[0];
+  const baseFields = await mapIgdbBaseGameFields(game);
+  const translatedStoryline = game.storyline
+    ? await translateToSpanish(game.storyline)
+    : null;
+
   const normalizedGameDetail = {
-    ...mapIgdbBaseGameFields(game),
-    storyline: game.storyline || null,
+    ...baseFields,
+    storyline: translatedStoryline,
     screenshots: game.screenshots
       ? game.screenshots.map(
           (screenshot: any) =>
