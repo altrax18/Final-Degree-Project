@@ -1,5 +1,4 @@
 ---
-// src/pages/music/album/[albumId].astro
 import Layout from "../../../layouts/Layout.astro";
 import AlbumDetail from "../../../components/music/AlbumDetail.jsx";
 import { serverApi } from "../../../lib/server-api";
@@ -12,7 +11,9 @@ let tracks: any[] = [];
 let fetchError: string | null = null;
 
 if (albumId) {
-  const { data, error } = await (serverApi as any).api.music.album({ id: albumId }).get();
+  const { data, error } = await (serverApi as any).api.music
+    .album({ id: albumId })
+    .get();
   if (error || !data) {
     fetchError =
       "No se pudo cargar el álbum. Comprueba que la API esté activa.";

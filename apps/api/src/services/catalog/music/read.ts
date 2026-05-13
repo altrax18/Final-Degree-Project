@@ -1,4 +1,8 @@
-import { parsePositiveInteger } from "../utils";
+import {
+  parsePositiveInteger,
+  fetchJsonWithTimeout,
+  type PaginatedCatalogResponse,
+} from "../utils";
 
 const MUSIC_GENRES = [
   "Pop",
@@ -101,8 +105,8 @@ export async function getTrendingSongs() {
   }
 
   try {
-    const rssRes = await fetch(APPLE_RSS_SONGS);
-    const rssJson = (await rssRes.json()) as any;
+    const { response: rssRes, payload: rssJson } = await fetchJsonWithTimeout(APPLE_RSS_SONGS);
+    if (!rssRes.ok) throw new Error(`iTunes RSS falló (${rssRes.status})`);
     const ids: string[] = rssJson.feed.results.map((result: any) => result.id);
 
     if (ids.length === 0) return { results: [] };
@@ -110,9 +114,8 @@ export async function getTrendingSongs() {
     const lookups = await Promise.all(
       ids.map(async (id) => {
         try {
-          const response = await fetch(`${ITUNES_LOOKUP}?id=${id}&entity=song`);
-          const json = (await response.json()) as any;
-          if (json.resultCount > 0) return toTrack(json.results[0]);
+          const { payload: json } = await fetchJsonWithTimeout(`${ITUNES_LOOKUP}?id=${id}&entity=song`);
+          if (json && json.resultCount > 0) return toTrack(json.results[0]);
           return null;
         } catch {
           return null;
@@ -150,9 +153,8 @@ export async function searchMusic(term?: string, limit = "20") {
     url.searchParams.set("limit", limit);
     url.searchParams.set("country", "US");
 
-    const response = await fetch(url.toString());
-    const json = (await response.json()) as any;
-    const results: Track[] = json.results.map(toTrack);
+    const { payload: json } = await fetchJsonWithTimeout(url.toString());
+    const results: Track[] = (json.results ?? []).map(toTrack);
 
     return { resultCount: json.resultCount, results };
   } catch (err: any) {
@@ -166,25 +168,11 @@ export async function searchMusic(term?: string, limit = "20") {
   }
 }
 
-export async function getMusicByApiId(apiId: string): Promise<unknown> {
-  try {
-    const response = await fetch(`${ITUNES_LOOKUP}?id=${apiId}&entity=song`);
-    const json = (await response.json()) as any;
-    if (!json.resultCount || json.resultCount === 0) {
-      return null;
-    }
-
-    return toTrack(json.results[0]);
-  } catch {
-    return null;
-  }
-}
 
 export async function getTrackById(id: string) {
   try {
-    const response = await fetch(`${ITUNES_LOOKUP}?id=${id}&entity=song`);
-    const json = (await response.json()) as any;
-    if (!json.resultCount || json.resultCount === 0) {
+    const { payload: json } = await fetchJsonWithTimeout(`${ITUNES_LOOKUP}?id=${id}&entity=song`);
+    if (!json || !json.resultCount || json.resultCount === 0) {
       return new Response(JSON.stringify({ error: "Track not found" }), {
         status: 404,
         headers: { "Content-Type": "application/json" },
@@ -222,7 +210,7 @@ export async function getLyrics(query: {
     if (album_name) params.set("album_name", album_name);
     if (duration) params.set("duration", duration);
 
-    const response = await fetch(`https://lrclib.net/api/get?${params}`);
+    const { response, payload } = await fetchJsonWithTimeout(`https://lrclib.net/api/get?${params}`);
     if (!response.ok) {
       return new Response(JSON.stringify({ error: "Lyrics not found" }), {
         status: 404,
@@ -230,7 +218,7 @@ export async function getLyrics(query: {
       });
     }
 
-    return await response.json();
+    return payload;
   } catch (err: any) {
     return new Response(
       JSON.stringify({ error: "Error fetching lyrics", detail: err.message }),
@@ -252,9 +240,8 @@ export async function getMoreSongs(query: { page?: string; limit?: string }) {
     url.searchParams.set("limit", String(limit));
     url.searchParams.set("country", "US");
 
-    const response = await fetch(url.toString());
-    const json = (await response.json()) as any;
-    const results: Track[] = json.results.map(toTrack);
+    const { payload: json } = await fetchJsonWithTimeout(url.toString());
+    const results: Track[] = (json.results ?? []).map(toTrack);
     return { results, page, term };
   } catch (err: any) {
     return new Response(
@@ -272,14 +259,7 @@ export async function browseMusic(query: {
   page?: string;
   limit?: string;
   genres?: string;
-}): Promise<{
-  items: any[];
-  total: number;
-  page: number;
-  perPage: number;
-  totalPages: number;
-  genres: string[];
-}> {
+}): Promise<PaginatedCatalogResponse<any>> {
   const page = parsePositiveInteger(query.page, 1, 1, 1000);
   const perPage = parsePositiveInteger(query.limit, 20, 1, 100);
   const searchTerm = query.q?.trim() ?? "";
@@ -305,8 +285,7 @@ export async function browseMusic(query: {
     url.searchParams.set("limit", selectedGenres.length > 0 ? "100" : String(perPage * 3));
     url.searchParams.set("country", "US");
 
-    const response = await fetch(url.toString());
-    const json = (await response.json()) as any;
+    const { payload: json } = await fetchJsonWithTimeout(url.toString());
     let results: Track[] = (json.results ?? []).map(toTrack);
 
     if (selectedGenres.length > 0) {
@@ -369,9 +348,8 @@ export async function searchAlbums(term?: string, limit = "12") {
     url.searchParams.set("limit", limit);
     url.searchParams.set("country", "US");
 
-    const response = await fetch(url.toString());
-    const json = (await response.json()) as any;
-    const results: Album[] = json.results.map(toAlbum);
+    const { payload: json } = await fetchJsonWithTimeout(url.toString());
+    const results: Album[] = (json.results ?? []).map(toAlbum);
 
     return { resultCount: json.resultCount, results };
   } catch (err: any) {
@@ -388,12 +366,11 @@ export async function searchAlbums(term?: string, limit = "12") {
 export async function getAlbumWithTracks(albumId: string) {
   try {
     // iTunes Lookup con entity=song devuelve: [collectionItem, ...songItems]
-    const response = await fetch(
+    const { payload: json } = await fetchJsonWithTimeout(
       `${ITUNES_LOOKUP}?id=${albumId}&entity=song`,
     );
-    const json = (await response.json()) as any;
 
-    if (!json.resultCount || json.resultCount === 0) {
+    if (!json || !json.resultCount || json.resultCount === 0) {
       return new Response(JSON.stringify({ error: "Album not found" }), {
         status: 404,
         headers: { "Content-Type": "application/json" },

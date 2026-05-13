@@ -5,7 +5,6 @@ import { serverApi } from "../lib/server-api";
 // CONCEPTO: API Route (Backend For Frontend)
 // QUE HACE: Crea un endpoint exclusivo para el frontend que sirve datos en tiempo real.
 // POR QUE LO USO: Permite separar la caché de la portada (5 min) de las reseñas (0 min).
-// DOCUMENTACION: https://docs.astro.build/en/guides/endpoints/#server-endpoints-api-routes
 export const GET: APIRoute = async () => {
   try {
     const dbUrl = import.meta.env.DATABASE_URL || process.env.DATABASE_URL;
@@ -49,7 +48,7 @@ export const GET: APIRoute = async () => {
               .get();
             if (!error && data) title = (data as any).title;
           }
-        } catch (err) {}
+        } catch (err) { }
         return { ...review, media: { title, type: review.itemType } };
       }),
     );

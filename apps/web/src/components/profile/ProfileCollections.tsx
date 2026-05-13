@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
-import type { UserCollection, CollectionItem } from "../../types/collection";
+import NowPlayingBars from "../shared/NowPlayingBars";
+import type { UserCollection } from "../../types/collection";
 
 interface Props {
   collections: UserCollection[];
@@ -12,59 +13,12 @@ interface Props {
   isReadOnly?: boolean;
 }
 
-// --- Equalizer animado estilo Spotify ---
-
-const equalizerStyle = `
-  @keyframes bar1 {
-    0%, 100% { height: 4px; }
-    25%       { height: 14px; }
-    75%       { height: 6px; }
-  }
-  @keyframes bar2 {
-    0%, 100% { height: 10px; }
-    40%       { height: 3px; }
-    60%       { height: 14px; }
-  }
-  @keyframes bar3 {
-    0%, 100% { height: 6px; }
-    30%       { height: 14px; }
-    70%       { height: 4px; }
-  }
-  .eq-bar-1 { animation: bar1 1.0s ease-in-out infinite; }
-  .eq-bar-2 { animation: bar2 1.1s ease-in-out infinite 0.18s; }
-  .eq-bar-3 { animation: bar3 0.9s ease-in-out infinite 0.09s; }
-`;
-
-/** Tres barras que se mueven al ritmo, como el indicador de Spotify */
-function NowPlayingBars({ paused = false }) {
-  return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: equalizerStyle }} />
-      <span
-        className="inline-flex items-end gap-[2px] h-[14px] w-[14px]"
-        aria-label="Reproduciendo"
-      >
-        {["eq-bar-1", "eq-bar-2", "eq-bar-3"].map((cls) => (
-          <span
-            key={cls}
-            className={[
-              "w-[3px] rounded-full bg-amethyst dark:bg-orchid origin-bottom",
-              paused ? "" : cls,
-            ].join(" ")}
-            style={paused ? { height: "8px" } : undefined}
-          />
-        ))}
-      </span>
-    </>
-  );
-}
-
-export default function ProfileCollections({ 
-  collections, 
-  loading, 
-  error, 
-  createCollection, 
-  deleteCollection, 
+export default function ProfileCollections({
+  collections,
+  loading,
+  error,
+  createCollection,
+  deleteCollection,
   removeItem,
   isReadOnly = false
 }: Props) {
@@ -115,7 +69,7 @@ export default function ProfileCollections({
   /** Reproduce toda la colección de música empezando por la pista indicada */
   const handlePlayCollection = (col: UserCollection, startIndex = 0) => {
     if (col.type !== "music" || !col.items || col.items.length === 0) return;
-    
+
     const tracks = col.items.map(item => ({
       id: item.apiId,
       title: item.title,
@@ -227,7 +181,7 @@ export default function ProfileCollections({
       {collections.length === 0 && !isCreating ? (
         <div className="rounded-3xl border border-bone dark:border-night-edge border-dashed flex flex-col items-center justify-center py-24 gap-4 text-ink/25 dark:text-screen/25">
           <div className="w-16 h-16 rounded-2xl bg-ink/[0.02] dark:bg-screen/[0.02] flex items-center justify-center border border-bone/50 dark:border-night-edge/50">
-             <Icon icon="tabler:folders" className="w-8 h-8 opacity-20" />
+            <Icon icon="tabler:folders" className="w-8 h-8 opacity-20" />
           </div>
           <div className="text-center">
             <p className="text-lg font-medium text-ink/60 dark:text-screen/60">
@@ -249,14 +203,13 @@ export default function ProfileCollections({
             return (
               <div key={type} className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${
-                    type === "music" ? "bg-amethyst/20 text-amethyst" :
+                  <div className={`p-2 rounded-lg ${type === "music" ? "bg-amethyst/20 text-amethyst" :
                     type === "movie" ? "bg-amber-500/20 text-amber-500" :
-                    "bg-emerald-500/20 text-emerald-500"
-                  }`}>
-                    <Icon 
-                      icon={type === "music" ? "tabler:music" : type === "movie" ? "tabler:movie" : "tabler:device-gamepad-2"} 
-                      className="w-5 h-5" 
+                      "bg-emerald-500/20 text-emerald-500"
+                    }`}>
+                    <Icon
+                      icon={type === "music" ? "tabler:music" : type === "movie" ? "tabler:movie" : "tabler:device-gamepad-2"}
+                      className="w-5 h-5"
                     />
                   </div>
                   <h3 className="text-lg font-semibold text-ink dark:text-screen capitalize">
@@ -266,13 +219,12 @@ export default function ProfileCollections({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
                   {list.map((col) => (
-                    <div 
-                      key={col.id} 
-                      className={`group relative overflow-hidden bg-sand dark:bg-coal border border-bone dark:border-night-edge rounded-3xl transition-all duration-500 ${
-                        expandedCollections.has(col.id) 
-                          ? "ring-2 ring-amethyst/30 bg-linen dark:bg-white/[0.07] border-bone dark:border-white/20 shadow-2xl shadow-amethyst/10" 
-                          : "hover:border-bone dark:hover:border-white/20 hover:bg-linen dark:hover:bg-white/[0.05]"
-                      }`}
+                    <div
+                      key={col.id}
+                      className={`group relative overflow-hidden bg-sand dark:bg-coal border border-bone dark:border-night-edge rounded-3xl transition-all duration-500 ${expandedCollections.has(col.id)
+                        ? "ring-2 ring-amethyst/30 bg-linen dark:bg-white/[0.07] border-bone dark:border-white/20 shadow-2xl shadow-amethyst/10"
+                        : "hover:border-bone dark:hover:border-white/20 hover:bg-linen dark:hover:bg-white/[0.05]"
+                        }`}
                     >
                       <div className="p-5 flex flex-col gap-4">
                         <div className="flex items-center gap-4">
@@ -280,9 +232,9 @@ export default function ProfileCollections({
                           <div className="grid grid-cols-2 gap-0.5 w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-sand dark:bg-white/5 border border-bone dark:border-white/5 shadow-xl group-hover:scale-105 transition-transform duration-500">
                             {col.items?.length > 0 ? (
                               col.items.slice(0, 4).map((item, i) => (
-                                <img 
-                                  key={item.id} 
-                                  src={item.metadata?.image || item.metadata?.cover || "https://placehold.co/40x40/111/fff?text=?"} 
+                                <img
+                                  key={item.id}
+                                  src={item.metadata?.image || item.metadata?.cover || "https://placehold.co/40x40/111/fff?text=?"}
                                   className="w-full h-full object-cover"
                                   alt=""
                                 />
@@ -317,9 +269,9 @@ export default function ProfileCollections({
                                   </button>
                                 )}
                                 {!isReadOnly && deleteCollection && (
-                                  <button 
+                                  <button
                                     onClick={() => {
-                                      if(confirm("¿Estás seguro de que quieres eliminar esta lista?")) deleteCollection(col.id);
+                                      if (confirm("¿Estás seguro de que quieres eliminar esta lista?")) deleteCollection(col.id);
                                     }}
                                     className="p-2 text-slate/50 dark:text-mist/50 hover:text-rose-500 transition-colors"
                                     title="Eliminar lista"
@@ -340,12 +292,12 @@ export default function ProfileCollections({
                               col.items?.map((item, itemIdx) => {
                                 const isItemActive = currentTrackId === item.apiId;
                                 return (
-                                  <div 
-                                    key={item.id} 
+                                  <div
+                                    key={item.id}
                                     className={[
                                       "flex items-center justify-between group/item p-2 rounded-xl transition-all duration-200",
-                                      isItemActive 
-                                        ? "bg-amethyst/10 border border-amethyst/20" 
+                                      isItemActive
+                                        ? "bg-amethyst/10 border border-amethyst/20"
                                         : "hover:bg-sand dark:hover:bg-white/5 border border-transparent"
                                     ].join(" ")}
                                   >
@@ -356,8 +308,8 @@ export default function ProfileCollections({
                                         {isItemActive ? (
                                           <NowPlayingBars paused={!isPlaying} />
                                         ) : (
-                                          <img 
-                                            src={item.metadata?.image || item.metadata?.cover || ""} 
+                                          <img
+                                            src={item.metadata?.image || item.metadata?.cover || ""}
                                             className="w-full h-full rounded-lg object-cover bg-sand dark:bg-white/5 group-hover/item:opacity-40 transition-all"
                                             alt=""
                                           />
@@ -399,7 +351,7 @@ export default function ProfileCollections({
                                         </button>
                                       )}
                                       {!isReadOnly && removeItem && (
-                                        <button 
+                                        <button
                                           onClick={() => removeItem(col.id, item.id)}
                                           className="opacity-0 group-hover/item:opacity-100 p-1.5 text-slate/50 dark:text-mist/50 hover:text-rose-500 transition-all"
                                           title="Eliminar de la lista"
@@ -414,20 +366,19 @@ export default function ProfileCollections({
                             )}
                           </div>
                         )}
-                        
+
                         <div className="flex items-center justify-between mt-auto">
-                           <span className="text-[10px] text-ink/20 dark:text-screen/20 italic">
-                             {expandedCollections.has(col.id) ? "" : `Creada ${new Date(col.createdAt).toLocaleDateString()}`}
-                           </span>
-                           <button 
-                             onClick={() => toggleExpand(col.id)}
-                             className={`text-xs font-semibold transition-colors flex items-center gap-1 ${
-                               expandedCollections.has(col.id) ? "text-amethyst hover:text-orchid" : "text-slate dark:text-mist hover:text-ink dark:hover:text-screen"
-                             }`}
-                           >
-                             {expandedCollections.has(col.id) ? "Cerrar" : "Ver detalles"}
-                             <Icon icon={expandedCollections.has(col.id) ? "tabler:chevron-up" : "tabler:chevron-down"} className="w-3 h-3" />
-                           </button>
+                          <span className="text-[10px] text-ink/20 dark:text-screen/20 italic">
+                            {expandedCollections.has(col.id) ? "" : col.createdAt ? `Creada ${new Date(col.createdAt).toLocaleDateString()}` : ""}
+                          </span>
+                          <button
+                            onClick={() => toggleExpand(col.id)}
+                            className={`text-xs font-semibold transition-colors flex items-center gap-1 ${expandedCollections.has(col.id) ? "text-amethyst hover:text-orchid" : "text-slate dark:text-mist hover:text-ink dark:hover:text-screen"
+                              }`}
+                          >
+                            {expandedCollections.has(col.id) ? "Cerrar" : "Ver detalles"}
+                            <Icon icon={expandedCollections.has(col.id) ? "tabler:chevron-up" : "tabler:chevron-down"} className="w-3 h-3" />
+                          </button>
                         </div>
                       </div>
                     </div>

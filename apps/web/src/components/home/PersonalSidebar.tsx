@@ -10,7 +10,6 @@ import QuickCollectionsCard from "./QuickCollectionsCard";
 // CONCEPTO: Component Composition (Composición de Componentes)
 // QUE HACE: Actúa como un "orquestador" que evalúa la sesión del usuario y ensambla los bloques visuales correspondientes.
 // POR QUE LO USO: Sigue el principio de Responsabilidad Única (SRP). Delega el renderizado a sus hijos y se centra exclusivamente en el layout global de la barra.
-// DOCUMENTACION: https://react.dev/learn/passing-props-to-a-component
 export default function PersonalSidebar() {
   const [isMounted, setIsMounted] = useState(false);
 

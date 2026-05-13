@@ -1,5 +1,4 @@
 ---
-// src/layouts/Layout.astro
 import "../styles/global.css";
 import NavBar from "../components/navbar/NavBar.astro";
 import FooterPlayer from "../components/music/FooterPlayer.jsx";
@@ -71,7 +70,9 @@ const { title = "Alexandria" } = Astro.props;
       rel="stylesheet"
     />
   </head>
-  <body class={`min-h-screen font-sans ${Astro.url.pathname === "/" ? "is-home" : ""}`}>
+  <body
+    class={`min-h-screen font-sans ${Astro.url.pathname === "/" ? "is-home" : ""}`}
+  >
     <NavBar />
 
     <main

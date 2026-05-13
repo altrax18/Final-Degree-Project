@@ -17,7 +17,6 @@ type Props = {
 // CONCEPTO: Autonomous Component (Componente Autónomo / Micro-Frontend)
 // QUE HACE: Muestra la información del usuario y consume su propia API asíncrona para obtener los mensajes no leídos del chat.
 // POR QUE LO USO: Al manejar su propio estado interno (`unreadCount`), evita que el resto de la página se vuelva a renderizar cuando llega un mensaje nuevo.
-// DOCUMENTACION: https://react.dev/learn/state-a-components-memory
 export default function UserStatsCard({ user, collections }: Props) {
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -30,7 +29,7 @@ export default function UserStatsCard({ user, collections }: Props) {
           setUnreadCount(totalUnread);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [user]);
 
   return (

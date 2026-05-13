@@ -3,59 +3,26 @@ import { config as loadEnv } from "dotenv";
 // CONCEPTO: Carga de Entorno por Prioridad
 // QUE HACE: Carga .env local y fallback al .env raiz del monorepo.
 // POR QUE LO USO: Evita fallos por rutas de ejecucion diferentes en desarrollo.
-// DOCUMENTACION: https://github.com/motdotla/dotenv
 loadEnv();
 loadEnv({ path: "../../.env" });
 
-import { parsePositiveInteger, getCacheKey } from "../utils";
-
-// CONCEPTO: Timeouts de Red Controlados
-// QUE HACE: Corta peticiones a servicios externos que exceden el tiempo maximo permitido.
-// POR QUE LO USO: Mejora resiliencia del endpoint de peliculas cuando TMDB esta lento.
-// DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/API/AbortController
-const EXTERNAL_REQUEST_TIMEOUT_MS = 8000;
+import {
+  parsePositiveInteger,
+  getCacheKey,
+  fetchJsonWithTimeout,
+  parseCountPayload,
+  type PaginatedCatalogResponse,
+  type CatalogCacheEntry,
+} from "../utils";
 
 // CONCEPTO: Cache In-Memory con TTL
 // QUE HACE: Guarda temporalmente listados y detalles para reducir llamadas repetidas.
 // POR QUE LO USO: Reduce latencia en rutas calientes del catalogo de peliculas.
-// DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
 const MOVIES_LIST_CACHE_TTL = 5 * 60 * 1000;
 const MOVIE_DETAIL_CACHE_TTL = 10 * 60 * 1000;
 
-type PaginatedCatalogResponse<T> = {
-  items: T[];
-  total: number;
-  page: number;
-  perPage: number;
-  totalPages: number;
-  genres: string[];
-};
-
-type CatalogCacheEntry = {
-  data: PaginatedCatalogResponse<any>;
-  ts: number;
-};
-
 const moviesListCache = new Map<string, CatalogCacheEntry>();
 const movieDetailCache = new Map<number, { data: any; ts: number }>();
-
-async function fetchJsonWithTimeout(url: string, init?: RequestInit) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, EXTERNAL_REQUEST_TIMEOUT_MS);
-
-  try {
-    const response = await fetch(url, {
-      ...(init ?? {}),
-      signal: controller.signal,
-    });
-    const payload = await response.json();
-    return { response, payload };
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
 
 function resolveTmdbAuth() {
   const tmdbBearerToken = process.env.TMDB_BEARER_TOKEN;
@@ -98,21 +65,7 @@ let genreCache: Map<number, string> | null = null;
 let genreCacheTs = 0;
 const GENRE_CACHE_TTL = 24 * 60 * 60 * 1000;
 
-function parseCountPayload(payload: unknown): number {
-  if (Array.isArray(payload) && payload.length > 0) {
-    const firstItem = payload[0] as { count?: unknown };
-    if (typeof firstItem.count === "number") return firstItem.count;
-    if (typeof firstItem.count === "string") return Number(firstItem.count);
-  }
 
-  if (payload && typeof payload === "object" && "count" in payload) {
-    const countValue = (payload as { count?: unknown }).count;
-    if (typeof countValue === "number") return countValue;
-    if (typeof countValue === "string") return Number(countValue);
-  }
-
-  return 0;
-}
 
 async function getGenreMap(headers: Headers, authQuery: string) {
   if (genreCache && Date.now() - genreCacheTs < GENRE_CACHE_TTL) {
@@ -154,10 +107,10 @@ function normalizeMovies(movies: any[], genreById: Map<number, string>) {
       summary: movie.overview || "Sin descripcion disponible.",
       genres: Array.isArray(movie.genre_ids)
         ? movie.genre_ids
-            .map((id: number) => genreById.get(id))
-            .filter((genre: string | undefined): genre is string =>
-              Boolean(genre),
-            )
+          .map((id: number) => genreById.get(id))
+          .filter((genre: string | undefined): genre is string =>
+            Boolean(genre),
+          )
         : [],
     };
   });
@@ -317,12 +270,12 @@ export async function browseMoviesPage(query: {
   const filteredResults =
     searchTerm.length > 0 && selectedGenreIds.length > 0
       ? combinedResults.filter(
-          (movie: any) =>
-            Array.isArray(movie.genre_ids) &&
-            movie.genre_ids.some((genreId: number) =>
-              selectedGenreIds.includes(genreId),
-            ),
-        )
+        (movie: any) =>
+          Array.isArray(movie.genre_ids) &&
+          movie.genre_ids.some((genreId: number) =>
+            selectedGenreIds.includes(genreId),
+          ),
+      )
       : combinedResults;
 
   if (filteredResults.length === 0) {
@@ -352,9 +305,9 @@ export async function browseMoviesPage(query: {
   const normalizedMovies =
     searchTerm.length > 0 && selectedGenreIds.length > 0
       ? normalizedCombinedMovies.slice(
-          offsetWithinCombined,
-          offsetWithinCombined + perPage,
-        )
+        offsetWithinCombined,
+        offsetWithinCombined + perPage,
+      )
       : normalizedCombinedMovies;
   const genres = Array.from(genreById.values());
 
@@ -375,7 +328,6 @@ export async function browseMoviesPage(query: {
 // CONCEPTO: Consumo de Tendencias Reales (TMDB)
 // QUE HACE: Llama al endpoint oficial de TMDB para obtener lo mas visto de la semana y lo normaliza.
 // POR QUE LO USO: Provee datos reales y frescos sin que nuestro servidor tenga que calcular la popularidad.
-// DOCUMENTACION: https://developer.themoviedb.org/reference/trending-movies
 export async function getTrendingMovies(): Promise<unknown[]> {
   const { headers, authQuery } = resolveTmdbAuth();
 
@@ -423,8 +375,8 @@ export async function getMovieByApiId(apiId: string): Promise<unknown> {
 
   const director = Array.isArray(detailPayload?.credits?.crew)
     ? detailPayload.credits.crew.find(
-        (person: any) => person?.job === "Director",
-      )
+      (person: any) => person?.job === "Director",
+    )
     : null;
 
   const videos = Array.isArray(detailPayload?.videos?.results)
@@ -452,17 +404,17 @@ export async function getMovieByApiId(apiId: string): Promise<unknown> {
 
   const cast = Array.isArray(detailPayload?.credits?.cast)
     ? detailPayload.credits.cast.slice(0, 8).map((actor: any) => ({
-        name:
-          typeof actor?.name === "string" ? actor.name : "Actor desconocido",
-        character:
-          typeof actor?.character === "string"
-            ? actor.character
-            : "Personaje desconocido",
-        profile:
-          typeof actor?.profile_path === "string"
-            ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
-            : null,
-      }))
+      name:
+        typeof actor?.name === "string" ? actor.name : "Actor desconocido",
+      character:
+        typeof actor?.character === "string"
+          ? actor.character
+          : "Personaje desconocido",
+      profile:
+        typeof actor?.profile_path === "string"
+          ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
+          : null,
+    }))
     : [];
 
   const normalizedMovieDetail = {
@@ -491,8 +443,8 @@ export async function getMovieByApiId(apiId: string): Promise<unknown> {
       : null,
     spokenLanguages: Array.isArray(detailPayload.spoken_languages)
       ? detailPayload.spoken_languages
-          .map((language: any) => language?.english_name || language?.name)
-          .filter((name: unknown): name is string => typeof name === "string")
+        .map((language: any) => language?.english_name || language?.name)
+        .filter((name: unknown): name is string => typeof name === "string")
       : [],
     status:
       typeof detailPayload.status === "string"
@@ -506,20 +458,20 @@ export async function getMovieByApiId(apiId: string): Promise<unknown> {
       : null,
     homepage:
       typeof detailPayload.homepage === "string" &&
-      detailPayload.homepage.length > 0
+        detailPayload.homepage.length > 0
         ? detailPayload.homepage
         : null,
     imdbId:
       typeof detailPayload.imdb_id === "string" &&
-      detailPayload.imdb_id.length > 0
+        detailPayload.imdb_id.length > 0
         ? detailPayload.imdb_id
         : null,
     genres: Array.isArray(detailPayload.genres)
       ? detailPayload.genres
-          .map((genre: any) => genre?.name)
-          .filter(
-            (genre: unknown): genre is string => typeof genre === "string",
-          )
+        .map((genre: any) => genre?.name)
+        .filter(
+          (genre: unknown): genre is string => typeof genre === "string",
+        )
       : [],
     director:
       director && typeof director.name === "string"
@@ -527,31 +479,31 @@ export async function getMovieByApiId(apiId: string): Promise<unknown> {
         : "Direccion desconocida",
     productionCompanies: Array.isArray(detailPayload.production_companies)
       ? detailPayload.production_companies
-          .map((company: any) => company?.name)
-          .filter((name: unknown): name is string => typeof name === "string")
+        .map((company: any) => company?.name)
+        .filter((name: unknown): name is string => typeof name === "string")
       : [],
     productionCountries: Array.isArray(detailPayload.production_countries)
       ? detailPayload.production_countries
-          .map((country: any) => country?.name)
-          .filter((name: unknown): name is string => typeof name === "string")
+        .map((country: any) => country?.name)
+        .filter((name: unknown): name is string => typeof name === "string")
       : [],
     trailer: prioritizedTrailer
       ? {
-          key: String(prioritizedTrailer.key || ""),
-          title:
-            typeof prioritizedTrailer.name === "string"
-              ? prioritizedTrailer.name
-              : "Trailer",
-          site:
-            typeof prioritizedTrailer.site === "string"
-              ? prioritizedTrailer.site
-              : "Desconocido",
-          type:
-            typeof prioritizedTrailer.type === "string"
-              ? prioritizedTrailer.type
-              : "Video",
-          official: Boolean(prioritizedTrailer.official),
-        }
+        key: String(prioritizedTrailer.key || ""),
+        title:
+          typeof prioritizedTrailer.name === "string"
+            ? prioritizedTrailer.name
+            : "Trailer",
+        site:
+          typeof prioritizedTrailer.site === "string"
+            ? prioritizedTrailer.site
+            : "Desconocido",
+        type:
+          typeof prioritizedTrailer.type === "string"
+            ? prioritizedTrailer.type
+            : "Video",
+        official: Boolean(prioritizedTrailer.official),
+      }
       : null,
     cast,
   };

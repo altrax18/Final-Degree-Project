@@ -1,22 +1,23 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Icon } from "@iconify/react";
+import type { Track } from "../../types/music";
 
 /** Formatear segundos → "m:ss" */
-function fmt(s) {
+function fmt(s: number) {
   const m = Math.floor(s / 60);
   const sec = Math.floor(s % 60);
   return `${m}:${sec < 10 ? "0" + sec : sec}`;
 }
 
 export default function FooterPlayer() {
-  const audioRef = useRef(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const [currentTrack, setCurrentTrack] = useState(null);
-  const [queue, setQueue] = useState(/** @type {any[]} */ ([]));
+  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
+  const [queue, setQueue] = useState<Track[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  
+
   const [volume, setVolume] = useState(0.4);
   const [isMuted, setIsMuted] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
@@ -44,7 +45,7 @@ export default function FooterPlayer() {
           if (!ct || q.length === 0) return ct;
           const idx = q.findIndex((t) => t.id === ct.id);
           let next = q[idx + 1];
-          
+
           if (!next && isLoopRef.current && q.length > 0) {
             next = q[0];
           }
@@ -53,7 +54,6 @@ export default function FooterPlayer() {
             audio.src = next.previewUrl;
             audio.load();
             audio.play().catch(() => {
-              /* Ignore auto-play blocking errors silently */
             });
             return next;
           }
@@ -82,7 +82,7 @@ export default function FooterPlayer() {
   }, []);
 
   useEffect(() => {
-    const handler = (e) => {
+    const handler = (e: any) => {
       const { track, queue: newQueue } = e.detail;
       if (!track?.previewUrl) return;
 
@@ -91,7 +91,7 @@ export default function FooterPlayer() {
 
       // Clic en la misma canción → alternar pausa/reproducción
       if (currentTrack?.id === track.id) {
-        audio.paused ? audio.play().catch(() => {}) : audio.pause();
+        audio.paused ? audio.play().catch(() => { }) : audio.pause();
         return;
       }
 
@@ -101,7 +101,7 @@ export default function FooterPlayer() {
       setIsVisible(true);
       audio.src = track.previewUrl;
       audio.load();
-      audio.play().catch(() => {});
+      audio.play().catch(() => { });
     };
 
     window.addEventListener("play-track", handler);
@@ -139,15 +139,15 @@ export default function FooterPlayer() {
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
-    audio.paused ? audio.play().catch(() => {}) : audio.pause();
+    audio.paused ? audio.play().catch(() => { }) : audio.pause();
   };
 
-  const seek = (e) => {
+  const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const audio = audioRef.current;
     if (audio) audio.currentTime = Number(e.target.value);
   };
 
-  const changeVolume = (e) => {
+  const changeVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
     setVolume(val);
     if (audioRef.current) audioRef.current.volume = val;
@@ -161,11 +161,11 @@ export default function FooterPlayer() {
     setIsMuted(!isMuted);
   };
 
-  const skipTo = useCallback((direction) => {
+  const skipTo = useCallback((direction: "next" | "prev") => {
     const audio = audioRef.current;
     if (!audio || !currentTrack || queue.length === 0) return;
     const idx = queue.findIndex((t) => t.id === currentTrack.id);
-    
+
     let nextTrack;
     if (direction === "next") {
       if (idx < queue.length - 1) {
@@ -183,7 +183,7 @@ export default function FooterPlayer() {
       setCurrentTrack(nextTrack);
       audio.src = nextTrack.previewUrl;
       audio.load();
-      audio.play().catch(() => {});
+      audio.play().catch(() => { });
     }
   }, [currentTrack, queue, isLoop]);
 
@@ -192,7 +192,7 @@ export default function FooterPlayer() {
       setQueue((q) => {
         const shuffled = [...q].sort(() => Math.random() - 0.5);
         const idx = shuffled.findIndex((t) => t.id === currentTrack?.id);
-        if (idx > -1) {
+        if (idx > -1 && currentTrack) {
           shuffled.splice(idx, 1);
           shuffled.unshift(currentTrack);
         }
@@ -264,11 +264,10 @@ export default function FooterPlayer() {
             onClick={toggleShuffle}
             aria-label="Shuffle"
             aria-pressed={isShuffle}
-            className={`hidden sm:flex relative bg-transparent border-none cursor-pointer p-1.5 transition-all leading-none items-center justify-center rounded-full ${
-              isShuffle 
-                ? "text-electric-sky bg-electric-sky/10" 
+            className={`hidden sm:flex relative bg-transparent border-none cursor-pointer p-1.5 transition-all leading-none items-center justify-center rounded-full ${isShuffle
+                ? "text-electric-sky bg-electric-sky/10"
                 : "text-slate dark:text-mist hover:text-ink dark:hover:text-screen hover:bg-white/5"
-            }`}
+              }`}
           >
             <Icon icon="tabler:arrows-shuffle" className="text-[20px]" />
             {isShuffle && (
@@ -296,9 +295,9 @@ export default function FooterPlayer() {
               transition-[transform,background] duration-150
               hover:scale-[1.07] hover:bg-lilac-mist"
           >
-            <Icon 
-              icon={isPlaying ? "tabler:player-pause-filled" : "tabler:player-play-filled"} 
-              className="text-[28px]" 
+            <Icon
+              icon={isPlaying ? "tabler:player-pause-filled" : "tabler:player-play-filled"}
+              className="text-[28px]"
             />
           </button>
 
@@ -318,11 +317,10 @@ export default function FooterPlayer() {
             onClick={() => setIsLoop((l) => !l)}
             aria-label="Repeat"
             aria-pressed={isLoop}
-            className={`hidden sm:flex relative bg-transparent border-none cursor-pointer p-1.5 transition-all leading-none items-center justify-center rounded-full ${
-              isLoop 
-                ? "text-electric-sky bg-electric-sky/10" 
+            className={`hidden sm:flex relative bg-transparent border-none cursor-pointer p-1.5 transition-all leading-none items-center justify-center rounded-full ${isLoop
+                ? "text-electric-sky bg-electric-sky/10"
                 : "text-slate dark:text-mist hover:text-ink dark:hover:text-screen hover:bg-white/5"
-            }`}
+              }`}
           >
             <Icon icon="tabler:repeat" className="text-[20px]" />
             {isLoop && (

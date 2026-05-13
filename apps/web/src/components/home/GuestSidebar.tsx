@@ -4,7 +4,6 @@ import AnimatedText from "./AnimatedText";
 // CONCEPTO: Presentational Component (Estado Vacío / Empty State)
 // QUE HACE: Renderiza la interfaz estática que invita al usuario a iniciar sesión o registrarse.
 // POR QUE LO USO: Mantiene el componente padre limpio al aislar la UI exclusiva para usuarios no autenticados.
-// DOCUMENTACION: https://react.dev/learn/conditional-rendering
 export default function GuestSidebar() {
   return (
     <motion.aside

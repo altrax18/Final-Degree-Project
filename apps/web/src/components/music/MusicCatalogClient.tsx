@@ -1,4 +1,3 @@
-// apps/web/src/components/music/MusicCatalogClient.tsx
 /*
   RESPONSABILIDAD: Cliente React hidratado que consume el endpoint de /api/music
   - Construye la query (q, page, limit, genres) y maneja la paginación en el cliente.

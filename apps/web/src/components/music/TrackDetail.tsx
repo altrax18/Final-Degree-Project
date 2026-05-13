@@ -78,7 +78,8 @@ export default function TrackDetail({ track }: TrackDetailProps) {
           throw new Error("not found");
         }
 
-        setLyrics(data.plainLyrics || data.syncedLyrics || "");
+        const lyricsData = data as { plainLyrics?: string | null; syncedLyrics?: string | null };
+        setLyrics(lyricsData.plainLyrics || lyricsData.syncedLyrics || "");
       } catch (err) {
         setLyrics("");
       } finally {
@@ -222,7 +223,7 @@ export default function TrackDetail({ track }: TrackDetailProps) {
             icon="tabler:microphone-2" 
             className="text-[1.4rem] text-amethyst dark:text-orchid" 
           />
-          Lyrics
+          Letras
         </h2>
 
         {lyricsLoading ? (
@@ -247,10 +248,10 @@ export default function TrackDetail({ track }: TrackDetailProps) {
               className="text-[2.5rem] opacity-40 mb-1" 
             />
             <p className="m-0 text-base font-semibold text-slate dark:text-mist">
-              Lyrics not found
+              Letras no encontradas
             </p>
             <p className="m-0 text-[0.85rem] font-normal text-slate/70 dark:text-mist/70">
-              No lyrics available for this song in our database.
+              No hay letras disponibles para esta canción en nuestra base de datos.
             </p>
           </div>
         )}

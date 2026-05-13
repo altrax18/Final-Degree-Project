@@ -1,11 +1,6 @@
 import { useState } from "react";
 import { api } from "../../lib/api";
-
-const SESSION_KEY = "alex_user";
-
-function saveSession(user: Record<string, unknown>) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-}
+import { writeSession } from "../../types/user";
 
 type Tab = "login" | "register";
 
@@ -52,7 +47,7 @@ export default function RegisterForm({ onClose, dropdown = false }: Props) {
         throw new Error((error as any)?.value?.error || "Credenciales incorrectas");
       }
 
-      saveSession(data as any);
+      writeSession(data as any);
       onClose();
       window.location.reload();
     } catch (err: unknown) {
@@ -93,7 +88,7 @@ export default function RegisterForm({ onClose, dropdown = false }: Props) {
         throw new Error((error as any)?.value?.error || "No se pudo crear la cuenta");
       }
 
-      saveSession(data as any);
+      writeSession(data as any);
       onClose();
       window.location.reload();
     } catch (err: unknown) {

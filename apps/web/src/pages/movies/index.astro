@@ -7,7 +7,6 @@ import type { Movie } from "../../types/movie";
 // CONCEPTO: Caché HTTP SSR (Stale-While-Revalidate)
 // QUE HACE: Guarda el HTML generado en memoria temporalmente. Devuelve la página al instante.
 // POR QUE LO USO: Es el patrón oficial para SSR pesado. Evita hacer llamadas lentas en cada recarga.
-// DOCUMENTACION: https://docs.astro.build/en/guides/routing/#http-response-headers
 Astro.response.headers.set(
   "Cache-Control",
   "public, max-age=60, stale-while-revalidate=120",
@@ -16,7 +15,6 @@ Astro.response.headers.set(
 // CONCEPTO: Estado Inicial Seguro en SSR
 // QUE HACE: Inicializa datos antes de invocar la API.
 // POR QUE LO USO: Permite renderizar mensaje de error sin romper la pagina.
-// DOCUMENTACION: https://docs.astro.build/en/guides/data-fetching/
 let movies: {
   items: Movie[];
   total: number;
@@ -53,16 +51,12 @@ try {
   <main class="min-h-screen pt-8">
     <div class="max-w-7xl mx-auto px-4 text-center">
       <h1
-        class="text-4xl md:text-5xl font-extrabold text-ink dark:text-screen mb-4 tracking-tight"
+        class="text-4xl md:text-5xl font-extrabold text-ink dark:text-screen mb-8 tracking-tight"
       >
         Catálogo de <span class="text-sapphire dark:text-electric-sky"
           >Películas</span
         >
       </h1>
-      <p class="text-slate dark:text-mist text-lg max-w-2xl mx-auto mb-8">
-        Descubre películas populares, busca por título y navega por páginas sin
-        depender de un límite fijo local.
-      </p>
     </div>
 
     {
@@ -79,8 +73,7 @@ try {
     {
       /* CONCEPTO: Hidratacion de Islas (client:load)
          QUE HACE: Hidrata el componente React para habilitar busqueda y filtros.
-         POR QUE LO USO: Sin hidratacion, la UI seria estatica y sin interaccion.
-         DOCUMENTACION: https://docs.astro.build/en/reference/directives-reference/#clientload */
+         POR QUE LO USO: Sin hidratacion, la UI seria estatica y sin interaccion.*/
     }
     {!errorMessage && <MovieCatalogClient client:load initialMovies={movies} />}
   </main>

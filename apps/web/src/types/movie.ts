@@ -1,7 +1,6 @@
 // CONCEPTO: Data Transfer Object (DTO)
 // QUE HACE: Define el contrato de una pelicula que comparte API y UI.
 // POR QUE LO USO: Mantiene tipado fuerte y evita inconsistencias entre backend y frontend.
-// DOCUMENTACION: https://www.typescriptlang.org/docs/handbook/interfaces.html
 export interface Movie {
   id: string;
   title: string;

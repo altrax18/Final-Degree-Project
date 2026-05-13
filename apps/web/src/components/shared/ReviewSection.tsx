@@ -62,9 +62,8 @@ export default function ReviewSection({ itemType, itemApiId, accentColor }: Prop
 
   const fetchReviews = async () => {
     try {
-      const { data, error } = await api.api.reviews({ 
-        itemType, 
-        itemApiId: String(itemApiId) 
+      const { data, error } = await (api.api.reviews as any)({ itemType })({
+        itemApiId: String(itemApiId),
       }).get();
       
       if (!error && data) {
@@ -113,7 +112,7 @@ export default function ReviewSection({ itemType, itemApiId, accentColor }: Prop
     if (!confirm("¿Estás seguro de que quieres borrar esta reseña?")) return;
     
     try {
-      const { error } = await api.api.reviews({ id: String(id) }).delete();
+      const { error } = await (api.api.reviews as any)({ id: String(id) }).delete();
       if (!error) {
         setReviews(reviews.filter(r => r.id !== id));
       } else {

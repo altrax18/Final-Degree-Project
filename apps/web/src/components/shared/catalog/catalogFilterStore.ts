@@ -1,4 +1,3 @@
-// apps/web/src/components/shared/catalog/catalogFilterStore.ts
 import { create } from "zustand";
 
 interface CatalogFilterState {
@@ -33,7 +32,6 @@ function getCatalogFilters(
 // QUÉ HACE: Crea un estado global fuera del árbol de React, guardando los filtros en un objeto donde la clave es el nombre del catálogo (ej. "games" o "movies").
 // POR QUÉ LO USO: Permite que el catálogo de juegos y el de películas compartan la misma lógica de código, pero mantengan sus filtros y páginas de forma independiente sin sobrescribirse.
 // RESPONSABILIDAD: Este archivo es la única fuente de verdad para filtros y paginación de catálogo; los componentes UI deben usar `useCatalogFilters`.
-// DOCUMENTACIÓN: https://docs.pmnd.rs/zustand/introduction
 export const useCatalogFilterStore = create<CatalogFilterStore>((set) => ({
   filtersByKey: {},
   setSearchTerm: (catalogKey, searchTerm) =>
@@ -58,14 +56,14 @@ export const useCatalogFilterStore = create<CatalogFilterStore>((set) => ({
             catalogKey,
           ).selectedGenres.includes(selectedGenre)
             ? getCatalogFilters(
-                state.filtersByKey,
-                catalogKey,
-              ).selectedGenres.filter((genre) => genre !== selectedGenre)
+              state.filtersByKey,
+              catalogKey,
+            ).selectedGenres.filter((genre) => genre !== selectedGenre)
             : [
-                ...getCatalogFilters(state.filtersByKey, catalogKey)
-                  .selectedGenres,
-                selectedGenre,
-              ],
+              ...getCatalogFilters(state.filtersByKey, catalogKey)
+                .selectedGenres,
+              selectedGenre,
+            ],
           currentPage: 1,
         },
       },
@@ -103,7 +101,6 @@ export const useCatalogFilterStore = create<CatalogFilterStore>((set) => ({
 // CONCEPTO: Custom Hook Selector
 // QUÉ HACE: Envuelve la llamada a Zustand para extraer solo lo necesario según el catálogo.
 // POR QUÉ LO USO: Evita que el componente `CatalogBrowser` se renderice innecesariamente si cambian los filtros de "movies" mientras el usuario está viendo "games".
-// DOCUMENTACIÓN: https://docs.pmnd.rs/zustand/guides/auto-generating-selectors
 export function useCatalogFilters(catalogKey: string) {
   const searchTerm = useCatalogFilterStore(
     (state) => getCatalogFilters(state.filtersByKey, catalogKey).searchTerm,

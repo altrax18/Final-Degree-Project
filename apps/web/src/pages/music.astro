@@ -1,5 +1,4 @@
 ---
-// src/pages/music.astro
 import Layout from "../layouts/Layout.astro";
 import MusicCatalogClient from "../components/music/MusicCatalogClient";
 import { serverApi } from "../lib/server-api";
@@ -36,7 +35,9 @@ try {
   music = data as typeof music;
 } catch (error) {
   errorMessage =
-    error instanceof Error ? error.message : "No se pudieron cargar las canciones";
+    error instanceof Error
+      ? error.message
+      : "No se pudieron cargar las canciones";
 }
 ---
 
@@ -44,20 +45,20 @@ try {
   <main class="min-h-screen pt-8">
     <div class="max-w-7xl mx-auto px-4 text-center">
       <h1
-        class="text-4xl md:text-5xl font-extrabold text-ink dark:text-screen mb-4 tracking-tight"
+        class="text-4xl md:text-5xl font-extrabold text-ink dark:text-screen mb-8 tracking-tight"
       >
-        Catálogo de <span class="text-sapphire dark:text-electric-sky">Música</span>
+        Catálogo de <span class="text-sapphire dark:text-electric-sky"
+          >Música</span
+        >
       </h1>
-      <p class="text-slate dark:text-mist text-lg max-w-2xl mx-auto mb-8">
-        Descubre canciones populares, busca por título o artista y navega por páginas sin límite fijo local.
-      </p>
     </div>
 
     {
       errorMessage && (
         <div class="max-w-3xl mx-auto mt-8 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-center">
           <p>
-            {errorMessage}. Verifica que apps/api esté corriendo en el puerto 3000.
+            {errorMessage}. Verifica que apps/api esté corriendo en el puerto
+            3000.
           </p>
         </div>
       )

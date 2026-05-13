@@ -1,7 +1,6 @@
 // COMPONENTE UTILITARIO: IconText
 // QUE HACE: Renderiza icono + texto con layout consistente.
 // POR QUE: Evita duplicar marcados de icono en todo el Home.
-// DOCUMENTACION: https://react.dev/reference/react-dom/components/svg
 
 export type IconName =
   | "tabler:stack-2"

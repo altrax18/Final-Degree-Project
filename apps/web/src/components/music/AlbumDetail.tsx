@@ -1,57 +1,12 @@
 import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
-
-// --- Equalizer animado estilo Spotify ---
-
-const equalizerStyle = `
-  @keyframes bar1 {
-    0%, 100% { height: 4px; }
-    25%       { height: 14px; }
-    75%       { height: 6px; }
-  }
-  @keyframes bar2 {
-    0%, 100% { height: 10px; }
-    40%       { height: 3px; }
-    60%       { height: 14px; }
-  }
-  @keyframes bar3 {
-    0%, 100% { height: 6px; }
-    30%       { height: 14px; }
-    70%       { height: 4px; }
-  }
-  .eq-bar-1 { animation: bar1 1.0s ease-in-out infinite; }
-  .eq-bar-2 { animation: bar2 1.1s ease-in-out infinite 0.18s; }
-  .eq-bar-3 { animation: bar3 0.9s ease-in-out infinite 0.09s; }
-`;
-
-/** Tres barras que se mueven al ritmo, como el indicador de Spotify */
-function NowPlayingBars({ paused = false }) {
-  return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: equalizerStyle }} />
-      <span
-        className="inline-flex items-end gap-[2px] h-[14px] w-[14px]"
-        aria-label="Reproduciendo"
-      >
-        {["eq-bar-1", "eq-bar-2", "eq-bar-3"].map((cls) => (
-          <span
-            key={cls}
-            className={[
-              "w-[3px] rounded-full bg-amethyst dark:bg-orchid origin-bottom",
-              paused ? "" : cls,
-            ].join(" ")}
-            style={paused ? { height: "8px" } : undefined}
-          />
-        ))}
-      </span>
-    </>
-  );
-}
+import NowPlayingBars from "../shared/NowPlayingBars";
+import type { Track, Album } from "../../types/music";
 
 // --- Helpers ---
 
 /** Formatea milisegundos en "m:ss" */
-function formatDuration(ms) {
+function formatDuration(ms?: number | null) {
   if (!ms) return "0:00";
   const minutes = Math.floor(ms / 60000);
   const seconds = Math.floor((ms % 60000) / 1000);
@@ -59,18 +14,26 @@ function formatDuration(ms) {
 }
 
 /** Extrae año de un dateString ISO */
-function getYear(dateString) {
+function getYear(dateString?: string | null) {
   if (!dateString) return "";
   return new Date(dateString).getFullYear().toString();
 }
 
 // --- Sub-componente: fila de canción ---
 
-function TrackRow({ track, index, currentTrackId, isPlaying, allTracks }) {
+interface TrackRowProps {
+  track: Track;
+  index: number;
+  currentTrackId: string | null;
+  isPlaying: boolean;
+  allTracks: Track[];
+}
+
+function TrackRow({ track, index, currentTrackId, isPlaying, allTracks }: TrackRowProps) {
   const isActive = currentTrackId === track.id;
   const isActiveAndPlaying = isActive && isPlaying;
 
-  const handlePlay = (e) => {
+  const handlePlay = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!track.previewUrl) return;
@@ -167,22 +130,26 @@ function TrackRow({ track, index, currentTrackId, isPlaying, allTracks }) {
 
 // --- Componente principal ---
 
+interface AlbumDetailProps {
+  album: Album;
+  tracks?: Track[];
+}
+
 /**
  * Detalle de álbum al estilo SoundHub pero con el design system del FDP.
- * @param {{ album: any, tracks: any[] }} props
  */
-export default function AlbumDetail({ album, tracks = [] }) {
-  const [currentTrackId, setCurrentTrackId] = useState(null);
+export default function AlbumDetail({ album, tracks = [] }: AlbumDetailProps) {
+  const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
   // Sincronizar con FooterPlayer
   useEffect(() => {
-    const onPlayerState = (e) => {
+    const onPlayerState = (e: any) => {
       setCurrentTrackId(e.detail?.id ?? null);
       setIsPlaying(Boolean(e.detail?.playing));
     };
-    window.addEventListener("player-state", onPlayerState);
-    return () => window.removeEventListener("player-state", onPlayerState);
+    window.addEventListener("player-state", onPlayerState as EventListener);
+    return () => window.removeEventListener("player-state", onPlayerState as EventListener);
   }, []);
 
   const enrichedTracks = tracks.map(t => ({
@@ -224,7 +191,7 @@ export default function AlbumDetail({ album, tracks = [] }) {
 
   return (
     <div className="flex flex-col gap-0 pb-32">
-      {/* ── CABECERA TIPO SPOTIFY ── */}
+      {/* ── CABECERA ── */}
       <header
         className="relative flex flex-col sm:flex-row sm:items-end gap-6 px-6 pt-10 pb-8 sm:px-9 rounded-2xl border border-bone dark:border-night-edge overflow-hidden"
         style={{

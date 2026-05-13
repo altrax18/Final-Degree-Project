@@ -10,7 +10,7 @@ export interface SharedCatalogClientProps<T> {
   catalogKey: string;
   apiPath: string;
   initialData: CatalogPage<T>;
-  itemRoutePrefix: string; // ej: "/movies" o "/games"
+  itemRoutePrefix: string;
   labels: {
     searchPlaceholder: string;
     countText: string;
@@ -109,9 +109,8 @@ function SharedCatalogContent<T extends { id: string | number; title: string }>(
             </div>
           </div>
 
-          <div className={`grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 ${
-            isPlaceholderData ? "opacity-60 transition-opacity duration-300" : ""
-          }`}>
+          <div className={`grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 ${isPlaceholderData ? "opacity-60 transition-opacity duration-300" : ""
+            }`}>
             {items.map((item, index) => (
               <a key={item.id} href={`${itemRoutePrefix}/${item.id}`} aria-label={`Ver detalle de ${item.title}`}>
                 <CatalogCard3D item={item as any} priority={index < 4} />

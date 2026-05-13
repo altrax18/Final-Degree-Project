@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
+import { navigate } from "astro:transitions/client";
 import { api } from "../../lib/api";
 
 type Category = "music" | "movies" | "games";
@@ -79,7 +80,7 @@ export default function SearchBar({ currentPath }: Props) {
 
   const activeCategory = inferredCategory ?? selectedCategory;
 
-  // Ctrl+K shortcut
+  // Ctrl+K atajo para escribir en la barra
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -117,7 +118,7 @@ export default function SearchBar({ currentPath }: Props) {
       });
   }, [debouncedTerm, activeCategory]);
 
-  // Close on outside click
+  // Se cierra el dropdown al hacer click fuera
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (
@@ -156,7 +157,7 @@ export default function SearchBar({ currentPath }: Props) {
   const handleSelect = (result: SearchResult) => {
     setSearchTerm(result.title);
     setShowDropdown(false);
-    window.location.href = buildResultHref(activeCategory, result);
+    navigate(buildResultHref(activeCategory, result));
   };
 
   const handleCategoryChange = (cat: Category) => {
@@ -176,7 +177,7 @@ export default function SearchBar({ currentPath }: Props) {
       ref={containerRef}
       className="relative flex flex-1 max-w-none md:max-w-[380px] items-stretch lg:max-w-[240px] xl:max-w-[380px]"
     >
-      {/* Category selector (only when not on a specific catalog route) */}
+      {/* Dropdown de categorías (solo cuando no estamos en una ruta específica de catálogo) */}
       {inferredCategory === null && (
         <div className="relative shrink-0 flex items-stretch">
           <button
@@ -196,11 +197,10 @@ export default function SearchBar({ currentPath }: Props) {
                   key={cat}
                   type="button"
                   onClick={() => handleCategoryChange(cat)}
-                  className={`flex w-full items-center gap-2 px-3 py-[0.4rem] text-xs transition-colors text-left ${
-                    cat === activeCategory
-                      ? "text-amethyst dark:text-electric-sky bg-lilac-mist dark:bg-depth"
-                      : "text-slate dark:text-mist hover:bg-sand dark:hover:bg-coal hover:text-ink dark:hover:text-screen"
-                  }`}
+                  className={`flex w-full items-center gap-2 px-3 py-[0.4rem] text-xs transition-colors text-left ${cat === activeCategory
+                    ? "text-amethyst dark:text-electric-sky bg-lilac-mist dark:bg-depth"
+                    : "text-slate dark:text-mist hover:bg-sand dark:hover:bg-coal hover:text-ink dark:hover:text-screen"
+                    }`}
                 >
                   <Icon icon={CATEGORY_CONFIG[cat].icon} width={14} height={14} aria-hidden="true" />
                   <span>{CATEGORY_CONFIG[cat].label}</span>
@@ -211,9 +211,9 @@ export default function SearchBar({ currentPath }: Props) {
         </div>
       )}
 
-      {/* Input area wrapper */}
+      {/* Barra de búsqueda */}
       <div className="relative flex flex-1 items-center w-full">
-        {/* Search icon */}
+        {/* Icono de búsqueda */}
         <span
           aria-hidden="true"
           className="pointer-events-none absolute left-3 flex items-center text-slate dark:text-mist"
@@ -237,11 +237,10 @@ export default function SearchBar({ currentPath }: Props) {
           onKeyDown={handleKeyDown}
           autoComplete="off"
           aria-label="Global search"
-          className={`w-full border border-bone dark:border-night-edge bg-linen dark:bg-coal py-2 pl-9 pr-10 text-sm text-ink dark:text-screen outline-none placeholder:text-slate dark:placeholder:text-mist transition-[border-color,background,box-shadow] duration-200 focus:border-amethyst dark:focus:border-electric-sky focus:bg-lilac-mist/30 dark:focus:bg-depth/30 focus:shadow-[0_0_0_3px_rgba(139,111,189,0.15)] dark:focus:shadow-[0_0_0_3px_rgba(91,181,245,0.15)] [&::-webkit-search-cancel-button]:hidden ${
-            inferredCategory === null
-              ? "rounded-r-[0.6rem] border-l-0"
-              : "rounded-[0.6rem]"
-          }`}
+          className={`w-full border border-bone dark:border-night-edge bg-linen dark:bg-coal py-2 pl-9 pr-10 text-sm text-ink dark:text-screen outline-none placeholder:text-slate dark:placeholder:text-mist transition-[border-color,background,box-shadow] duration-200 focus:border-amethyst dark:focus:border-electric-sky focus:bg-lilac-mist/30 dark:focus:bg-depth/30 focus:shadow-[0_0_0_3px_rgba(139,111,189,0.15)] dark:focus:shadow-[0_0_0_3px_rgba(91,181,245,0.15)] [&::-webkit-search-cancel-button]:hidden ${inferredCategory === null
+            ? "rounded-r-[0.6rem] border-l-0"
+            : "rounded-[0.6rem]"
+            }`}
         />
 
         <kbd className="hidden sm:inline-block pointer-events-none absolute right-[0.65rem] rounded-[0.3rem] border border-bone dark:border-night-edge bg-linen dark:bg-coal px-[0.35rem] py-[0.1rem] font-[inherit] text-[0.65rem] text-slate dark:text-mist">
@@ -249,21 +248,20 @@ export default function SearchBar({ currentPath }: Props) {
         </kbd>
       </div>
 
-      {/* Dropdown results */}
+      {/* Dropdown de resultados */}
       {showDropdown && searchTerm.trim().length >= 2 && (
         <div className="absolute top-[calc(100%+0.5rem)] left-0 w-full rounded-xl border border-bone dark:border-night-edge bg-parchment/95 dark:bg-obsidian/95 backdrop-blur-xl shadow-2xl overflow-hidden flex flex-col z-[100] max-h-[400px] overflow-y-auto">
           {results.length > 0 ? (
             <div className="flex flex-col py-2">
               {results.map((result, idx) => (
-                <button
+                <a
                   key={result.id}
-                  type="button"
-                  onClick={() => handleSelect(result)}
-                  className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors text-left border-none outline-none ${
-                    idx === highlightedIndex
-                      ? "bg-lilac-mist dark:bg-depth"
-                      : "bg-transparent hover:bg-sand dark:hover:bg-coal"
-                  }`}
+                  href={buildResultHref(activeCategory, result)}
+                  onClick={() => setShowDropdown(false)}
+                  className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors text-left border-none outline-none no-underline ${idx === highlightedIndex
+                    ? "bg-lilac-mist dark:bg-depth"
+                    : "bg-transparent hover:bg-sand dark:hover:bg-coal"
+                    }`}
                 >
                   {result.image ? (
                     <img
@@ -272,8 +270,8 @@ export default function SearchBar({ currentPath }: Props) {
                       className="w-10 h-10 rounded object-cover shadow-[0_2px_8px_rgba(0,0,0,0.3)] shrink-0"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded bg-sand dark:bg-coal shrink-0 flex items-center justify-center text-lg">
-                      {config.icon}
+                    <div className="w-10 h-10 rounded bg-sand dark:bg-coal shrink-0 flex items-center justify-center text-slate/40">
+                      <Icon icon={config.icon} width={18} height={18} />
                     </div>
                   )}
                   <div className="flex flex-col overflow-hidden">
@@ -296,7 +294,7 @@ export default function SearchBar({ currentPath }: Props) {
                       </span>
                     )}
                   </div>
-                </button>
+                </a>
               ))}
             </div>
           ) : (

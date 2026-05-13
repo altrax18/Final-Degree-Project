@@ -13,7 +13,6 @@ import useHomeMixer from "../../hooks/useHomeMixer";
 // CONCEPTO: Container Component (Patrón Contenedor / Componente Inteligente)
 // QUE HACE: Actúa como el cerebro de la página. Recibe datos crudos del servidor (Astro), los filtra, formatea y los reparte a los componentes visuales "tontos" (HeroSection, HomeRailsSection...).
 // POR QUE LO USO: Cumple el principio de Separación de Responsabilidades (SoC). Si la API cambia mañana, solo tocas este archivo; el diseño de las tarjetas se queda intacto.
-// DOCUMENTACION: https://legacy.reactjs.org/docs/components-and-props.html
 
 type Props = {
   trending: TrendingItem[];
@@ -38,7 +37,7 @@ export default function HomePage({
 }: Props) {
   const safeMovies = normalizeCatalog(movies);
   const safeGames = normalizeCatalog(games);
-  
+
   const { spotlights, featureItems, rails, marqueeItems } = useHomeMixer(
     trending,
     safeMovies,
@@ -56,7 +55,7 @@ export default function HomePage({
       <HeroSection
         kicker="Alexandria"
         title="Tu universo cultural empieza aquí."
-        subtitle="Una portada viva para saltar entre música, películas y videojuegos con destacados reales, ritmo visual y caminos claros hacia cada catálogo."
+        subtitle="Tu espacio personal para explorar, coleccionar y compartir las historias, canciones y aventuras que te definen. Todo el entretenimiento en un solo lugar."
         primaryCta={{ href: "/movies", label: "Explorar cine" }}
         secondaryCta={{ href: "/music", label: "Escuchar tendencias" }}
         tertiaryCta={{ href: "/games", label: "Ver juegos" }}

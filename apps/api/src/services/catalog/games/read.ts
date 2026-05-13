@@ -3,38 +3,23 @@ import { config as loadEnv } from "dotenv";
 // CONCEPTO: Carga de Entorno por Prioridad
 // QUE HACE: Carga variables desde el .env local y luego fallback al .env raiz.
 // POR QUE LO USO: Permite ejecutar el API desde distintas rutas del monorepo sin romper credenciales.
-// DOCUMENTACION: https://github.com/motdotla/dotenv
 loadEnv();
 loadEnv({ path: "../../.env" });
 
-import { parsePositiveInteger, getCacheKey } from "../utils";
-
-// CONCEPTO: Constante de Configuracion de Resiliencia
-// QUE HACE: Limita el tiempo maximo de espera en peticiones HTTP externas.
-// POR QUE LO USO: Evita rutas colgadas cuando Twitch o IGDB responden lento.
-// DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/API/AbortController
-const EXTERNAL_REQUEST_TIMEOUT_MS = 8000;
+import {
+  parsePositiveInteger,
+  getCacheKey,
+  fetchJsonWithTimeout,
+  parseCountPayload,
+  type PaginatedCatalogResponse,
+  type CatalogCacheEntry,
+} from "../utils";
 
 // CONCEPTO: Cache In-Memory con TTL
 // QUE HACE: Reutiliza listados y detalles de juegos por una ventana de tiempo corta.
 // POR QUE LO USO: Reduce latencia y numero de llamadas repetidas a IGDB.
-// DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
 const GAMES_LIST_CACHE_TTL = 5 * 60 * 1000;
 const GAME_DETAIL_CACHE_TTL = 10 * 60 * 1000;
-
-type PaginatedCatalogResponse<T> = {
-  items: T[];
-  total: number;
-  page: number;
-  perPage: number;
-  totalPages: number;
-  genres: string[];
-};
-
-type CatalogCacheEntry = {
-  data: PaginatedCatalogResponse<any>;
-  ts: number;
-};
 
 const gamesListCache = new Map<string, CatalogCacheEntry>();
 const gameDetailCache = new Map<number, { data: any; ts: number }>();
@@ -47,26 +32,7 @@ const GAME_GENRES_CACHE_TTL = 24 * 60 * 60 * 1000;
 // CONCEPTO: Cache de Token OAuth
 // QUE HACE: Guarda el token de Twitch hasta cerca de su expiracion.
 // POR QUE LO USO: Evita pedir un token nuevo en cada request a IGDB.
-// DOCUMENTACION: https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow
 let twitchTokenCache: { token: string; expiresAt: number } | null = null;
-
-async function fetchJsonWithTimeout(url: string, init?: RequestInit) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, EXTERNAL_REQUEST_TIMEOUT_MS);
-
-  try {
-    const response = await fetch(url, {
-      ...(init ?? {}),
-      signal: controller.signal,
-    });
-    const payload = await response.json();
-    return { response, payload };
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
 
 // CONCEPTO: Traducción Dinámica (On-the-fly Translation)
 // QUE HACE: Usa la API pública de Google Translate para traducir textos del inglés al español.
@@ -87,7 +53,6 @@ async function translateToSpanish(text: string): Promise<string> {
 // CONCEPTO: Normalizacion DRY para IGDB
 // QUE HACE: Centraliza campos comunes entre listado y detalle de juegos.
 // POR QUE LO USO: Mantiene el mismo contrato del frontend en ambos endpoints.
-// DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
 async function mapIgdbBaseGameFields(game: any) {
   const translatedSummary = await translateToSpanish(
     game.summary || "Sin descripcion disponible.",
@@ -121,22 +86,6 @@ function parsePositiveGameId(rawId: string): number {
 
 function escapeApicalypseString(value: string): string {
   return value.replace(/"/g, "");
-}
-
-function parseCountPayload(payload: unknown): number {
-  if (Array.isArray(payload) && payload.length > 0) {
-    const firstItem = payload[0] as { count?: unknown };
-    if (typeof firstItem.count === "number") return firstItem.count;
-    if (typeof firstItem.count === "string") return Number(firstItem.count);
-  }
-
-  if (payload && typeof payload === "object" && "count" in payload) {
-    const countValue = (payload as { count?: unknown }).count;
-    if (typeof countValue === "number") return countValue;
-    if (typeof countValue === "string") return Number(countValue);
-  }
-
-  return 0;
 }
 
 async function getAllGameGenres(token: string) {
@@ -220,7 +169,7 @@ async function getTwitchToken() {
 
   const expiresInSeconds =
     Number.isFinite(Number(payload.expires_in)) &&
-    Number(payload.expires_in) > 0
+      Number(payload.expires_in) > 0
       ? Number(payload.expires_in)
       : 3600;
 
@@ -348,7 +297,6 @@ export async function getTrendingGames(): Promise<unknown[]> {
   // CONCEPTO: Simulacion de Tendencias (IGDB)
   // QUE HACE: Busca los juegos lanzados en los ultimos 6 meses y los ordena por su cantidad de calificaciones.
   // POR QUE LO USO: IGDB no tiene un endpoint de "trending" nativo, esta es la forma mas precisa de calcular la popularidad actual.
-  // DOCUMENTACION: https://api-docs.igdb.com/#game
   const sixMonthsAgo = Math.floor(Date.now() / 1000) - 180 * 24 * 60 * 60;
   const query = `fields name, cover.url, summary, total_rating, first_release_date, genres.name, platforms.name; where first_release_date > ${sixMonthsAgo} & cover != null; sort total_rating_count desc; limit 10;`;
 
@@ -414,9 +362,9 @@ export async function getGameByApiId(apiId: string): Promise<unknown> {
     storyline: translatedStoryline,
     screenshots: game.screenshots
       ? game.screenshots.map(
-          (screenshot: any) =>
-            `https:${screenshot.url.replace("t_thumb", "t_1080p")}`,
-        )
+        (screenshot: any) =>
+          `https:${screenshot.url.replace("t_thumb", "t_1080p")}`,
+      )
       : [],
     developer: game.involved_companies
       ? game.involved_companies[0].company.name
