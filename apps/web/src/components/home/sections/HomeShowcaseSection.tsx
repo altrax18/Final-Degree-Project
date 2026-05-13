@@ -83,7 +83,6 @@ function HomeFeatureCard({ item, index }: { item: HomeFeatureItem; index: number
 // CONCEPTO: Local State Filtering & Layout Animations
 // QUE HACE: Filtra el catálogo localmente en memoria y anima la entrada/salida de las tarjetas usando Framer Motion (`AnimatePresence`).
 // POR QUE LO USO: Permite interacciones ultra rápidas sin latencia de red, dándole a la app un nivel de respuesta y percepción "Premium".
-// DOCUMENTACION: https://www.framer.com/motion/animate-presence/
 export default function HomeShowcaseSection({
   eyebrow,
   title,
@@ -139,11 +138,10 @@ export default function HomeShowcaseSection({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
-                activeTab === tab.id
+              className={`relative rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${activeTab === tab.id
                   ? "text-screen dark:text-obsidian"
                   : "text-slate hover:text-ink dark:text-mist dark:hover:text-screen"
-              }`}
+                }`}
             >
               {activeTab === tab.id && (
                 <motion.div

@@ -51,7 +51,6 @@ type Props = {
 // CONCEPTO: UI Component Extraction (Extracción de Componentes)
 // QUE HACE: Centraliza la lógica visual de las colecciones, gestionando sus 3 estados posibles: Cargando (Skeletons), Error, y Éxito (Lista).
 // POR QUE LO USO: Previene el anti-patrón "God Component", haciendo el código más modular, fácil de leer y testear de forma aislada.
-// DOCUMENTACION: https://react.dev/learn/keeping-components-pure
 export default function QuickCollectionsCard({ collections, loading, error }: Props) {
   const visibleCollections = collections.slice(0, 4);
 

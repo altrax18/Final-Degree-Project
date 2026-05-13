@@ -30,7 +30,6 @@ const accentClassByType: Record<HeroSpotlight["accent"], string> = {
 // CONCEPTO: Above the Fold Optimization (Optimización LCP)
 // QUE HACE: Renderiza la zona superior crítica de la web priorizando la descarga de recursos visuales clave (`fetchPriority="high"`, `loading="eager"`).
 // POR QUE LO USO: Garantiza que el "Largest Contentful Paint" sea casi instantáneo, obteniendo una puntuación perfecta de rendimiento.
-// DOCUMENTACION: https://web.dev/articles/lcp
 export default function HeroSection({
   kicker,
   title,

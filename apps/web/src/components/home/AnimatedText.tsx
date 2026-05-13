@@ -4,7 +4,6 @@ import type { ElementType } from "react";
 // CONCEPTO: Componente de Presentación Animado (Typewriter)
 // QUE HACE: Renderiza texto revelando letra por letra o palabra por palabra de forma fluida.
 // POR QUE LO USO: Centraliza la lógica de Framer Motion para mantener los componentes limpios, reutilizables y sin código espagueti.
-// DOCUMENTACION: https://www.framer.com/motion/animation/#variants
 
 interface Props {
   text: string;

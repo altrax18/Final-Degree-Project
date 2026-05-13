@@ -4,7 +4,7 @@ export interface UserCollection {
   name: string;
   type: "movie" | "music" | "game";
   items: CollectionItem[];
-  createdAt: string;
+  createdAt: string | Date | null;
 }
 
 export interface CollectionItem {
@@ -14,5 +14,5 @@ export interface CollectionItem {
   title: string;
   type: "movie" | "music" | "game";
   metadata?: any;
-  createdAt: string;
+  createdAt: string | Date | null;
 }

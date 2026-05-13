@@ -15,12 +15,18 @@ import {
   getFollowers,
 } from "../services/users";
 
+// Helper para eliminar campos sensibles del usuario antes de enviarlo al cliente
+function toSafeUser(user: any) {
+  if (!user) return user;
+  const { password, ...safeUser } = user;
+  return safeUser;
+}
+
 // CONCEPTO: Modulo de Rutas de Usuario
 // QUE HACE: Agrupa todos los endpoints CRUD de usuario bajo el prefijo /api/users
 //           e incluye el endpoint de autenticacion basica (login).
 // POR QUE LO USO: Mantiene la arquitectura por modulos del backend y centraliza
 //                 toda la logica de acceso al recurso "usuario" en un solo lugar.
-// DOCUMENTACION: https://elysiajs.com/essential/route.html
 export const usersRoutes = new Elysia({ prefix: "/api/users" })
 
   // GET /api/users/search?q=text&excludeId=123 – Busca usuarios por nombre
@@ -35,8 +41,7 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
   .get("/:userId", async ({ params }) => {
     const user = await getUserById(Number(params.userId));
     if (!user) return new Response("Not found", { status: 404 });
-    const { password: _pw, ...safeUser } = user;
-    return safeUser;
+    return toSafeUser(user);
   })
 
   // POST /api/users – Registro: crea un nuevo usuario en la BD
@@ -72,7 +77,7 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         return { error: "El email ya está registrado" };
       }
 
-      // Encriptar password (usamos bcryptjs para compatibilidad con Node/Bun/Edge)
+      // Encriptar password (usamos bcryptjs)
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // Limpiar objeto para evitar enviar undefined a campos NOT NULL con default
@@ -87,13 +92,12 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
       if (profileImageUrl) insertData.profileImageUrl = profileImageUrl;
 
       const user = await createUser(insertData);
-      
+
       if (!user) {
         throw new Error("Error interno al crear el usuario en la base de datos");
       }
 
-      const { password: _pw, ...safeUser } = user;
-      return safeUser;
+      return toSafeUser(user);
     } catch (err: any) {
       console.error("Error en registro:", err);
       set.status = 500;
@@ -117,8 +121,7 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
       return { error: "Credenciales incorrectas" };
     }
 
-    const { password: _pw, ...safeUser } = user;
-    return safeUser;
+    return toSafeUser(user);
   })
 
   // PUT /api/users/:userId – Actualiza campos editables del perfil
@@ -143,7 +146,7 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
     if (email !== undefined) updateData.email = email;
     if (newsletter !== undefined) updateData.newsletter = newsletter;
     if (profileImageUrl !== undefined) updateData.profileImageUrl = profileImageUrl;
-    
+
     if (password !== undefined && password !== "") {
       updateData.password = await bcrypt.hash(password, 10);
     }
@@ -151,8 +154,7 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
     const user = await updateUser(Number(params.userId), updateData);
     if (!user) return new Response("Not found", { status: 404 });
 
-    const { password: _pw, ...safeUser } = user;
-    return safeUser;
+    return toSafeUser(user);
   })
 
   // POST /api/users/:userId/avatar – Sube un avatar y actualiza el usuario
@@ -166,11 +168,11 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
     try {
       // Obtener la URL anterior para borrarla después
       const currentUser = await getUserById(Number(params.userId));
-      
+
       // Sanitizar el nombre del archivo
       const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const filename = `${params.userId}-${Date.now()}-${sanitizedName}`;
-      
+
       const blob = await put(filename, file, { access: 'public' });
 
       // Actualizar URL en la base de datos
@@ -186,8 +188,7 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         }
       }
 
-      const { password: _pw, ...safeUser } = user;
-      return safeUser;
+      return toSafeUser(user);
     } catch (err: any) {
       console.error("Error subiendo avatar:", err);
       set.status = 500;
@@ -203,7 +204,7 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
   .delete("/:userId/avatar", async ({ params, set }) => {
     try {
       const currentUser = await getUserById(Number(params.userId));
-      
+
       if (!currentUser?.profileImageUrl) {
         set.status = 404;
         return { error: "No tienes imagen de perfil" };
@@ -222,8 +223,7 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
       const user = await updateUser(Number(params.userId), { profileImageUrl: "https://avatar.vercel.sh/default" });
       if (!user) return new Response("Not found", { status: 404 });
 
-      const { password: _pw, ...safeUser } = user;
-      return safeUser;
+      return toSafeUser(user);
     } catch (error: any) {
       console.error("Error al borrar avatar:", error);
       set.status = 500;
@@ -238,7 +238,7 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
     // Verificar password antes de borrar
     const user = await getUserById(Number(params.userId));
     if (!user) { set.status = 404; return { error: "Usuario no encontrado" }; }
-    
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       set.status = 401;

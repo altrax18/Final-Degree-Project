@@ -149,12 +149,6 @@ export default function AddToCollectionDropdown({
               })
             )}
           </div>
-          <a
-            href="/profile"
-            className={`block cursor-pointer text-center p-3 text-[10px] font-bold ${colors.text} ${colors.btnHoverBg} border-t border-bone dark:border-white/5 uppercase tracking-wider transition-colors`}
-          >
-            + Nueva Lista
-          </a>
         </div>
       )}
     </div>

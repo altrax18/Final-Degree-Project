@@ -93,14 +93,12 @@ export const chatRoutes = new Elysia({ prefix: "/api/chat" })
                 send({ type: "new_message", message: msg }, msg.id);
               }
             } catch {
-              // Transient DB error – retry on next tick
             }
           }
 
           try {
             controller.close();
           } catch {
-            /* already closed */
           }
         },
         cancel() {

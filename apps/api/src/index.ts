@@ -17,7 +17,6 @@ dotenv.config({ path: "../../.env" });
 // CONCEPTO: Composicion de Middlewares y Rutas
 // QUE HACE: Construye una unica instancia de Elysia y encadena todos los modulos del backend.
 // POR QUE LO USO: Evita duplicidad de servidores y mantiene la arquitectura por modulos.
-// DOCUMENTACION: https://elysiajs.com/essential/handler.html
 const app = new Elysia()
   .use(cors())
   .use(usersRoutes)

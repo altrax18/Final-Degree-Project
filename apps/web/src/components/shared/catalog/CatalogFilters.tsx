@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 // RESPONSABILIDAD: Componente presentacional de filtros (UI only).
 // - No ejecuta llamadas de red; notifica cambios mediante callbacks.
 // - Mantiene estado local mínimo (input de búsqueda) y delega almacenamiento global a `catalogFilterStore`.
-// DOCUMENTACION: Zustand: https://docs.pmnd.rs/zustand/introduction
-// UI guidance: accesibilidad de botones con `aria-pressed`.
+// UI guias: accesibilidad de botones con `aria-pressed`.
 
 interface CatalogFiltersProps {
   searchTerm: string;
@@ -82,11 +81,10 @@ export default function CatalogFilters({
                 type="button"
                 onClick={() => onGenreToggle(genre)}
                 aria-pressed={isSelected}
-                className={`px-4 py-2 text-xs font-bold tracking-wider uppercase transition-all duration-200 border ${
-                  isSelected
+                className={`px-4 py-2 text-xs font-bold tracking-wider uppercase transition-all duration-200 border ${isSelected
                     ? "border-ink dark:border-screen text-ink dark:text-screen bg-ink/5 dark:bg-screen/5 shadow-[0_0_15px_rgba(0,0,0,0.1)] dark:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
                     : "border-bone dark:border-night-edge text-slate dark:text-mist hover:border-ink/40 dark:hover:border-screen/40 hover:text-ink/80 dark:hover:text-screen/80 bg-transparent"
-                }`}
+                  }`}
               >
                 {genre}
               </button>

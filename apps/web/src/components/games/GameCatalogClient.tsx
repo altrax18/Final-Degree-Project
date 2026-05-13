@@ -4,7 +4,6 @@
   - Construye la query (q, page, limit, genres) y maneja la paginación en el cliente.
   - NO realiza transformaciones complejas de negocio; delega eso al servicio del backend.
   MOTIVO: Mantener separación UI <-> servicio para facilitar testing y mantenimiento.
-  DOCUMENTACION: React Query (TanStack): https://tanstack.com/query/latest
 */
 import type { Game } from "../../types/game";
 import type { CatalogPage } from "../../hooks/useCatalogQuery";

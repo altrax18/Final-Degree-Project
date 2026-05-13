@@ -60,7 +60,7 @@ export default function PublicProfile({ targetUserId }: Props) {
         .then(({ data }: any) => {
           if (data) setFollowing(data.isFollowing);
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [currentUser, targetUserId]);
 
@@ -71,7 +71,7 @@ export default function PublicProfile({ targetUserId }: Props) {
         .then(({ data }: any) => {
           if (data) setFollowersCount(Array.isArray(data) ? data.length : 0);
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [targetUserId, following]);
 
@@ -80,7 +80,7 @@ export default function PublicProfile({ targetUserId }: Props) {
       alert("Debes iniciar sesión para enviar mensajes");
       return;
     }
-    // Dispatch event to open chat window
+    // Dispatch event para abrir chat
     window.dispatchEvent(
       new CustomEvent("open-chat", {
         detail: { targetUserId },
@@ -168,7 +168,7 @@ export default function PublicProfile({ targetUserId }: Props) {
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-ink/[0.04] dark:bg-screen/[0.04] border border-bone dark:border-night-edge text-[11px] font-bold uppercase tracking-wider text-slate dark:text-mist">
               <span className="text-ink dark:text-screen">{totalCount}</span> Colecciones
             </div>
-            
+
             {musicCount > 0 && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amethyst/10 border border-amethyst/20 text-[10px] font-bold uppercase tracking-wider text-amethyst">
                 <Icon icon="tabler:music" className="w-3.5 h-3.5" />
@@ -202,11 +202,10 @@ export default function PublicProfile({ targetUserId }: Props) {
               <button
                 onClick={handleFollowToggle}
                 disabled={checkingFollow}
-                className={`px-5 py-2 rounded-full border text-sm font-bold uppercase tracking-wide hover:scale-105 transition-all duration-200 cursor-pointer flex items-center gap-2 ${
-                  following
+                className={`px-5 py-2 rounded-full border text-sm font-bold uppercase tracking-wide hover:scale-105 transition-all duration-200 cursor-pointer flex items-center gap-2 ${following
                     ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20"
                     : "border-bone dark:border-white/15 bg-ink/[0.06] dark:bg-white/[0.06] text-ink dark:text-screen hover:bg-ink/[0.12] dark:hover:bg-white/[0.12]"
-                }`}
+                  }`}
               >
                 <Icon icon={following ? "tabler:user-check" : "tabler:user-plus"} className="w-4 h-4" />
                 {following ? "Siguiendo" : "Seguir"}
@@ -223,7 +222,7 @@ export default function PublicProfile({ targetUserId }: Props) {
               </button>
             </>
           ) : (
-             <a
+            <a
               href="/profile"
               className="px-5 py-2 rounded-full border border-bone dark:border-white/15 bg-ink/[0.06] dark:bg-white/[0.06]
                          text-ink dark:text-screen text-sm font-bold uppercase tracking-wide

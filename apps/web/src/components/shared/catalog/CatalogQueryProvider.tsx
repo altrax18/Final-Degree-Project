@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // - Proporciona una instancia de `QueryClient` con opciones coherentes para todos los catálogos.
 // - Evita que cada cliente cree su propia instancia repetida (DRY).
 // POR QUÉ: Centralizar la configuración de React Query facilita cambios y consistencia.
-// DOCUMENTACIÓN: https://tanstack.com/query/latest
 
 const defaultQueryClient = new QueryClient({
   defaultOptions: {

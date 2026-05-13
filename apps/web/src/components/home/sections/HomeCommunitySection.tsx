@@ -27,7 +27,6 @@ export default function HomeCommunitySection() {
     // CONCEPTO: Client-Side Rendering (CSR) / Patrón "Isla Dinámica"
     // QUE HACE: Solicita las reseñas recientes desde el cliente al montarse el componente, de forma asíncrona.
     // POR QUE LO USO: La actividad de la comunidad cambia constantemente; incrustarla estáticamente en el servidor (SSG) mostraría datos viejos.
-    // DOCUMENTACION: https://react.dev/reference/react/useEffect#fetching-data-with-effects
     fetch("/recent-reviews")
       .then((res) => res.json())
       .then((data) => {
@@ -63,7 +62,7 @@ export default function HomeCommunitySection() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {reviews.slice(0, 3).map((review, index) => {
-            const href = review.itemType && review.itemApiId 
+            const href = review.itemType && review.itemApiId
               ? `/${review.itemType === "movie" ? "movies" : review.itemType === "game" ? "games" : "music"}/${review.itemApiId}`
               : undefined;
 
@@ -96,18 +95,18 @@ export default function HomeCommunitySection() {
                   </div>
                   <p className="line-clamp-2 text-xs leading-relaxed text-slate dark:text-mist">
                     Sobre <span className="font-semibold text-ink dark:text-screen">{
-                      review.media?.title || 
-                      (review.itemType === "movie" ? "una película" : 
-                       review.itemType === "game" ? "un juego" : 
-                       review.itemType === "music" ? "un álbum" : 
-                       "un elemento del catálogo")
+                      review.media?.title ||
+                      (review.itemType === "movie" ? "una película" :
+                        review.itemType === "game" ? "un juego" :
+                          review.itemType === "music" ? "un álbum" :
+                            "un elemento del catálogo")
                     }</span>
                   </p>
                   <p className="line-clamp-4 text-sm italic leading-relaxed text-ink/80 dark:text-screen/80">
                     "{review.content}"
                   </p>
                 </div>
-              
+
                 <div className="mt-5 flex items-center justify-between border-t border-bone pt-3 transition-colors group-hover:border-amethyst/30 dark:border-night-edge dark:group-hover:border-electric-sky/30">
                   <IconText icon="tabler:star-filled" text={`${review.rating || 0}/5`} className="text-xs font-semibold text-amethyst dark:text-electric-sky" iconSize={16} />
                   <span className="text-[0.65rem] font-semibold text-slate transition-colors group-hover:text-amethyst dark:text-mist dark:group-hover:text-electric-sky">Ver reseña &rarr;</span>

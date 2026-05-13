@@ -4,7 +4,6 @@ import { PAGE_SIZE_OPTIONS } from "./constants";
 // RESPONSABILIDAD:
 // - Renderiza el selector de tamaño de página y el botón de limpiar búsqueda.
 // - Evita duplicar el mismo bloque de UI en juegos y películas.
-// DOCUMENTACION: React (componentes) https://react.dev/learn/your-first-component
 
 type Props = {
   pageSize: number;

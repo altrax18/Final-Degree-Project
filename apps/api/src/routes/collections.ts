@@ -22,7 +22,6 @@ type CollectionItemBody = {
 };
 
 export const collectionsRoutes = new Elysia({ prefix: "/api/users/:userId" })
-  // Collections
   .get("/collections", async ({ params }) => {
     return getCollectionsByUserId(Number(params.userId));
   })
@@ -45,7 +44,6 @@ export const collectionsRoutes = new Elysia({ prefix: "/api/users/:userId" })
     if (!collection) return new Response("Not found", { status: 404 });
     return collection;
   })
-  // Collection items
   .get("/collections/:collectionId/items", async ({ params }) => {
     return getItemsByCollectionId(Number(params.collectionId));
   })

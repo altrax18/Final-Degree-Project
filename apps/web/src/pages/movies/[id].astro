@@ -8,7 +8,6 @@ import type { Movie } from "../../types/movie";
 // CONCEPTO: Caché HTTP SSR en Rutas Dinámicas
 // QUE HACE: Guarda el HTML generado del detalle de la película en memoria temporalmente.
 // POR QUE LO USO: Hace que la View Transition al entrar a la película sea totalmente instantánea.
-// DOCUMENTACION: https://docs.astro.build/en/guides/routing/#http-response-headers
 Astro.response.headers.set(
   "Cache-Control",
   "public, max-age=60, stale-while-revalidate=120",
@@ -17,7 +16,6 @@ Astro.response.headers.set(
 // CONCEPTO: Rutas Dinamicas con Astro.params
 // QUE HACE: Lee el parametro [id] de la URL para resolver la pelicula solicitada.
 // POR QUE LO USO: Permite una sola plantilla reutilizable para todos los detalles de peliculas.
-// DOCUMENTACION: https://docs.astro.build/en/guides/routing/#dynamic-routes
 const { id } = Astro.params;
 
 let movie: Movie | null = null;
@@ -27,7 +25,6 @@ try {
   // CONCEPTO: Guard Clause de Parametro
   // QUE HACE: Corta la ejecucion si falta el id en la URL.
   // POR QUE LO USO: Evita llamadas invalidas al backend y simplifica el control de errores.
-  // DOCUMENTACION: https://developer.mozilla.org/en-US/docs/Glossary/Guard
   if (!id) {
     throw new Error("ID de pelicula no proporcionado");
   }
@@ -35,7 +32,6 @@ try {
   // CONCEPTO: Carga de Datos en SSR
   // QUE HACE: Trae en servidor el detalle completo antes de pintar la pagina.
   // POR QUE LO USO: Mejora SEO y reduce parpadeos de contenido.
-  // DOCUMENTACION: https://docs.astro.build/en/guides/data-fetching/
   const { data, error } = await serverApi.api.movies({ apiId: id }).get();
   if (error)
     throw new Error(
@@ -55,7 +51,7 @@ try {
     ? `${movie.title} - Detalles | Alexandria`
     : "Error | Alexandria"}
 >
-  <div class="max-w-7xl mx-auto px-4 pt-6 pb-2">
+  <div class="mb-6">
     <a
       href="/movies"
       class="inline-flex items-center gap-2 text-sm text-slate dark:text-mist hover:text-ink dark:hover:text-screen transition-colors group"
@@ -94,7 +90,6 @@ try {
       // CONCEPTO: Hidratacion de Isla React
       // QUE HACE: Activa interacciones del detalle de pelicula en cliente.
       // POR QUE LO USO: Combina SSR inicial con UX interactiva.
-      // DOCUMENTACION: https://docs.astro.build/en/reference/directives-reference/#clientload
       <MovieDetailsClient client:load movie={movie} />
     )
   }

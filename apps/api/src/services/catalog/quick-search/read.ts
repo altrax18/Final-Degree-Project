@@ -21,7 +21,7 @@ export async function performQuickSearch(
   if (!cleanTerm || cleanTerm.length < 2) return [];
 
   if (category === "music") {
-    // Lanza busqueda de canciones y albumes concurrentemente (igual que hacia el front)
+    // Lanza busqueda de canciones y albumes concurrentemente 
     const [songsResponse, albumsResponse] = await Promise.all([
       searchMusic(cleanTerm, "9"),
       searchAlbums(cleanTerm, "6")
@@ -51,10 +51,10 @@ export async function performQuickSearch(
       trackCount: r.trackCount
     }));
 
-    // Lógica de mezclado y ordenado copiada del SearchBar.tsx original
+    // Lógica de mezclado y ordenado 
     const mixed = [...songsMapped, ...albumsMapped];
     const lowerTerm = cleanTerm.toLowerCase();
-    
+
     mixed.sort((a, b) => {
       const tA = a.title.toLowerCase();
       const tB = b.title.toLowerCase();
@@ -72,10 +72,10 @@ export async function performQuickSearch(
     const response = await browseMovies({ q: cleanTerm, limit: "12" });
     // En browseMovies la respuesta tipada tiene una propiedad .items
     const rawItems = Array.isArray(response) ? response : (response as any).items ?? [];
-    
+
     return rawItems.map((r: any): SearchResult => {
-      const year = r.firstReleaseDate 
-        ? new Date(r.firstReleaseDate).getFullYear().toString() 
+      const year = r.firstReleaseDate
+        ? new Date(r.firstReleaseDate).getFullYear().toString()
         : undefined;
       return {
         id: String(r.id),

@@ -7,8 +7,6 @@ import { api } from "../lib/api";
 // RESPONSABILIDAD:
 // - Encapsula la lógica de consulta paginada para los catálogos (games/movies/music).
 // - Lanza la petición a través del cliente unificado de Eden y expone la data a React Query.
-// DOCUMENTACION RELEVANTE:
-// - React Query: https://tanstack.com/query/latest
 
 export type CatalogPage<T> = {
   items: T[];
@@ -79,10 +77,10 @@ export function useCatalogQuery<T>(
     // Solo usamos initialData cuando no hay filtros activos y estamos en la primera página.
     initialData:
       initialData &&
-      searchTerm.trim().length === 0 &&
-      selectedGenres.length === 0 &&
-      currentPage === 1 &&
-      pageSize === initialData.perPage
+        searchTerm.trim().length === 0 &&
+        selectedGenres.length === 0 &&
+        currentPage === 1 &&
+        pageSize === initialData.perPage
         ? initialData
         : undefined,
     // CONCEPTO: Patrón de Paginación Fluida (Keep Previous Data)

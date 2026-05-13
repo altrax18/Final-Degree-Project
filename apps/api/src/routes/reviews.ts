@@ -4,7 +4,7 @@ import { reviews, users } from "../db/schema";
 import { eq, desc, and } from "drizzle-orm";
 
 export const reviewsRoutes = new Elysia({ prefix: "/api/reviews" })
-  // GET reviews for an item
+  // GET reviews por id
   .get("/:itemType/:itemApiId", async ({ params }) => {
     const { itemType, itemApiId } = params;
 
@@ -32,7 +32,7 @@ export const reviewsRoutes = new Elysia({ prefix: "/api/reviews" })
 
     return itemReviews;
   })
-  // POST a new review
+  // POST nueva review
   .post(
     "/",
     async ({ body, set }) => {
@@ -64,7 +64,7 @@ export const reviewsRoutes = new Elysia({ prefix: "/api/reviews" })
       }),
     }
   )
-  // DELETE a review
+  // DELETE review por id
   .delete("/:id", async ({ params, set }) => {
     try {
       const reviewId = parseInt(params.id);

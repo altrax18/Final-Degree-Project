@@ -3,8 +3,6 @@
   - Construye la query (q, page, limit, genres) y maneja la paginación en el cliente.
   - NO realiza filtrados complejos que dependan de TMDB; el servidor expone resultados paginados.
   MOTIVO: Evitar duplicar lógica del backend y mantener la UI enfocada en interacción y render.
-  DOCUMENTACION: React Query (TanStack): https://tanstack.com/query/latest
-  TMDB discover docs: https://developers.themoviedb.org/3/discover/movie
 */
 import type { Movie } from "../../types/movie";
 import type { CatalogPage } from "../../hooks/useCatalogQuery";

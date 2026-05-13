@@ -27,7 +27,7 @@ export default function ProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   const collectionHelpers = useCollections();
   const { collections } = collectionHelpers;
 
@@ -109,7 +109,7 @@ export default function ProfilePage() {
             </section>
           )}
 
-          {/* Zona de peligro: solo con sesion activa */}
+          {/* Borrado de cuenta */}
           {user && (
             <section className="pt-6 border-t border-bone dark:border-night-edge">
               <button

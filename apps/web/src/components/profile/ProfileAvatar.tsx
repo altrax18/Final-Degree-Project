@@ -33,7 +33,7 @@ export default function ProfileAvatar({ src, username, isUploading, isDeleting, 
     if (file && onUpload) {
       onUpload(file);
     }
-    // Clear the input value so the same file can be selected again
+    // Limpia el valor de la entrada de archivos para que se pueda volver a seleccionar el mismo archivo
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
